@@ -137,6 +137,7 @@ void ObjectiveCBinary::loadClasses() {
     //Iterate over the classes that are defined in this file
     for (unsigned Idx = 0; Idx < ClassListData.size(); Idx += 8) {
         uint64_t DataAddress = *(uint64_t*)ClassListData.slice(Idx).data();
+        errs() << "[+]DataAddress: 0x" << utohexstr(DataAddress) << "\n";
         if (!isAddressInSection(DataAddress, DataSection)) {
             llvm_unreachable("Class does not point to objc_data");
             continue;
@@ -150,6 +151,10 @@ void ObjectiveCBinary::loadClasses() {
     object::section_iterator ClassRefsSection = getSectionIterator(SEC_CLASSREFS);
     ClassRefsSection->getContents(Content);
     ArrayRef<uint8_t> ClassRefs((uint8_t*) Content.data(), Content.size());
+    
+    object::section_iterator CStringSection = getSectionIterator(SEC_CSTRING);
+    CStringSection->getContents(Content);
+    ArrayRef<uint8_t> CString((uint8_t*) Content.data(), Content.size());
 
     object::section_iterator ConstSection = getSectionIterator(SEC_CONST);
     ConstSection->getContents(Content);
@@ -162,6 +167,7 @@ void ObjectiveCBinary::loadClasses() {
     for (unsigned Idx = 0; Idx < ClassRefs.size(); Idx += 8) {
         uint64_t ObjcDataAddress = *(uint64_t*)ClassRefs.slice(Idx).data();
         uint64_t ClassRefAddress = ClassRefsSection->getAddress() + Idx;
+        (errs() << "[+]ClassRefAddress: 0x" << utohexstr(ClassRefAddress) << "\n");
         if (!ObjcDataAddress) {
             if (BindInfo[ClassRefAddress].size()) {
                 StringRef BindClassname = BindInfo[ClassRefAddress];
@@ -173,14 +179,21 @@ void ObjectiveCBinary::loadClasses() {
         if (!isData(ObjcDataAddress))
             continue;
         uint64_t ConstAddress = *(uint64_t*)Data.slice(ObjcDataAddress - DataSection->getAddress() + 32).data();
+        (errs() << "[+]ConstAddress: 0x" << utohexstr(ConstAddress) << "\n");
+        if (ConstAddress & 1) ConstAddress -= 1;
         if (!isConst(ConstAddress)) {
             llvm_unreachable("this should not happen...");
         }
         uint64_t ClassNameAddress = *(uint64_t*)Const.slice(ConstAddress - ConstSection->getAddress() + 24).data();
-        if (!isAddressInSection(ClassNameAddress, getSectionIterator(SEC_CLASSNAME))) {
+        StringRef Classname;
+        (errs() << "[+]ClassNameAddress: 0x" << utohexstr(ClassNameAddress) << "\n");
+        if (isAddressInSection(ClassNameAddress, ClassnameSection)) {
+            Classname = (const char*)Classnames.slice(ClassNameAddress - ClassnameSection->getAddress()).data();
+        } else if(isAddressInSection(ClassNameAddress, CStringSection)) {
+            Classname = (const char*)Classnames.slice(ClassNameAddress - CStringSection->getAddress()).data();
+        } else {
             llvm_unreachable("no classname?");
         }
-        StringRef Classname = (const char*)Classnames.slice(ClassNameAddress - ClassnameSection->getAddress()).data();
         this->ClassRefs[ClassNameAddress] = Classname;
         this->ClassRefs[ClassRefsSection->getAddress() + Idx] = Classname;
     }
@@ -270,6 +283,7 @@ void ObjectiveCBinary::doBinding() {
 
 void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
     object::section_iterator ConstSection = getSectionIterator(SEC_CONST);
+    object::section_iterator CStringSection = getSectionIterator(SEC_CSTRING);
     object::section_iterator ObjcDataSection = getSectionIterator(SEC_OBJC_DATA);
     object::section_iterator ClassnameSection = getSectionIterator(SEC_CLASSNAME);
     object::section_iterator DataSection = getSectionIterator(SEC_DATA);
@@ -278,6 +292,9 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
 
     ObjcDataSection->getContents(Content);
     ArrayRef<uint8_t> ObjcDataData((uint8_t*) Content.data(), Content.size());
+
+    CStringSection->getContents(Content);
+    ArrayRef<uint8_t> CStringData((uint8_t*) Content.data(), Content.size());
 
     ConstSection->getContents(Content);
     ArrayRef<uint8_t> ConstData((uint8_t*) Content.data(), Content.size());
@@ -291,11 +308,18 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
     uint64_t ISA = *(uint64_t*) ObjcDataData.slice(DataAddress - ObjcDataSection->getAddress() + ISA_OFFSET).data();
     uint64_t Super = *(uint64_t*) ObjcDataData.slice(DataAddress - ObjcDataSection->getAddress() + SUPER_OFFSET).data();
     uint64_t Data = *(uint64_t*) ObjcDataData.slice(DataAddress - ObjcDataSection->getAddress() + DATA_OFFSET).data();
-
     assert(isAddressInSection(Data, ConstSection));
 
+    //It's Swift.
+    bool isSwiftClass = (bool)(Data & 1);
+    if (isSwiftClass) {
+        Data = Data - 1;
+    }
+
     uint64_t NamePtr = *(uint64_t*)ConstData.slice(Data - ConstSection->getAddress() + NAME_OFFSET).data();
-    assert(isAddressInSection(NamePtr, ClassnameSection));
+    errs() << "[+]NamePtr: 0x" << utohexstr(NamePtr) << "\n";
+    //if (isSwiftClass) assert(0);
+    assert((isAddressInSection(NamePtr, ClassnameSection) || isAddressInSection(NamePtr, CStringSection)));
     uint64_t MethodsPtr = *(uint64_t*)ConstData.slice(Data - ConstSection->getAddress() + METHOD_OFFSET).data();
     assert(!MethodsPtr || isAddressInSection(MethodsPtr, ConstSection));
     uint64_t IVARsPtr = *(uint64_t*)ConstData.slice(Data - ConstSection->getAddress() + IVAR_OFFSET).data();
@@ -303,7 +327,12 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
     uint64_t ProtocolsListPtr = *(uint64_t*)ConstData.slice(Data - ConstSection->getAddress() + PROTOCOL_OFFSET).data();
     assert(!ProtocolsListPtr || isAddressInSection(ProtocolsListPtr, ConstSection));
 
-    StringRef Classname = (const char*)ClassnameData.slice(NamePtr - ClassnameSection->getAddress()).data();
+    StringRef Classname;
+    if (isAddressInSection(NamePtr, ClassnameSection)) {
+        Classname = (const char*)ClassnameData.slice(NamePtr - ClassnameSection->getAddress()).data();
+    } else {
+        Classname = (const char*)ClassnameData.slice(NamePtr - CStringSection->getAddress()).data();
+    }
 
     ClassNames[DataAddress] = Classname;
 
@@ -332,8 +361,13 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
         uint64_t SuperData = *(uint64_t*) ObjcDataData.slice(Super - ObjcDataSection->getAddress() + DATA_OFFSET).data();
         assert(isAddressInSection(SuperData, ConstSection));
         uint64_t SuperNamePtr = *(uint64_t*)ConstData.slice(SuperData - ConstSection->getAddress() + NAME_OFFSET).data();
-        assert(isAddressInSection(NamePtr, ClassnameSection));
-        StringRef SuperClassname = (const char*)ClassnameData.slice(SuperNamePtr - ClassnameSection->getAddress()).data();
+        assert((isAddressInSection(NamePtr, ClassnameSection) || isAddressInSection(NamePtr, CStringSection)));
+        StringRef SuperClassname;
+        if (isAddressInSection(NamePtr, ClassnameSection)) {
+            SuperClassname = (const char*)ClassnameData.slice(NamePtr - ClassnameSection->getAddress()).data();
+        } else {
+            SuperClassname = (const char*)ClassnameData.slice(NamePtr - CStringSection->getAddress()).data();
+        }
         ClassPtr->setSuperclass(SuperClassname);
     }
 
@@ -388,17 +422,32 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
     }
 
     auto parseProtocol = [&](uint64_t ProtocolPtr) {
-        uint64_t ProtocolNamePtr = *(uint64_t *) DataData.slice(ProtocolPtr - DataSection->getAddress() + 8).data();
+        errs() << "[+]ProtocolPtr: 0x" << utohexstr(ProtocolPtr) << "\n";
+        //If ProtocolPtr is in ConstSection, then the ptr is pointed into a string in __cstring section.
+        //Otherwise it's in DataSection and pointing into __objc_classname section.
+        //But why?
+        ArrayRef<uint8_t> SectionData;
+        uint64_t SectionAddress;
+        uint64_t ProtocolNamePtr;
+        if (isConst(ProtocolPtr)) {
+            SectionData = ConstData;
+            SectionAddress = ConstSection->getAddress();
+            ProtocolNamePtr = *(uint64_t*) SectionData.slice(ProtocolPtr - SectionAddress + 8).data();
+        }else {
+            SectionData = DataData;
+            SectionAddress = DataSection->getAddress();
+            ProtocolNamePtr = *(uint64_t *) SectionData.slice(ProtocolPtr - SectionAddress + 8).data();
+        }
         StringRef ProtocolName = getString(ProtocolNamePtr);
 
 
         ObjectiveC::Protocol aProtocol(ProtocolName);
-        uint64_t ProtocolsListPtr = *(uint64_t *) DataData.slice(ProtocolPtr - DataSection->getAddress() + 16).data();
-        uint64_t InstanceMethodsPtr = *(uint64_t *) DataData.slice(ProtocolPtr - DataSection->getAddress() + 24).data();
-        uint64_t ClassMethodsPtr = *(uint64_t *) DataData.slice(ProtocolPtr - DataSection->getAddress() + 32).data();
-        uint64_t OptInstanceMethodsPtr = *(uint64_t *) DataData.slice(ProtocolPtr - DataSection->getAddress() + 40).data();
-        uint64_t OptClassMethodsPtr = *(uint64_t *) DataData.slice(ProtocolPtr - DataSection->getAddress() + 48).data();
-        uint64_t SignatureStartPtr = *(uint64_t *) DataData.slice(ProtocolPtr - DataSection->getAddress() + 72).data();
+        uint64_t ProtocolsListPtr = *(uint64_t *) SectionData.slice(ProtocolPtr - SectionAddress + 16).data();
+        uint64_t InstanceMethodsPtr = *(uint64_t *) SectionData.slice(ProtocolPtr - SectionAddress + 24).data();
+        uint64_t ClassMethodsPtr = *(uint64_t *) SectionData.slice(ProtocolPtr - SectionAddress + 32).data();
+        uint64_t OptInstanceMethodsPtr = *(uint64_t *) SectionData.slice(ProtocolPtr - SectionAddress + 40).data();
+        uint64_t OptClassMethodsPtr = *(uint64_t *) SectionData.slice(ProtocolPtr - SectionAddress + 48).data();
+        uint64_t SignatureStartPtr = *(uint64_t *) SectionData.slice(ProtocolPtr - SectionAddress + 72).data();
         ClassPtr->addProtocol(ProtocolName.str());
 
         uint64_t signaturesIdx = 0;
@@ -432,6 +481,7 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
     };
 
     if (ProtocolsListPtr) {
+        //errs() << "[+]ProtocolsListPtr: 0x" << utohexstr(ProtocolsListPtr) << "\n";
         uint64_t ProtocolsCount = *(uint64_t *) ConstData.slice(ProtocolsListPtr - ConstSection->getAddress() ).data();
         uint64_t index = 8;
         for (unsigned i = 0; i < ProtocolsCount; ++i) {
@@ -527,7 +577,7 @@ object::section_iterator ObjectiveCBinary::getSectionIterator(StringRef Name) {
             return S_it;
         }
     }
-    DEBUG(errs() << "Can't find section: " << Name << "\n");
+    (errs() << "Can't find section: " << Name << "\n");
     return MachO->section_end();
 }
 
