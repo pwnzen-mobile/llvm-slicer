@@ -735,7 +735,7 @@ std::deque<std::string> ObjectiveCBinary::getMethodCandidates(StringRef Type, St
         return M;
     }
     assert(Base);
-    if (Base->getSuperclass().size()) {
+    if (Base->getSuperclass().size() && (Base->getSuperclass() != Type.data())) {
 //        ClassPtr_t Class = std::static_pointer_cast<ObjectiveC::Class>(Base);
         std::deque<std::string> M = getMethodCandidates(Base->getSuperclass(), Selector, Meta);
         std::stringstream ss;
