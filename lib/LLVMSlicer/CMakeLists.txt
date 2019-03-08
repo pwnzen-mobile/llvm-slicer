@@ -13,4 +13,6 @@ Backtrack/Path.cpp
 Backtrack/Rule.cpp
 Backtrack/Constraint.cpp
 Backtrack/Backtrack.cpp
+IntraDFA/FunctionIntraDFA.cpp
+IntraDFA/IntraDFA.cpp
 )

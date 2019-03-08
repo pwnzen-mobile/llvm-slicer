@@ -2,6 +2,7 @@
 #define LLVM_NONVOLATILEREGISTERSPASS_H
 
 #include "llvm/Pass.h"
+#include "llvm/IR/Instruction.h"
 
 namespace llvm {
     class NonVolatileRegistersPass : public ModulePass {
@@ -16,7 +17,7 @@ namespace llvm {
         bool hasCall(const BasicBlock &BB);
         bool isNonVolatile(uint64_t Idx);
         bool isStack(uint64_t Idx);
-        void replaceLoaded(Instruction *StoreInst);
+        void replaceLoaded(llvm::Instruction *StoreInst);
     };
 }
 

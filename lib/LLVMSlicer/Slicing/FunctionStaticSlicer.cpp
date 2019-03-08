@@ -43,7 +43,7 @@
 #include "FunctionStaticSlicer.h"
 #include "ExternalHandler.h"
 
-//#define DEBUG_SLICE
+#define DEBUG_SLICE
 //#define DEBUG_SLICING
 //#define DEBUG_RC
 
@@ -171,6 +171,7 @@ void InsInfo::handleVariousFuns(const ptr::PointsToSets &PS, const CallInst *C) 
     if (!F) {
       handleCall(this, *F_it, PS);
     } else {
+      DEBUG(errs() << "[+]handle various function: " << F->getName() << "\n");
       handleCall(this, F->getName(), PS);
     }
   }
@@ -616,7 +617,6 @@ InsInfo::InsInfo(const Instruction *i, const ptr::PointsToSets &PS,
     }
     case Instruction::Call: {
       const CallInst *C = (const CallInst *) i;
-
       if (getSuccInBlock(i)->getName() == "LR_8188") {
         assert(true);
       }
@@ -941,7 +941,7 @@ namespace {
 }
 
 static RegisterPass<FunctionSlicer> X("slice", "Slices the code");
-char FunctionSlicer::ID;
+char FunctionSlicer::ID = 0;
 
 FunctionStaticSlicer::~FunctionStaticSlicer() {
   for (InsInfoMap::const_iterator I = insInfoMap.begin(), E = insInfoMap.end();
@@ -1026,6 +1026,7 @@ void FunctionStaticSlicer::initializeInfos() {
 //                }
 //            }
 //        }
+    DEBUG(errs() << "[+]Param->second: "<< Params_it->second->getName() << "\n");
     InsInfo *info = getInsInfo(Params_it->second);
     info->addREF(ptr::PointsToSets::Pointee(Params_it->second, -1), 1);
   }
@@ -1037,7 +1038,7 @@ void FunctionStaticSlicer::initializeInfos() {
       CallInst *call = (CallInst *) &*I_it;
       if (call->getCalledFunction() &&
           (call->getCalledFunction()->isIntrinsic() || call->getCalledFunction()->isDeclaration())) {
-
+        DEBUG(errs() << "call->getCalledFunction: " << call->getCalledFunction()->getName() << "\n");
         //Add a 'self-REF' for a parameter/return value that is defined by an external function
         InsInfo *callInfo = getInsInfo(call);
         for (ValSet::const_iterator DEF_it = callInfo->DEF_begin(); DEF_it != callInfo->DEF_end(); ++DEF_it) {
@@ -1778,7 +1779,7 @@ void FunctionStaticSlicer::calculateStaticSlice() {
 //    if (!slicerLock.try_lock())
 //        return;
   slicerLock.lock();
-  DEBUG(errs() << "Slice: " << fun.getName() << "\n");
+  (errs() << "Slice: " << fun.getName() << "\n");
 #ifdef DEBUG_SLICE
   errs() << __func__ << " ============ BEG\n";
 #endif
@@ -1899,7 +1900,7 @@ void FunctionStaticSlicer::removeUndefBranches(ModulePass *MP, Function &F) {
 
 /**
  * removeUndefCalls -- remove calls with undef function
- *
+ * Will we need to handle each called function as UndefCall ?
  * These are irrelevant to the code, so may be removed completely.
  */
 void FunctionStaticSlicer::removeUndefCalls(ModulePass *MP, Function &F) {

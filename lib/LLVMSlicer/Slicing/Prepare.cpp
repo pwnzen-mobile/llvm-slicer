@@ -286,6 +286,7 @@ void Prepare::findInitFuns(Module &M, const ptr::PointsToSets &PS) {
 }
 
 bool Prepare::runOnModule(Module &M) {
+  errs() << "[+]Start Prepare Pass\n";
   ptr::PointsToSets PS;
   {
     ptr::ProgramStructure P(M);

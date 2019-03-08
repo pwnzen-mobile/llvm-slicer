@@ -1,5 +1,6 @@
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+/*
+ * slice on module, but when
+ */
 
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -21,25 +22,25 @@
 #include "../Callgraph/Callgraph.h"
 #include "../Modifies/Modifies.h"
 #include "../PointsTo/PointsTo.h"
-#include "FunctionStaticSlicer.h"
+#include "./FunctionIntraDFA.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/LLVMSlicer/StaticSlicer.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/Format.h"
 
-#define DEBUG_TYPE "slicer"
-// #define DUMP_CALLS
+#define DEBUG_TYPE "intra-dfa"
 
 using namespace llvm;
+using namespace llvm::slicing;
+using namespace llvm::dfa;
 
 static cl::opt<std::string>
     ReportFilename("r", cl::desc("Path to HTML report output file"),
                    cl::value_desc("report"));
 
 namespace llvm {
-namespace slicing {
+namespace dfa {
 namespace detail {
-
 typedef ptr::PointsToSets::Pointee Pointee;
 typedef std::map<const Pointee, const Pointee> ParamsToArgs;
 typedef std::set<Pointee> RelevantSet;
@@ -62,22 +63,11 @@ static void getRelevantVarsAtCall(const CallInst *C, const Function *F,
                                   const ptr::PointsToSets &PS,
                                   ValSet::const_iterator b,
                                   const ValSet::const_iterator &e,
-                                  RelevantSet &out, FunctionStaticSlicer *FSS,
+                                  RelevantSet &out, FunctionIntraDFA *FIDFA,
                                   InsInfo *entry, InsInfo::IncMap_t &RCInc,
                                   InsInfo::SliceInfoSetMap_t &structSliceInfos,
                                   InsInfo::ValMapSet_t &RCSources) {
   assert(!isInlineAssembly(C) && "Inline assembly is not supported!");
-  DEBUG(errs() << C->getParent()->getParent()->getName() << " -> "
-               << F->getName() << "\n");
-
-  if (C->getParent()->getParent()->getName() ==
-      "-[SOEncryptionModel encryptData:withSymetricKey:]") {
-    assert(true);
-  }
-
-  //    if (C->getParent()->getParent()->getName() == "_EXTERNAL_")
-  //        return;
-
   ParamsToArgs toArgs;
   fillParamsToArgs(C, F, toArgs);
 
@@ -85,16 +75,6 @@ static void getRelevantVarsAtCall(const CallInst *C, const Function *F,
       DPP->getParameterRegisterIndexes((Function *)F);
 
   for (; b != e; ++b) {
-    //        if (Instruction *Ref = dyn_cast<Instruction>((Value*)b->first)) {
-    //            if (Ref->getOpcode() == Instruction::Store) {
-    //                out.insert(ptr::PointsToSets::Pointee(Ref->getOperand(0),
-    //                -1));
-    //            }
-    //        }
-    //        if (entry->getRCInc(*b) >= INC_MAX) {
-    //            continue;
-    //        }
-
     const Value *loc =
         ptr::getAndersen()->getNodeFactory().getLocation(b->first);
     if (loc) {
@@ -145,27 +125,6 @@ static void getRelevantVarsAtCall(const CallInst *C, const Function *F,
       }
     }
 
-    //        for (DetectParametersPass::ParameterAccessPairSet_t::iterator Pair
-    //        = Ret.begin(); Pair != Ret.end(); ++Pair) {
-    //            const ptr::PointsToSets::PointsToSet &PT =
-    //            ptr::getPointsToSet(Pair->second, PS); for
-    //            (ptr::PointsToSets::PointsToSet::iterator P_it = PT.begin();
-    //            P_it != PT.end(); ++P_it) {
-    //                P_it->first->dump();
-    ////                if (P_it->first == b->first) {
-    //                    DetectParametersPass::UserSet_t Pre =
-    //                    DetectParametersPass::getRegisterValuesBeforeCall(Pair->first,
-    //                    (Instruction*)C, true); for
-    //                    (DetectParametersPass::UserSet_t::iterator Pre_it =
-    //                    Pre.begin(); Pre_it != Pre.end(); ++Pre_it) {
-    //                        (*Pre_it)->dump();
-    //                        out.insert(ptr::PointsToSets::Pointee(*Pre_it,
-    //                        -1));
-    ////                    }
-    //                }
-    //            }
-    //        }
-
     const InsInfo::ValSet_t src = entry->getRCSource(*b);
     if (src.size() == 0) {
       continue;
@@ -178,39 +137,6 @@ static void getRelevantVarsAtCall(const CallInst *C, const Function *F,
 
     if (foundParameter)
       continue;
-
-    //
-    //        bool hasDEF = false;
-    //
-    //        for (const_inst_iterator I_it = inst_begin(callingFunction); I_it
-    //        != inst_end(callingFunction) && !hasDEF; ++I_it) {
-    //            InsInfo *info = FSS->getInsInfo(&*I_it);
-    //
-    //            for (ValSet::const_iterator DEF_it = info->DEF_begin(); DEF_it
-    //            != info->DEF_end(); ++DEF_it) {
-    //                if (b->first == DEF_it->first) {
-    //                    hasDEF = true;
-    //                    break;
-    //                }
-    //
-    //                for (std::set<StructSliceInfo*>::iterator Struct_it =
-    //                entry->RCStruct_begin(b->first); Struct_it !=
-    //                entry->RCStruct_end(b->first); ++Struct_it) {
-    //                    for (auto &base : (*Struct_it)->basePointers) {
-    //                        if (base.first == DEF_it->first) {
-    //                            hasDEF = true;
-    //                            break;
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //        }
-    //
-    //        if (!hasDEF) {
-    ////            continue;
-    //        }
-
-    //        continue;
 
     ParamsToArgs::const_iterator it = toArgs.find(*b);
     if (it != toArgs.end())
@@ -228,38 +154,12 @@ static void getRelevantVarsAtExit(
     InsInfo *callInfo, InsInfo::IncMap_t &RCInc,
     InsInfo::SliceInfoSetMap_t &structSliceInfos,
     InsInfo::ValMapSet_t &RCSources, const mods::Modifies &MOD) {
-  DEBUG(errs() << C->getParent()->getParent()->getName() << " -> "
-               << R->getParent()->getParent()->getName() << "\n");
   assert(!isInlineAssembly(C) && "Inline assembly is not supported!");
 
   DetectParametersPass::ParameterAccessPairSet_t Ret =
       DPP->getReturnRegisterIndexes((Function *)R->getParent()->getParent());
-
-  //        for (DetectParametersPass::ParameterAccessPairSet_t::iterator Ret_it
-  //        = Ret.begin(); Ret_it != Ret.end(); ++Ret_it) {
-  //            out.insert(ptr::PointsToSets::Pointee(Ret_it->second, -1));
-  //            out.insert(ptr::PointsToSets::Pointee(Ret_it->second->getOperand(0),
-  //            -1)); DetectParametersPass::UserSet_t Post =
-  //            DetectParametersPass::getRegisterValuesAfterCall(Ret_it->first,
-  //            C); for (DetectParametersPass::UserSet_t::iterator Post_it =
-  //            Post.begin(); Post_it != Post.end(); ++Post_it) {
-  //                out.insert(ptr::PointsToSets::Pointee(*Post_it, -1));
-  //            }
-  //        }
-
-  //        return;
-
   if (callToVoidFunction(C)) {
-
-    //        std::copy(b, e, std::inserter(out, out.begin()));
-
     for (ValSet::const_iterator it = b; it != e; ++it) {
-      //            if (succInfo->getRCInc(*it) >= INC_MAX) {
-      //                continue;
-      //            }
-      //            RCSources[it->first].insert(succInfo->getIns());
-      //            RCSources[it->first].insert(callInfo->getIns());
-
       // Check if the relevant variable is modified in this function
       bool intersect = false;
       mods::Modifies::mapped_type const &M =
@@ -278,18 +178,13 @@ static void getRelevantVarsAtExit(
       }
 
       RCSources[it->first].insert(R);
-
       structSliceInfos[it->first].insert(callInfo->RCStruct_begin(it->first),
                                          callInfo->RCStruct_end(it->first));
-
       out.insert(*it);
 
-      //            const InsInfo::ValSet_t src = succInfo->getRCSource(*b);
-      //            RCSources[it->first] = src;
       structSliceInfos[it->first].insert(callInfo->RCStruct_begin(it->first),
                                          callInfo->RCStruct_end(it->first));
     }
-
     return;
 
     for (DetectParametersPass::ParameterAccessPairSet_t::iterator Ret_it =
@@ -326,102 +221,81 @@ static void getRelevantVarsAtExit(
     if (b->first == C) {
       Value *ret = R->getReturnValue();
       if (!ret) {
-        /*		    C->dump();
-                            C->getCalledValue()->dump();
-                            R->dump();*/
-        //		    abort();
         return;
       }
       out.insert(Pointee(R->getReturnValue(), -1));
     } else
       out.insert(*b);
 }
-
 } // namespace detail
-} // namespace slicing
-} // namespace llvm
-
-namespace llvm {
-namespace slicing {
 
 static cl::opt<int> limitCalls("limit-calls", cl::init(0), cl::Hidden);
 
-class StaticSlicer : public InsInfoProvider {
+class IntraDFA : public InsInfoProvider {
 public:
-  typedef std::map<llvm::Function const *, FunctionStaticSlicer *> Slicers;
+  typedef std::map<llvm::Function const *, FunctionIntraDFA *> Slicers;
   typedef std::multimap<llvm::Function const *, llvm::CallInst const *>
       FuncsToCalls;
   typedef std::multimap<llvm::CallInst const *, llvm::Function const *>
       CallsToFuncs;
 
-  StaticSlicer(ModulePass *MP, Module &M, const ptr::PointsToSets &PS,
-               const callgraph::Callgraph &CG, const mods::Modifies &MOD,
-               std::vector<Rule *> rules);
-
-  ~StaticSlicer();
+  IntraDFA(ModulePass *MP, Module &M, const ptr::PointsToSets &PS,
+           const callgraph::Callgraph &CG, const mods::Modifies &MOD,
+           std::vector<Rule *> rules);
+  ~IntraDFA();
 
   void computeSlice();
-  void ruleIteration();
+  void emit(Function *&f);
+  void ruleIteraton();
   bool sliceModule();
-  bool sliceFunction(Function *F);
+  bool sliceFunction(Function *f);
 
   virtual void addInitialSlicingCriterion(const Instruction *C);
-
   virtual InsInfo *getInsInfo(const Instruction *I);
 
   bool addRule(Rule *rule);
   const std::vector<Rule *> getRules() const { return rules; }
 
 private:
-  typedef llvm::SmallVector<const llvm::Function *, 20> InitFuns;
-
+  // typedef std::multimap<const llvm::slicing::Rule*, const llvm::Function *> RuleFunctions_t;
+  // typedef llvm::SmallVector<RuleFunctions_t, 20> InitFuncs;
+  typedef llvm::SmallVector<const llvm::Function *, 20> InitFuncs;
   legacy::PassManager *PM;
   DetectParametersPass *DPP;
   const ptr::PointsToSets &PS;
   const mods::Modifies &MOD;
-
   std::vector<Rule *> rules;
   std::vector<Rule *> ruleWorklist;
 
   void buildDicts(const ptr::PointsToSets &PS, const CallInst *c);
-  void buildDicts(const ptr::PointsToSets &PS);
-
   void findInitialCriterions();
 
   template <typename OutIterator>
   void emitToCalls(llvm::Function const *const f, OutIterator out);
-
   template <typename OutIterator>
   void emitToExits(llvm::Function const *const f, OutIterator out);
 
-  void runFSS(Function &F, const ptr::PointsToSets &PS,
-              const callgraph::Callgraph &CG, const mods::Modifies &MOD);
+  void runFIDFA(Function &F, const ptr::PointsToSets &PS,
+                const callgraph::Callgraph &CG, const mods::Modifies &MOD);
 
   ModulePass *MP;
   Module &module;
   Slicers slicers;
   std::mutex slicersLock;
-  InitFuns initFuns;
+  InitFuncs initFuncs;
   FuncsToCalls funcsToCalls;
   CallsToFuncs callsToFuncs;
-
   std::set<const Instruction *> InitialCriterions;
 };
 
 template <typename OutIterator>
-void StaticSlicer::emitToCalls(const Function *f, OutIterator out) {
+void IntraDFA::emitToCalls(const Function *f, OutIterator out) {
   const Instruction *entry = getFunctionEntry(f);
   const ValSet::const_iterator relBgn = slicers[f]->relevant_begin(entry);
   const ValSet::const_iterator relEnd = slicers[f]->relevant_end(entry);
 
   if (relBgn == relEnd) {
-    //            errs() << "Skip: " << f->getName() << "\n";
     return;
-  }
-
-  if (f->getName() ==
-      "-[RNCryptorEngine initWithOperation:settings:key:IV:error:]") {
-    assert(true);
   }
 
   bool dump = false;
@@ -451,20 +325,17 @@ void StaticSlicer::emitToCalls(const Function *f, OutIterator out) {
   for (; c != e; ++c) {
     const CallInst *CI = c->second;
     const Function *g = CI->getParent()->getParent();
-    FunctionStaticSlicer *FSS = slicers[g];
+    FunctionIntraDFA *FIDFA = slicers[g];
 
     detail::RelevantSet R;
     InsInfo::SliceInfoSetMap_t structSliceInfos;
     InsInfo::ValMapSet_t rcSources;
-    detail::getRelevantVarsAtCall(c->second, f, DPP, PS, relBgn, relEnd, R, FSS,
-                                  entryInfo, RCInc, structSliceInfos,
+    detail::getRelevantVarsAtCall(c->second, f, DPP, PS, relBgn, relEnd, R,
+                                  FIDFA, entryInfo, RCInc, structSliceInfos,
                                   rcSources);
-
     if (R.begin() == R.end()) {
-      //                errs() << "Skip: " << f->getName() << "\n";
       continue;
     }
-
     typedef std::set<const Function *> FunctionSet_t;
     std::function<bool(const Value *, const Function *, FunctionSet_t &)>
         isInScope =
@@ -474,11 +345,9 @@ void StaticSlicer::emitToCalls(const Function *f, OutIterator out) {
               }
               visited.insert(f);
 
-              // probably a constant inst stored in a register. needs to be kept
               if (dyn_cast<const StoreInst>(r)) {
                 return true;
               }
-
               if (dyn_cast<const Constant>(r)) {
                 return true;
               }
@@ -495,7 +364,6 @@ void StaticSlicer::emitToCalls(const Function *f, OutIterator out) {
               }
 
               if (isModified) {
-
               } else {
                 FuncsToCalls::const_iterator calledBy_b, callledBy_e;
                 std::tie(calledBy_b, callledBy_e) = funcsToCalls.equal_range(f);
@@ -508,23 +376,11 @@ void StaticSlicer::emitToCalls(const Function *f, OutIterator out) {
                   }
                 }
               }
-              //
-              //                if (!isModified) {
-              //                    for (auto &infos : structSliceInfos) {
-              //                        for (auto &ssi : infos.second) {
-              //                            for (auto &l : ssi->locations) {
-              //                                if (r == l.first) {
-              //                                    llvm_unreachable("");
-              //                                }
-              //                            }
-              //                        }
-              //                    }
-              //                }
               return isModified;
             };
 
+    // remove variables which are not inScope
     detail::RelevantSet toRemove;
-
     for (auto &r : R) {
       FunctionSet_t visited;
       if (!isInScope(r.first, g, visited)) {
@@ -543,12 +399,12 @@ void StaticSlicer::emitToCalls(const Function *f, OutIterator out) {
       continue;
     }
 
-    FSS->initializeInfos();
-    InsInfo *CallInfo = FSS->getInsInfo(CI);
+    FIDFA->initializeInfos();
+    InsInfo *CallInfo = FIDFA->getInsInfo(CI);
 
-    if (FSS->addCriterion(CI, R.begin(), R.end(), this, rcSources, RCInc,
-                          !FSS->shouldSkipAssert(CI))) {
-      FSS->addCriterion(CI, FSS->REF_begin(CI), FSS->REF_end(CI));
+    if (FIDFA->addCriterion(CI, R.begin(), R.end(), this, rcSources, RCInc,
+                            !FIDFA->shouldSkipAssert(CI))) {
+      FIDFA->addCriterion(CI, FIDFA->REF_begin(CI), FIDFA->REF_end(CI));
       *out++ = g;
       calls.insert(c->second->getParent()->getParent()->getName().str());
     }
@@ -559,19 +415,10 @@ void StaticSlicer::emitToCalls(const Function *f, OutIterator out) {
       }
     }
   }
-#ifdef DUMP_CALLS
-  if (calls.size()) {
-    errs() << f->getName() << " called by:\n";
-    for (auto &s : calls) {
-      errs() << "\t" << s << "\n";
-    }
-    errs() << "\n";
-  }
-#endif
 }
 
 template <typename OutIterator>
-void StaticSlicer::emitToExits(const Function *f, OutIterator out) {
+void IntraDFA::emitToExits(const Function *f, OutIterator out) {
   typedef std::vector<const CallInst *> CallsVec;
 
   CallsVec C;
@@ -634,121 +481,157 @@ void StaticSlicer::emitToExits(const Function *f, OutIterator out) {
       }
     }
   }
-#ifdef DUMP_CALLS
-  if (calls.size()) {
-    errs() << f->getName() << " calls\n";
-    for (auto &s : calls) {
-      errs() << "\t" << s << "\n";
-    }
-    errs() << "\n";
-  }
-#endif
 }
 
-void StaticSlicer::buildDicts(const ptr::PointsToSets &PS, const CallInst *c) {
-  typedef std::vector<const Function *> FunCon;
-  FunCon G;
+// build call-function map
+void IntraDFA::buildDicts(const ptr::PointsToSets &PS, const CallInst *c) {
+  typedef std::vector<const Function *> FunV;
+  FunV G;
   getCalledFunctions(c, PS, std::back_inserter(G));
 
-  for (FunCon::const_iterator I = G.begin(), E = G.end(); I != E; ++I) {
-    const Function *h = *I;
-
-    if (!memoryManStuff(h) && !h->isDeclaration()) {
-      funcsToCalls.insert(std::make_pair(h, c));
-      callsToFuncs.insert(std::make_pair(c, h));
+  for (FunV::const_iterator I = G.begin(), E = G.end(); I != E; ++I) {
+    const Function *f = *I;
+    if (!memoryManStuff(f) && !f->isDeclaration()) {
+      funcsToCalls.insert(std::make_pair(f, c));
+      callsToFuncs.insert(std::make_pair(c, f));
     }
   }
 }
 
-void StaticSlicer::buildDicts(const ptr::PointsToSets &PS) {
-  for (Module::const_iterator f = module.begin(); f != module.end(); ++f)
-    if (!f->isDeclaration() && !memoryManStuff(&*f))
-      for (const_inst_iterator I = inst_begin(*f), E = inst_end(*f); I != E;
-           ++I)
-        if (const CallInst *c = dyn_cast<CallInst>(&*I)) {
-          if (isInlineAssembly(c)) {
-            errs() << "ERROR: Inline assembler detected in " << f->getName()
-                   << ", skipping\n";
-            continue;
-          }
-
-          buildDicts(PS, c);
-        }
-}
-
-StaticSlicer::StaticSlicer(ModulePass *MP, Module &M,
-                           const ptr::PointsToSets &PS,
-                           const callgraph::Callgraph &CG,
-                           const mods::Modifies &MOD, std::vector<Rule *> rules)
-    : PS(PS), MOD(MOD), MP(MP), module(M), slicers(), initFuns(),
+IntraDFA::IntraDFA(ModulePass *MP, Module &M, const ptr::PointsToSets &PS,
+                   const callgraph::Callgraph &CG, const mods::Modifies &MOD,
+                   std::vector<Rule *> rules)
+    : PS(PS), MOD(MOD), MP(MP), module(M), slicers(), initFuncs(),
       funcsToCalls(), callsToFuncs() {
   for (auto &rule : rules) {
     addRule(rule);
   }
-  for (Module::iterator f = M.begin(); f != M.end(); ++f)
-    if (!f->isDeclaration() && !memoryManStuff(&*f))
-      runFSS(*f, PS, CG, MOD);
-  buildDicts(PS);
+
   PM = new legacy::PassManager();
   DPP = new DetectParametersPass();
   PM->add(DPP);
-
   PM->run(M);
+
+  for (Module::iterator f = M.begin(); f != M.end(); ++f) {
+    if (!f->isDeclaration() && !memoryManStuff(&*f)) {
+      FunctionIntraDFA *FIDFA = new FunctionIntraDFA(*f, MP, PS, MOD, this);
+      slicers.insert(Slicers::value_type(&*f, FIDFA));
+
+      // build dicts;
+      for (inst_iterator I = inst_begin(*f), E = inst_end(*f); I != E; ++I) {
+        if (const CallInst *c = dyn_cast<CallInst>(&*I)) {
+          if (isInlineAssembly(c)) {
+            continue;
+          }
+          buildDicts(PS, c);
+        }
+        
+        // find initial criterions.
+        // findInitialCriterions();
+        // for (auto &rule : ruleWorklist) {
+        bool hadAsset = dfa::findInitialCriterion(I, *FIDFA, ruleWorklist);
+        if (hadAsset) {
+          // RuleFunctions_t ruleFunctions;
+          // ruleFunctions.insert(std::make_pair(rule, f));
+          initFuncs.push_back(f);
+          FIDFA->initializeInfos();
+        }
+        // }
+      }
+    }
+  }
 }
 
-StaticSlicer::~StaticSlicer() {
+IntraDFA::~IntraDFA() {
   for (Slicers::const_iterator I = slicers.begin(), E = slicers.end(); I != E;
-       ++I)
+       ++I) {
     delete I->second;
+  }
 }
 
-void StaticSlicer::runFSS(Function &F, const ptr::PointsToSets &PS,
-                          const callgraph::Callgraph &CG,
-                          const mods::Modifies &MOD) {
+// Thread implementation
+// Only 2 cores, why I want to implement a multiThread process? :(
+// void IntraDFA::emit(Function *&f) {
+//   typedef std::set<const Function *> WorkSet;
+//   WorkSet Q;
+//   for (auto &ruleFuns : initFuncs) {
+//     for (RuleFunctions_t::iterator it = ruleFuns.begin(); it != ruleFuns.end(); ruleFuns.upper_bound(it->first)) {
+//       std::pair<RuleFunctions_t::iterator, RuleFunctions_t::iterator> iter = ruleFuns.equal_range(it->first);
+//       for (RuleFunctions_t::iterator i = iter.first; i != iter.second; ++i) {
+//         Q.insert(i->second);
+//       }
 
-  FunctionStaticSlicer *FSS = new FunctionStaticSlicer(F, MP, PS, MOD, this);
+      
+//     }
+//   }
 
-  slicers.insert(Slicers::value_type(&F, FSS));
-}
+//   // inter slicer workset init here.
+//   while (!Q.empty()) {
+//     WorkSet tmp;
+//     for (WorkSet::const_iterator f = Q.begin(); f != Q.end(); ++f) {
+//       slicers[*f]->calculateStaticSlice();
+//       emitToCalls(*f, std::inserter(tmp, tmp.end()));
+//       // errs() << "[+]tmp.size(): " << tmp.size() << "\n";
+//       emitToExits(*f, std::inserter(tmp, tmp.end()));
+//       // errs() << "[+]exits tmp.size(): " << tmp.size() << "\n";
+//     }
+//     std::swap(tmp, Q);
 
-void StaticSlicer::ruleIteration() {
-  findInitialCriterions();
+//     std::vector<const Function *> x(Q.begin(), Q.end());
+//     std::sort(x.begin(), x.end());
+//     x.erase(std::unique(x.begin(), x.end()), x.end());
+
+//     if (x.size() != Q.size()) {
+//       Q.clear();
+//       Q.insert(x.begin(), x.end());
+//     }
+//   }
+
+
+// }
+
+// void IntraDFA::ruleIteraton() {
+//   struct FunctionCmp {
+//     bool operator()(const Function *lhs, const Function *rhs) const {
+//       return lhs->getName().str().compare(rhs->getName().str());
+//     }
+//   };
+//   errs() << "Found " << initFuncs.size() << " initial criterions\n";
+//   initFuncs.clear();
+
+
+// }
+
+void IntraDFA::ruleIteraton() {
+  // findInitialCriterions();
 
   struct FunctionCmp {
     bool operator()(const Function *lhs, const Function *rhs) const {
       return lhs->getName().str().compare(rhs->getName().str());
     }
   };
-  //        typedef SmallVector<const Function *, 20> WorkSet;
+
   typedef std::set<const Function *> WorkSet;
-  //        WorkSet Q(initFuns);
   WorkSet Q;
-  for (auto &i : initFuns) {
+  for (auto &i : initFuncs) {
     Q.insert(i);
   }
+  errs() << "Found " << initFuncs.size() << " initial criterions\n";
 
-  errs() << "Found " << initFuns.size() << " initial criterions\n";
-
-  initFuns.clear();
-
-  uint64_t numSlices = 0;
-
+  initFuncs.clear();
+  // inter slicer workset init here.
   while (!Q.empty()) {
-
     size_t numFunctions = Q.size();
-
     errs() << "Num functions: " << numFunctions << "\n";
-
+    WorkSet tmp;
     for (WorkSet::const_iterator f = Q.begin(); f != Q.end(); ++f) {
       slicers[*f]->calculateStaticSlice();
     }
-
-    WorkSet tmp;
     for (WorkSet::const_iterator f = Q.begin(); f != Q.end(); ++f) {
       emitToCalls(*f, std::inserter(tmp, tmp.end()));
-      errs() << "[+]tmp.size(): " << tmp.size() << "\n";
+      // errs() << "[+]tmp.size(): " << tmp.size() << "\n";
       emitToExits(*f, std::inserter(tmp, tmp.end()));
-      errs() << "[+]exits tmp.size(): " << tmp.size() << "\n";
+      // errs() << "[+]exits tmp.size(): " << tmp.size() << "\n";
     }
     std::swap(tmp, Q);
 
@@ -761,14 +644,12 @@ void StaticSlicer::ruleIteration() {
       Q.insert(x.begin(), x.end());
     }
   }
-
-  errs() << "Num function slices: " << numSlices << "\n";
+  errs() << "Num function slices: " << Q.size() << "\n";
 
   std::vector<Rule *> toCheck(ruleWorklist);
   std::vector<Rule *> worklist(ruleWorklist);
 
   while (!worklist.empty()) {
-
     std::vector<Rule *> tmp;
 
     for (auto &w : worklist) {
@@ -784,37 +665,27 @@ void StaticSlicer::ruleIteration() {
   }
 
   std::vector<Path *> paths;
-
   auto createPath = [&](const Instruction *call, const Instruction *inst,
                         Rule *rule, Path *parent = nullptr) {
     InsInfo *C_info = getInsInfo(inst);
     assert(C_info);
 
     PathElement *element = nullptr;
-    if (call) {
-
-    } else {
-    }
-
     Path *path = nullptr;
     if (parent) {
       path = parent;
-    } else {
-      path = new Path();
-    }
-
-    if (parent) {
       element = new PathElement(inst, inst);
       path->getLast()->setNext(element);
       element->setPrev(path->getLast());
     } else if (call) {
+      path = new Path();
       PathElement *start = new PathElement(call, inst);
       element = new PathElement(inst, inst);
-
       path->setEntry(start);
       start->setNext(element);
       element->setPrev(start);
     } else {
+      path = new Path();
       element = new PathElement(inst, inst);
       path->setEntry(element);
     }
@@ -856,16 +727,17 @@ void StaticSlicer::ruleIteration() {
     rule->addPaths(p);
   };
 
-  errs() << "Backtrack\n";
+  errs() << "====== Backtrack ======\n";
   for (std::vector<Rule *>::iterator rule = toCheck.begin();
        rule != toCheck.end(); ++rule) {
-    errs() << (*rule)->getRuleTitle() << "\n";
     for (auto &C : (*rule)->getInitialInstruction()) {
+      errs() << (*rule)->getRuleTitle() << "\n";
       for (auto &C_pre : C.second) {
         createPath(C.first.first, C_pre.first, C_pre.second);
       }
 
       if ((*rule)->getParentRuleTitle().size()) {
+        errs() << (*rule)->getRuleTitle() << "\n";
         for (auto &p : rules) {
           if (p->getRuleTitle() == (*rule)->getParentRuleTitle()) {
             for (auto &path : p->getPaths()) {
@@ -882,7 +754,6 @@ void StaticSlicer::ruleIteration() {
       }
     }
   }
-
   errs() << "Backtrack done\n";
 
   for (auto &rule : ruleWorklist) {
@@ -897,114 +768,169 @@ void StaticSlicer::ruleIteration() {
     for (auto &path : rule->getPaths()) {
       if (path->getLast()->getType() == PathElementBase::ConstAddressElement) {
         if (((ConstPathElement *)path->getLast())->shouldCreateNewCriterion()) {
-          assert(true);
           Rule *newRule = new Rule(*rule, path->getLast()->getElement());
-          if (!addRule(newRule))
-            delete (newRule);
+          if (!addRule(newRule)) {
+            delete newRule;
+          }
         }
       }
     }
   }
 }
 
-void StaticSlicer::computeSlice() {
+void IntraDFA::computeSlice() {
   while (ruleWorklist.size()) {
-    ruleIteration();
+    ruleIteraton();
   }
 }
 
-// TODO: slice function.
-bool StaticSlicer::sliceFunction(Function *F) {
-  bool modified = true;
+// Maybe we can develop a sliceFunction function.
+// TODO if modified removeUndefs on functions which are found by rules
+// callgraph.
+bool IntraDFA::sliceModule() {
+  bool modified = false;
   for (Slicers::iterator s = slicers.begin(); s != slicers.end(); ++s) {
     modified |= s->second->slice();
-    if (modified) {
-      FunctionStaticSlicer::removeUndefs(MP, *F);
+  }
+  if (modified) {
+    for (Module::iterator I = module.begin(), E = module.end(); I != E; ++I) {
+      if (!I->isDeclaration()) {
+        FunctionIntraDFA::removeUndefs(MP, *I);
+      }
     }
   }
-  return modified;
-}
-
-bool StaticSlicer::sliceModule() {
-  bool modified = false;
-  for (Slicers::iterator s = slicers.begin(); s != slicers.end(); ++s)
-    modified |= s->second->slice();
-  if (modified)
-    for (Module::iterator I = module.begin(), E = module.end(); I != E; ++I)
-      if (!I->isDeclaration())
-        FunctionStaticSlicer::removeUndefs(MP, *I);
 
   return modified;
 }
 
-bool StaticSlicer::addRule(Rule *rule) {
-  if (std::find_if(rules.begin(), rules.end(),
-                   [&](Rule *other) { return *rule == *other; }) != rules.end())
+// TODO
+bool IntraDFA::sliceFunction(Function *f) {
+  if (slicers[f]->slice()) {
+    if (!f->isDeclaration()) {
+      FunctionIntraDFA::removeUndefs(MP, *f);
+    }
+  }
+}
+
+bool IntraDFA::addRule(Rule *rule) {
+  if (std::find_if(rules.begin(), rules.end(), [&](Rule *other) {
+        return *rule == *other;
+      }) != rules.end()) {
     return false;
+  }
   rules.push_back(rule);
   ruleWorklist.push_back(rule);
   return true;
 }
 
-void StaticSlicer::findInitialCriterions() {
-  for (Module::iterator f = module.begin(); f != module.end(); ++f) {
-    if (!f->isDeclaration() && !memoryManStuff(&*f)) {
-      FunctionStaticSlicer *FSS = slicers[f];
-      bool hadAssert = slicing::findInitialCriterion(*f, *FSS, ruleWorklist);
+// TODO: The rule function as the callie, to find the caller function as a
+// initial function？
+bool addCriterion(FunctionIntraDFA &fidfa, std::string functionName,
+                  const Instruction *inst, uint64_t regNo, Rule &rule,
+                  std::vector<Rule *> preconditions) {
+  bool hadAsset = false;
+  DetectParametersPass::UserSet_t pre =
+      DetectParametersPass::getRegisterValuesBeforeCall(regNo, inst, true);
+  for (auto &p_it : pre) {
+    Rule::InstructionRuleList_t preconditionInstructions;
 
-      if (hadAssert) {
-        initFuns.push_back(f);
-        FSS->initializeInfos();
+    for (auto &preCond : preconditions) {
+      for (auto &preCrit : preCond->getCriterions()) {
+        if (preCrit.second.first.getFunctionName() != functionName) {
+          continue;
+          llvm_unreachable("Precondition has to be for the same function");
+        }
+        DetectParametersPass::UserSet_t prePreCond =
+            DetectParametersPass::getRegisterValuesBeforeCall(
+                preCrit.second.first.getRegNo(), (Instruction *)inst, true);
+        for (auto &prePreCond_it : prePreCond) {
+          const Instruction *prePreInst =
+              dyn_cast<const Instruction>(prePreCond_it);
+          Rule::InstructionRule_t instRule(prePreInst, (Rule *)preCrit.first);
+          preconditionInstructions.push_back(instRule);
+          fidfa.addInitialCriterion(inst,
+                                    ptr::PointsToSets::Pointee(prePreInst, -1));
+        }
+      }
+    }
+
+    fidfa.addInitialCriterion(inst, ptr::PointsToSets::Pointee(p_it, -1));
+    rule.addInitialInstruction(inst, dyn_cast<const Instruction>(p_it),
+                               preconditionInstructions);
+    hadAsset = true;
+  }
+  return hadAsset;
+};
+
+void IntraDFA::findInitialCriterions() {
+  bool hadAsset = false;
+  for (auto &rule : ruleWorklist) {
+    for (auto &criterion : rule->getCriterions()) {
+      SimpleCallGraph::InstructionSet_t callerInstructions =
+          ptr::getSimpleCallGraph().getCallers(
+              criterion.second.first.getFunctionName());
+      for (auto &inst : callerInstructions) {
+        const Function *f = inst->getParent()->getParent();
+        errs() << f->getName() << "\n";
+        if (f->isDeclaration() || memoryManStuff(&*f)) {
+          continue;
+        }
+        FunctionIntraDFA *fidfa = slicers[f];
+        hadAsset =
+            addCriterion(*fidfa, inst->getParent()->getParent()->getName(),
+                         inst, criterion.second.first.getRegNo(),
+                         *(Rule *)criterion.first, criterion.second.second);
+        errs() << "Found caller to " << criterion.second.first.getFunctionName()
+               << "\n";
+
+        if (hadAsset) {
+          initFuncs.push_back(f);
+          fidfa->initializeInfos();
+        }
       }
     }
   }
 }
 
-void StaticSlicer::addInitialSlicingCriterion(const Instruction *C) {
+void IntraDFA::addInitialSlicingCriterion(const Instruction *C) {
   InitialCriterions.insert(C);
 }
 
-InsInfo *StaticSlicer::getInsInfo(const Instruction *I) {
+InsInfo *IntraDFA::getInsInfo(const Instruction *I) {
   if (!I) {
     return nullptr;
   }
+
   const Function *f = I->getParent()->getParent();
-  FunctionStaticSlicer *fss = slicers[f];
-  if (!fss->isInitialized())
+  FunctionIntraDFA *fidfa = slicers[f];
+
+  if (!fidfa->isInitialized()) {
     return nullptr;
-  return fss->getInsInfo(I);
+  } else {
+    return fidfa->getInsInfo(I);
+  }
 }
-} // namespace slicing
+} // namespace dfa
 } // namespace llvm
 
-char Slicer::ID = 0;
-
-static RegisterPass<Slicer> X("slice-inter", "View CFG of function", false,
+char FunctionSlicer::ID = 0;
+static RegisterPass<FunctionSlicer> X("slice-intra", "view CFG of function", false,
                               true);
-static RegisterAnalysisGroup<Slicer> Y(X);
+static RegisterAnalysisGroup<FunctionSlicer> Y(X);
 
-bool Slicer::runOnModule(Module &M) {
+bool FunctionSlicer::runOnModule(Module &M) {
   ptr::PointsToSets *PS = new ptr::PointsToSets();
-  {
-    ptr::ProgramStructure P(M);
-    errs() << "[i]first ProgramStructure\n";
-    computePointsToSets(P, *PS);
-  }
+  ptr::ProgramStructure P(M);
+  computePointsToSets(P, *PS);
 
   callgraph::Callgraph CG(M, *PS);
-
   mods::Modifies MOD;
-  {
-    mods::ProgramStructure P1(M, *PS);
-    errs() << "[i]second programStructure\n";
-    computeModifies(P1, CG, *PS, MOD);
-  }
-  errs() << "done\n";
+  mods::ProgramStructure P1(M, *PS);
+  computeModifies(P1, CG, *PS, MOD);
 
   using llvm::slicing::Constraint;
   using llvm::slicing::Parameter;
   using llvm::slicing::Rule;
-
   std::vector<Rule *> rules = llvm::slicing::parseRules();
 
   for (auto &r : rules) {
@@ -1017,11 +943,11 @@ bool Slicer::runOnModule(Module &M) {
     }
   }
 
-  slicing::StaticSlicer SS(this, M, (*PS), CG, MOD, rules);
-  SS.computeSlice();
+  dfa::IntraDFA DFA(this, M, (*PS), CG, MOD, rules);
+  DFA.computeSlice();
 
   free(PS);
-  bool s = SS.sliceModule();
+  bool s = DFA.sliceModule();
 
   raw_fd_ostream *report_stream = nullptr;
   if (ReportFilename.length()) {
@@ -1036,7 +962,7 @@ bool Slicer::runOnModule(Module &M) {
 
   llvm::slicing::HTMLReportPrinter reportPrinter(report_stream ? *report_stream
                                                                : nulls());
-  for (auto &rule : SS.getRules()) {
+  for (auto &rule : DFA.getRules()) {
     errs() << "Print results of \"" << rule->getRuleTitle() << "\"\n";
     const Rule::CompletePathResultList_t &results = rule->getResults();
     errs() << results.size() << " paths\n";
@@ -1051,7 +977,7 @@ bool Slicer::runOnModule(Module &M) {
   return s;
 }
 
-void Slicer::getAnalysisUsage(AnalysisUsage &AU) const {
+void FunctionSlicer::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addRequired<PostDominatorTree>();
   AU.addRequired<PostDominanceFrontier>();
 }

@@ -1,38 +1,28 @@
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
-
-#ifndef SLICING_FUNCTIONSTATICSLICER_H
-#define SLICING_FUNCTIONSTATICSLICER_H
-
-#include <Backtrack/Path.h>
+#include "sparsehash/dense_hash_map"
+#include "sparsehash/dense_hash_set"
+#include "sparsehash/sparse_hash_map"
+#include "sparsehash/sparse_hash_set"
 #include <float.h>
 #include <map>
 #include <mutex>
 #include <pthread.h>
 #include <tuple>
+#include <unordered_set>
 #include <utility> /* pair */
 
 #include "llvm/ADT/SetVector.h"
-#include "llvm/IR/InstIterator.h"
-#include "llvm/IR/Value.h"
-
-#include "../Modifies/Modifies.h"
-#include "../PointsTo/PointsTo.h"
-#include "PostDominanceFrontier.h"
-
-#include "../Backtrack/Constraint.h"
-#include "../Backtrack/Rule.h"
-
-#include "llvm/LLVMSlicer/StaticSlicer.h"
-
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/ADT/SparseSet.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Value.h"
+#include "llvm/IntraDFA/IntraDFA.h"
 
-#include <sparsehash/dense_hash_map>
-#include <sparsehash/dense_hash_set>
-#include <sparsehash/sparse_hash_map>
-#include <sparsehash/sparse_hash_set>
-#include <unordered_set>
+#include "../Backtrack/Constraint.h"
+#include "../Backtrack/Path.h"
+#include "../Backtrack/Rule.h"
+#include "../Modifies/Modifies.h"
+#include "../PointsTo/PointsTo.h"
+#include "../Slicing/PostDominanceFrontier.h"
 
 #define INC_MAX FLT_MAX
 
@@ -50,14 +40,10 @@ static bool canSlice(const llvm::Instruction &i) {
 };
 
 namespace llvm {
-namespace slicing {
-
+namespace dfa {
 typedef float IncType_t;
-
-class FunctionStaticSlicer;
-
+class FunctionIntraDFA;
 class InsInfo;
-
 class StructSliceInfo;
 
 class InsInfoProvider {
@@ -78,7 +64,6 @@ struct PointeeHash {
 
 typedef google::sparse_hash_set<llvm::ptr::PointsToSets::Pointee, PointeeHash>
     ValSet;
-
 class StructSliceInfo {
 public:
   StructSliceInfo(int64_t baseOffset, const Value *accessInstruction)
@@ -153,7 +138,7 @@ public:
 
   IncType_t getREFInc(const Pointee &var);
 
-  void deslice(FunctionStaticSlicer *FSS);
+  void deslice(FunctionIntraDFA *FIDFA);
 
   ValSet::const_iterator RC_begin() const { return RC.begin(); }
 
@@ -214,8 +199,10 @@ public:
   void addSlicedPredecessor(const Pointee &RC, const Instruction *Pred,
                             InsInfoProvider *provider);
 
-  bool backtrack(InsInfoProvider *provider, PathElementBase *pathElement,
-                 std::vector<Path *> &paths, std::mutex &pathLock, Rule &rule);
+  bool backtrack(InsInfoProvider *provider,
+                 llvm::slicing::PathElementBase *pathElement,
+                 std::vector<llvm::slicing::Path *> &paths,
+                 std::mutex &pathLock, llvm::slicing::Rule &rule);
 
   void addTranslation(const Value *from, const Value *to) {
     ValSet_t &t = translations[from];
@@ -279,8 +266,8 @@ private:
   ValMapSet_t UpSuccessors;
 };
 
-class FunctionStaticSlicer {
-  friend class slicing::InsInfo;
+class FunctionIntraDFA {
+  friend class InsInfo;
 
   typedef llvm::ptr::PointsToSets::Pointee Pointee;
 
@@ -288,14 +275,14 @@ public:
   typedef google::sparse_hash_map<const llvm::Instruction *, InsInfo *>
       InsInfoMap;
 
-  FunctionStaticSlicer(llvm::Function &F, llvm::ModulePass *MP,
-                       const llvm::ptr::PointsToSets &PT,
-                       const llvm::mods::Modifies &mods,
-                       slicing::InsInfoProvider *insInfoProvider = NULL)
+  FunctionIntraDFA(llvm::Function &F, llvm::ModulePass *MP,
+                   const llvm::ptr::PointsToSets &PT,
+                   const llvm::mods::Modifies &mods,
+                   InsInfoProvider *insInfoProvider = NULL)
       : infosInitialized(false), fun(F), MP(MP),
         insInfoProvider(insInfoProvider), mods(mods), PS(PT) {}
 
-  ~FunctionStaticSlicer();
+  ~FunctionIntraDFA();
 
   void initializeInfos();
 
@@ -349,8 +336,6 @@ public:
         for (auto &rc : rcSources) {
           for (auto &src : rc.second) {
             const Instruction *srcInst = dyn_cast<const Instruction>(src);
-            //                    callback->getInsInfo(srcInst)->addSlicedPredecessor(Pointee(rc.first,
-            //                    -1), ins);
             ii->addUPSuccessor(srcInst, rc.first);
             ii->addUP(srcInst);
           }
@@ -395,7 +380,6 @@ public:
     // TODO: should we check this before calling?
     if (I == insInfoMap.end())
       return NULL;
-    assert(I != insInfoMap.end());
     return I->second;
   }
 
@@ -406,20 +390,17 @@ public:
 private:
   std::mutex initLock;
   bool infosInitialized;
-
   std::mutex slicerLock;
-
   static std::mutex passLock;
 
   llvm::Function &fun;
   llvm::ModulePass *MP;
   InsInfoMap insInfoMap;
   llvm::SmallSetVector<const llvm::CallInst *, 10> skipAssert;
-  slicing::InsInfoProvider *insInfoProvider;
+  InsInfoProvider *insInfoProvider;
   const llvm::mods::Modifies &mods;
 
   const llvm::ptr::PointsToSets &PS;
-
   static bool sameValues(const Pointee &val1, const Pointee &val2);
 
   void crawlBasicBlock(const llvm::BasicBlock *bb);
@@ -436,23 +417,20 @@ private:
 
   bool computeBC();
 
-  bool updateRCSC(llvm::PostDominanceFrontier::DomSetType::const_iterator start,
-                  llvm::PostDominanceFrontier::DomSetType::const_iterator end);
+  bool updateRCSC(PostDominanceFrontier::DomSetType::const_iterator start,
+                  PostDominanceFrontier::DomSetType::const_iterator end);
 
   void dump();
-
   static void removeUndefBranches(ModulePass *MP, Function &F);
-
   static void removeUndefCalls(ModulePass *MP, Function &F);
+  static void removeUndefBranches(ModulePass *MP, PostDominanceFrontier &PDT, inst_iterator I);
+  static void removeUndefCalls(ModulePass *MP, inst_iterator I);
 };
 
-bool findInitialCriterion(llvm::Function &F, FunctionStaticSlicer &ss,
+bool findInitialCriterion(llvm::Function &F, FunctionIntraDFA &DFA,
                           bool startingFunction = false);
 
-bool findInitialCriterion(llvm::Function &F, FunctionStaticSlicer &ss,
-                          std::vector<Rule *> &rules);
-
-} // namespace slicing
+bool findInitialCriterion(inst_iterator inst_it, FunctionIntraDFA &DFA,
+                          std::vector<llvm::slicing::Rule *> &rules);
+} // namespace dfa
 } // namespace llvm
-
-#endif

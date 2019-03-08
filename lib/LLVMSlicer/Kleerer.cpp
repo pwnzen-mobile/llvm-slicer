@@ -448,6 +448,7 @@ bool Kleerer::run() {
 }
 
 bool KleererPass::runOnModule(Module &M) {
+  errs() << "[i]Start Kleerer Pass\n";
   const DataLayout &TD = M.getDataLayout();
   ptr::PointsToSets PS;
   {
