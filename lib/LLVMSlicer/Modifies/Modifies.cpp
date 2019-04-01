@@ -289,7 +289,7 @@ void computeModifies(const ProgramStructure &P, const callgraph::Callgraph &CG,
   errs() << "Compute Modifies\n";
 
   for (ProgramStructure::const_iterator f = P.begin(); f != P.end(); ++f) {
-    // errs() << "[+]compute modifies f: " << ((Function*)f->first)->getName() << "\n";
+    errs() << "[+]compute modifies f: " << ((Function*)f->first)->getName() << "\n";
     std::set<const Value *> passedReferences, workSet, tmp;
 
     DetectParametersPass::ParameterAccessPairSet_t &regParams =

@@ -18,7 +18,7 @@
 #include "llvm/Support/SystemUtils.h"
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/IRReader/IRReader.h"
-#include "llvm/IntraDFA/IntraDFA.h"
+#include "llvm/IntraDFA/FunctionIntraDFAbeta.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/PassManager.h"
 #include <llvm/IR/NoFolder.h>
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     PM->add(new DetectParametersPass());
     PM->add(new StackAccessPass());
     
-    FunctionSlicer *dfa = new FunctionSlicer();
+    FunctionIntraDFAbeta *dfa = new FunctionIntraDFAbeta();
     PM->add(dfa);
 
     PM->run(*Mod);

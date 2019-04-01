@@ -11,30 +11,35 @@
 
 namespace llvm {
 
-  template<typename OutIterator>
-  void getCalledFunctions(const CallInst *CI, const ptr::PointsToSets &PS,
-		  OutIterator out) {
-    const Value *stripped = CI->getCalledValue()->stripPointerCasts();
+template <typename OutIterator>
+void getCalledFunctions(const CallInst *CI, const ptr::PointsToSets &PS,
+                        OutIterator out) {
+  const Value *stripped = CI->getCalledValue()->stripPointerCasts();
 
-    if (const Function *F = dyn_cast<Function>(stripped)) {
-      *out++ = F;
-        SimpleCallGraph &SG = ptr::getSimpleCallGraph();
-        SimpleCallGraph::FunctionSet_t Called = SG.getCalled(CI);
-        for (SimpleCallGraph::FunctionSet_t::iterator Called_it = Called.begin(); Called_it != Called.end(); ++ Called_it) {
-            Function *Called_F = CI->getParent()->getParent()->getParent()->getFunction(*Called_it);
-            if (Called_F && Called_F != F) {
-                *out++ = Called_F;
-            }
-        }
-    } else {
-      typedef ptr::PointsToSets::PointsToSet PTSet;
-      const PTSet &S = getPointsToSet(stripped, PS);
-      for (PTSet::const_iterator I = S.begin(), E = S.end(); I != E; ++I)
-        if (const Function *F = dyn_cast<Function>(I->first))
-	  *out++ = F;
+  if (const Function *F = dyn_cast<Function>(stripped)) {
+    *out++ = F;
+    SimpleCallGraph &SG = ptr::getSimpleCallGraph();
+    SimpleCallGraph::FunctionSet_t Called = SG.getCalled(CI);
+    for (SimpleCallGraph::FunctionSet_t::iterator Called_it = Called.begin();
+         Called_it != Called.end(); ++Called_it) {
+      Function *Called_F =
+          CI->getParent()->getParent()->getParent()->getFunction(*Called_it);
+      if (Called_F && Called_F != F) {
+        errs() << "[+]Called_F: " << Called_F->getName() << "\n";
+        *out++ = Called_F;
+      }
     }
+  } else {
+    typedef ptr::PointsToSets::PointsToSet PTSet;
+    const PTSet &S = getPointsToSet(stripped, PS);
+    for (PTSet::const_iterator I = S.begin(), E = S.end(); I != E; ++I)
+      if (const Function *F = dyn_cast<Function>(I->first)) {
+        errs() << "[+]Called F: " << F->getName() << "\n";
+        *out++ = F;
+      }
   }
-
 }
+
+} // namespace llvm
 
 #endif

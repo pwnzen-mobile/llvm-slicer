@@ -1774,9 +1774,14 @@ std::error_code BitcodeReader::parseValueSymbolTable(unsigned Offset) {
     // of the VST read.
     CurrentBit = Stream.GetCurrentBitNo();
     Stream.JumpToBit(Offset * 32);
+
+// #define NDEBUG "true"
 #ifndef NDEBUG
     // Do some checking if we are in debug mode.
     BitstreamEntry Entry = Stream.advance();
+    // if (Entry.Kind == BitstreamEntry::SubBlock || Entry.ID == bitc::VALUE_SYMTAB_BLOCK_ID) {
+    //   return ;
+    // }
     assert(Entry.Kind == BitstreamEntry::SubBlock);
     assert(Entry.ID == bitc::VALUE_SYMTAB_BLOCK_ID);
 #else

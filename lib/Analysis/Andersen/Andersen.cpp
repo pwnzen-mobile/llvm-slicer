@@ -273,8 +273,10 @@ bool Andersen::runOnModule(Module &M) {
       }
     }
   }
+  #if 1
+  int n = 2;
   do {
-
+  {
     errs() << "Optimize and solve constraints\n";
     optimizeConstraints();
     solveConstraints();
@@ -340,8 +342,11 @@ bool Andersen::runOnModule(Module &M) {
       break;
     }
     NumConstraints = constraints.size();
-
-  } while (CallInstWorklist.size() || FunctionWorklist.size());
+  }
+  } while(n--);
+  // } while (CallInstWorklist.size() || FunctionWorklist.size());
+  // } while (FunctionWorklist.size());
+  #endif
 
   if (DumpDebugInfo) {
     errs() << "Unoptimized constraints\n";

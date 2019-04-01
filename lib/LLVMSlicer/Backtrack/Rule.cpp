@@ -128,15 +128,42 @@ Constraint *parseCondition(json &cond) {
         return orConstraint;
     } else if (cond["conditionType"].get<string>() == "ConstInt") {
         if (cond.find("equal") != cond.end()) {
-            return new llvm::slicing::ConstConstraint(ConstConstraint::EQUAL, cond["equal"].get<int>(), type);
+            return new llvm::slicing::ConstConstraint(ConstConstraint::EQUAL, type, cond["equal"].get<int>(), "", std::vector<std::string>());
         } else if (cond.find("greater") != cond.end()) {
-            return new llvm::slicing::ConstConstraint(ConstConstraint::GREATER, cond["greater"].get<int>(), type);
+            return new llvm::slicing::ConstConstraint(ConstConstraint::GREATER, type, cond["greater"].get<int>(), "", std::vector<std::string>());
         } else if (cond.find("loreq") != cond.end()) {
-            return new llvm::slicing::ConstConstraint(ConstConstraint::LOREQ, cond["loreq"].get<int>(), type);
+            return new llvm::slicing::ConstConstraint(ConstConstraint::LOREQ, type, cond["loreq"].get<int>(), "", std::vector<std::string>());
         }else if (cond.find("lorneq") != cond.end()) {
-            return new llvm::slicing::ConstConstraint(ConstConstraint::LORNEQ, cond["lorneq"].get<int>(), type);
+            return new llvm::slicing::ConstConstraint(ConstConstraint::LORNEQ, type, cond["lorneq"].get<int>(), "", std::vector<std::string>());
         } else {
-            return new llvm::slicing::ConstConstraint(ConstConstraint::ANY, 0, type);
+            return new llvm::slicing::ConstConstraint(ConstConstraint::ANY, type, 0, "", std::vector<std::string>());
+        }
+    } else if (cond["conditionType"].get<string>() == "ConstStr" || cond["conditionType"].get<string>() == "ConstType") {
+        // condition string can be a const string or string list, we insert strings into a vector.
+        // If in, then cond["in"] is equal or just included in the string list.
+        if (cond.find("in") != cond.end()) {
+            std::vector<std::string> vs;
+            if(cond["in"].is_array()) {
+                for (string s : cond["in"]) {
+                    vs.push_back(s);
+                }
+            } else {
+                vs.push_back(cond["in"]);
+            }
+            errs() << "[+]vs.size: " << vs.size() << "\n";
+            return new llvm::slicing::ConstConstraint(ConstConstraint::IN, type, 0, "", vs);
+        } else if (cond.find("notin") != cond.end()) {
+            std::vector<std::string> vs;
+            if(cond["notin"].is_array()) {
+                for (string s : cond["notin"]) {
+                    vs.push_back(s);
+                }
+            } else {
+                vs.push_back(cond["notin"]);
+            }
+            return new llvm::slicing::ConstConstraint(ConstConstraint::NOTIN, type, 0, "", vs);
+        } else {
+            return new llvm::slicing::ConstConstraint(ConstConstraint::ANY, type, 0, "", std::vector<std::string>());
         }
     } else if (cond["conditionType"].get<string>() == "NOT") {
         ChainConstraint *notChain = new llvm::slicing::ChainConstraint(Constraint::STRICT, ChainConstraint::NOT_AND);

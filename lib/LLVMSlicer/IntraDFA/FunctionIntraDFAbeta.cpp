@@ -1,14 +1,14 @@
-/*
- * slice on module, but when
- */
-
+#include "llvm/IntraDFA/FunctionIntraDFAbeta.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Pass.h"
 #include "llvm/PassSupport.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/Format.h"
 #include <future>
 #include <llvm/Analysis/Andersen/DetectParametersPass.h>
 #include <llvm/Support/UniqueLock.h>
@@ -20,26 +20,18 @@
 #include "../Backtrack/Path.h"
 #include "../Backtrack/Rule.h"
 #include "../Callgraph/Callgraph.h"
+#include "../Languages/LLVMSupport.h"
 #include "../Modifies/Modifies.h"
 #include "../PointsTo/PointsTo.h"
-#include "./FunctionIntraDFA.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IntraDFA/IntraDFA.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/Format.h"
-
-#define DEBUG_TYPE "intra-dfa"
+#include "./FunctionIntraDFAbeta.h"
 
 using namespace llvm;
-using namespace llvm::slicing;
-using namespace llvm::dfa;
-
 static cl::opt<std::string>
     ReportFilename("r", cl::desc("Path to HTML report output file"),
                    cl::value_desc("report"));
 
 namespace llvm {
-namespace dfa {
+namespace beta {
 namespace detail {
 typedef ptr::PointsToSets::Pointee Pointee;
 typedef std::map<const Pointee, const Pointee> ParamsToArgs;
@@ -229,9 +221,7 @@ static void getRelevantVarsAtExit(
 }
 } // namespace detail
 
-static cl::opt<int> limitCalls("limit-calls", cl::init(0), cl::Hidden);
-
-class IntraDFA : public InsInfoProvider {
+class DFA : public InsInfoProvider {
 public:
   typedef std::map<llvm::Function const *, FunctionIntraDFA *> Slicers;
   typedef std::multimap<llvm::Function const *, llvm::CallInst const *>
@@ -239,57 +229,122 @@ public:
   typedef std::multimap<llvm::CallInst const *, llvm::Function const *>
       CallsToFuncs;
 
-  IntraDFA(ModulePass *MP, Module &M, const ptr::PointsToSets &PS,
-           const callgraph::Callgraph &CG, const mods::Modifies &MOD,
-           std::vector<Rule *> rules);
-  ~IntraDFA();
+  DFA(ModulePass *MP, Module &M, const ptr::PointsToSets &PS,
+      const callgraph::Callgraph &CG, const mods::Modifies &MOD,
+      std::vector<slicing::Rule *> rules);
+  ~DFA();
 
-  void computeSlice();
-  void emit(Function *&f);
-  void ruleIteraton();
-  bool sliceModule();
-  bool sliceFunction(Function *f);
-
+  void ruleIteration();
+  // virtual void addInitialCriterion(const Instruction *c);
   virtual void addInitialSlicingCriterion(const Instruction *C);
-  virtual InsInfo *getInsInfo(const Instruction *I);
-
-  bool addRule(Rule *rule);
-  const std::vector<Rule *> getRules() const { return rules; }
+  virtual InsInfo *getInsInfo(const Instruction *c);
+  bool addRule(slicing::Rule *rule);
+  const std::vector<slicing::Rule *> getRules() const { return rules; }
 
 private:
-  // typedef std::multimap<const llvm::slicing::Rule*, const llvm::Function *> RuleFunctions_t;
-  // typedef llvm::SmallVector<RuleFunctions_t, 20> InitFuncs;
   typedef llvm::SmallVector<const llvm::Function *, 20> InitFuncs;
+  Module &module;
   legacy::PassManager *PM;
+  const mods::Modifies &MOD;
+  ModulePass *MP;
   DetectParametersPass *DPP;
   const ptr::PointsToSets &PS;
-  const mods::Modifies &MOD;
-  std::vector<Rule *> rules;
-  std::vector<Rule *> ruleWorklist;
-
-  void buildDicts(const ptr::PointsToSets &PS, const CallInst *c);
-  void findInitialCriterions();
-
-  template <typename OutIterator>
-  void emitToCalls(llvm::Function const *const f, OutIterator out);
-  template <typename OutIterator>
-  void emitToExits(llvm::Function const *const f, OutIterator out);
-
-  void runFIDFA(Function &F, const ptr::PointsToSets &PS,
-                const callgraph::Callgraph &CG, const mods::Modifies &MOD);
-
-  ModulePass *MP;
-  Module &module;
   Slicers slicers;
-  std::mutex slicersLock;
+  std::vector<slicing::Rule *> rules;
+  std::vector<slicing::Rule *> ruleWorklist;
   InitFuncs initFuncs;
   FuncsToCalls funcsToCalls;
   CallsToFuncs callsToFuncs;
   std::set<const Instruction *> InitialCriterions;
+
+  void emitToCalls(llvm::Function const *const f);
+  void emitToExits(llvm::Function const *const f);
+
+  void findInitialCriterations();
+  void buildDicts(const ptr::PointsToSets &PS, const CallInst *c);
+  void runDFA();
 };
 
-template <typename OutIterator>
-void IntraDFA::emitToCalls(const Function *f, OutIterator out) {
+// void DFA::buildDicts(const ptr::PointsToSets &PS, const CallInst *c) {
+//   typedef std::vector<const Function *> FunV;
+//   FunV G;
+//   getCalledFunctions(c, PS, std::back_inserter(G));
+
+//   for (FunV::const_iterator I = G.begin(), E = G.end(); I != E; ++I) {
+//     const Function *f = *I;
+//     if (!memoryManStuff(f) && !f->isDeclaration()) {
+//       funcsToCalls.insert(std::make_pair(f, c));
+//       callsToFuncs.insert(std::make_pair(c, f));
+//     }
+//   }
+// }
+
+bool DFA::addRule(slicing::Rule *rule) {
+  if (std::find_if(rules.begin(), rules.end(), [&](slicing::Rule *other) {
+        return *rule == *other;
+      }) != rules.end()) {
+    return false;
+  }
+  rules.push_back(rule);
+  ruleWorklist.push_back(rule);
+  return true;
+}
+
+InsInfo *DFA::getInsInfo(const Instruction *I) {
+  if (!I) {
+    return nullptr;
+  }
+
+  const Function *f = I->getParent()->getParent();
+  FunctionIntraDFA *fidfa = slicers[f];
+
+  if (!fidfa->isInitialized()) {
+    return nullptr;
+  } else {
+    return fidfa->getInsInfo(I);
+  }
+}
+
+DFA::DFA(ModulePass *MP, Module &M, const ptr::PointsToSets &PS,
+         const callgraph::Callgraph &CG, const mods::Modifies &MOD,
+         std::vector<slicing::Rule *> rules)
+    : PS(PS), MOD(MOD), MP(MP), module(M), initFuncs(), funcsToCalls(),
+      callsToFuncs() {
+  for (auto &rule : rules) {
+    addRule(rule);
+  }
+
+  PM = new legacy::PassManager();
+  DPP = new DetectParametersPass();
+  PM->add(DPP);
+  PM->run(M);
+}
+
+DFA::~DFA() {}
+
+void DFA::addInitialSlicingCriterion(const Instruction *C) {
+  InitialCriterions.insert(C);
+}
+
+void DFA::findInitialCriterations() {
+  for (Module::iterator f = module.begin(); f != module.end(); ++f) {
+    if (!f->isDeclaration() && !memoryManStuff(&*f)) {
+      FunctionIntraDFA *FIDFA =
+          new beta::FunctionIntraDFA(*f, MP, PS, MOD, this);
+      slicers.insert(Slicers::value_type(&*f, FIDFA));
+      for (inst_iterator I = inst_begin(*f), E = inst_end(*f); I != E; ++I) {
+        bool hadAssert = beta::findInitialCriterion(I, *FIDFA, ruleWorklist);
+        if (hadAssert) {
+          initFuncs.push_back(f);
+          FIDFA->initializeInfos();
+        }
+      }
+    }
+  }
+  errs() << "Found " << initFuncs.size() << " initial criterions\n";
+}
+
+void DFA::emitToCalls(const Function *f) {
   const Instruction *entry = getFunctionEntry(f);
   const ValSet::const_iterator relBgn = slicers[f]->relevant_begin(entry);
   const ValSet::const_iterator relEnd = slicers[f]->relevant_end(entry);
@@ -314,11 +369,6 @@ void IntraDFA::emitToCalls(const Function *f, OutIterator out) {
 
   FuncsToCalls::const_iterator c, e;
   std::tie(c, e) = funcsToCalls.equal_range(f);
-
-  if (limitCalls && std::distance(c, e) > limitCalls) {
-    errs() << "To many calls to function " << f->getName() << " -> skip\n";
-    return;
-  }
 
   std::set<std::string> calls;
 
@@ -389,13 +439,13 @@ void IntraDFA::emitToCalls(const Function *f, OutIterator out) {
     }
 
     for (auto &rem : toRemove) {
-      DEBUG(errs() << "Not modified: "; rem.first->dump());
+      // DEBUG(errs() << "Not modified: "; rem.first->dump());
       R.erase(rem);
     }
 
     if (!R.size()) {
-      DEBUG(errs() << "No relevant variables in scope " << f->getName()
-                   << "\n");
+      // DEBUG(errs() << "No relevant variables in scope " << f->getName()
+                  //  << "\n");
       continue;
     }
 
@@ -405,7 +455,6 @@ void IntraDFA::emitToCalls(const Function *f, OutIterator out) {
     if (FIDFA->addCriterion(CI, R.begin(), R.end(), this, rcSources, RCInc,
                             !FIDFA->shouldSkipAssert(CI))) {
       FIDFA->addCriterion(CI, FIDFA->REF_begin(CI), FIDFA->REF_end(CI));
-      *out++ = g;
       calls.insert(c->second->getParent()->getParent()->getName().str());
     }
 
@@ -417,8 +466,8 @@ void IntraDFA::emitToCalls(const Function *f, OutIterator out) {
   }
 }
 
-template <typename OutIterator>
-void IntraDFA::emitToExits(const Function *f, OutIterator out) {
+
+void DFA::emitToExits(const Function *f) {
   typedef std::vector<const CallInst *> CallsVec;
 
   CallsVec C;
@@ -469,7 +518,6 @@ void IntraDFA::emitToExits(const Function *f, OutIterator out) {
         // FIXME: add real rc sources
         if (slicers[g->second]->addCriterion(*e, R.begin(), R.end(), this,
                                              RCSources, RCInc)) {
-          *out++ = g->second;
           calls.insert(g->second->getName());
         }
 
@@ -483,149 +531,25 @@ void IntraDFA::emitToExits(const Function *f, OutIterator out) {
   }
 }
 
-// build call-function map
-void IntraDFA::buildDicts(const ptr::PointsToSets &PS, const CallInst *c) {
-  typedef std::vector<const Function *> FunV;
-  FunV G;
-  getCalledFunctions(c, PS, std::back_inserter(G));
+void DFA::ruleIteration() {
+  findInitialCriterations();
 
-  for (FunV::const_iterator I = G.begin(), E = G.end(); I != E; ++I) {
-    const Function *f = *I;
-    if (!memoryManStuff(f) && !f->isDeclaration()) {
-      funcsToCalls.insert(std::make_pair(f, c));
-      callsToFuncs.insert(std::make_pair(c, f));
-    }
-  }
-}
-
-
-IntraDFA::IntraDFA(ModulePass *MP, Module &M, const ptr::PointsToSets &PS,
-                   const callgraph::Callgraph &CG, const mods::Modifies &MOD,
-                   std::vector<Rule *> rules)
-    : PS(PS), MOD(MOD), MP(MP), module(M), slicers(), initFuncs(),
-      funcsToCalls(), callsToFuncs() {
-  for (auto &rule : rules) {
-    addRule(rule);
-  }
-
-  PM = new legacy::PassManager();
-  DPP = new DetectParametersPass();
-  PM->add(DPP);
-  PM->run(M);
-
-  for (Module::iterator f = M.begin(); f != M.end(); ++f) {
-    if (!f->isDeclaration() && !memoryManStuff(&*f)) {
-      FunctionIntraDFA *FIDFA = new FunctionIntraDFA(*f, MP, PS, MOD, this);
-      slicers.insert(Slicers::value_type(&*f, FIDFA));
-
-      // build dicts;
-      for (inst_iterator I = inst_begin(*f), E = inst_end(*f); I != E; ++I) {
-        if (const CallInst *c = dyn_cast<CallInst>(&*I)) {
-          if (isInlineAssembly(c)) {
-            continue;
-          }
-          buildDicts(PS, c);
-        }
-      }
-    }
-  }
-  // for (Module::iterator f = module.begin(); f != module.end(); ++f) {
-  //   if (!f->isDeclaration() && !memoryManStuff(&*f)) {
-  //     FunctionIntraDFA *FIDFA = slicers[f];
-  //     // find initial criterions.
-  //     // findInitialCriterions();
-  //     // for (auto &rule : ruleWorklist) {
-  //     for (inst_iterator I = inst_begin(*f), E = inst_end(*f); I != E; ++I) {
-  //       bool hadAsset = dfa::findInitialCriterion(I, *FIDFA, ruleWorklist);
-  //       if (hadAsset) {
-  //         // RuleFunctions_t ruleFunctions;
-  //         // ruleFunctions.insert(std::make_pair(rule, f));
-  //         initFuncs.push_back(f);
-  //         FIDFA->initializeInfos();
-  //       }
-  //     }
-  //   }
-  // }
-}
-
-IntraDFA::~IntraDFA() {
-  for (Slicers::const_iterator I = slicers.begin(), E = slicers.end(); I != E;
-       ++I) {
-    delete I->second;
-  }
-}
-
-
-void IntraDFA::ruleIteraton() {
-  findInitialCriterions();
-
-  struct FunctionCmp {
-    bool operator()(const Function *lhs, const Function *rhs) const {
-      return lhs->getName().str().compare(rhs->getName().str());
-    }
-  };
-
-  typedef std::set<const Function *> Workset;
-  Workset tmp;
   for (auto &f : initFuncs) {
-  // Q.insert(i);
-  // for (WorkSet::const_iterator f = Q.begin(); f != Q.end(); ++f) {
-    // If f is in All workset, then it should be skipped.
-    // But may be this is useless.
     slicers[f]->calculateStaticSlice();
+    emitToCalls(f);
+    emitToExits(f);
   }
-  for (auto &f : initFuncs) {
-    emitToCalls(f, std::inserter(tmp, tmp.end()));
-    // errs() << "[+]tmp.size(): " << tmp.size() << "\n";
-    emitToExits(f, std::inserter(tmp, tmp.end()));
-    // errs() << "[+]exits tmp.size(): " << tmp.size() << "\n";
-  }
-  errs() << "Found " << initFuncs.size() << " initial criterions\n";
-  initFuncs.clear();
 
-  // inter slicer workset init here.
-  // while (!Q.empty()) {
-    // size_t numFunctions = Q.size();
-    // errs() << "Num functions: " << numFunctions << "\n";
-    // WorkSet tmp;
-    // for (WorkSet::const_iterator f = Q.begin(); f != Q.end(); ++f) {
-    //   // If f is in All workset, then it should be skipped.
-    //   // But may be this is useless.
-    //   if (All.find(*f) == All.end()) { continue; }
-    //   slicers[*f]->calculateStaticSlice();
-    // }
-    // for (WorkSet::const_iterator f = Q.begin(); f != Q.end(); ++f) {
-    //   if (All.find(*f) == All.end()) { continue; }
-    //   emitToCalls(*f, std::inserter(tmp, tmp.end()));
-    //   // errs() << "[+]tmp.size(): " << tmp.size() << "\n";
-    //   emitToExits(*f, std::inserter(tmp, tmp.end()));
-    //   // errs() << "[+]exits tmp.size(): " << tmp.size() << "\n";
-    // }
-  //   std::swap(tmp, Q);
-
-  //   std::vector<const Function *> x(Q.begin(), Q.end());
-  //   std::sort(x.begin(), x.end());
-  //   x.erase(std::unique(x.begin(), x.end()), x.end());
-  //   errs() << x.size() << "\n";
-
-  //   if (x.size() != Q.size()) {
-  //     Q.clear();
-  //     Q.insert(x.begin(), x.end());
-  //     All.insert(x.begin(), x.end());
-  //   }
-  // }
-
-  std::vector<Rule *> toCheck(ruleWorklist);
-  std::vector<Rule *> worklist(ruleWorklist);
-
+  std::vector<slicing::Rule *> toCheck(ruleWorklist);
+  std::vector<slicing::Rule *> worklist(ruleWorklist);
   while (!worklist.empty()) {
-    std::vector<Rule *> tmp;
+    std::vector<slicing::Rule *> tmp;
 
     for (auto &w : worklist) {
       for (auto &c : w->getChildren()) {
-        if (c->getType() == Constraint::RULE) {
-          tmp.push_back((Rule *)c);
-          toCheck.push_back((Rule *)c);
+        if (c->getType() == slicing::Constraint::RULE) {
+          tmp.push_back((slicing::Rule *)c);
+          toCheck.push_back((slicing::Rule *)c);
         }
       }
     }
@@ -633,37 +557,37 @@ void IntraDFA::ruleIteraton() {
     std::swap(worklist, tmp);
   }
 
-  std::vector<Path *> paths;
+  std::vector<slicing::Path *> paths;
   auto createPath = [&](const Instruction *call, const Instruction *inst,
-                        Rule *rule, Path *parent = nullptr) {
+                        slicing::Rule *rule, slicing::Path *parent = nullptr) {
     InsInfo *C_info = getInsInfo(inst);
     assert(C_info);
 
-    PathElement *element = nullptr;
-    Path *path = nullptr;
+    slicing::PathElement *element = nullptr;
+    slicing::Path *path = nullptr;
     if (parent) {
       path = parent;
-      element = new PathElement(inst, inst);
+      element = new slicing::PathElement(inst, inst);
       path->getLast()->setNext(element);
       element->setPrev(path->getLast());
     } else if (call) {
-      path = new Path();
-      PathElement *start = new PathElement(call, inst);
-      element = new PathElement(inst, inst);
+      path = new slicing::Path();
+      slicing::PathElement *start = new slicing::PathElement(call, inst);
+      element = new slicing::PathElement(inst, inst);
       path->setEntry(start);
       start->setNext(element);
       element->setPrev(start);
     } else {
-      path = new Path();
-      element = new PathElement(inst, inst);
+      path = new slicing::Path();
+      element = new slicing::PathElement(inst, inst);
       path->setEntry(element);
     }
 
-    std::vector<Path *> p;
+    std::vector<slicing::Path *> p;
     std::mutex pathLock;
     if (C_info->backtrack(this, element, p, pathLock, *rule)) {
       pathLock.lock();
-      if (std::find_if(p.begin(), p.end(), [path](const Path *other) {
+      if (std::find_if(p.begin(), p.end(), [path](const slicing::Path *other) {
             return *path == *other;
           }) == p.end()) {
         p.push_back(path);
@@ -677,9 +601,9 @@ void IntraDFA::ruleIteraton() {
     bool modified = false;
     do {
       modified = false;
-      for (std::vector<Path *>::iterator i = p.begin();
+      for (std::vector<slicing::Path *>::iterator i = p.begin();
            i != p.end() && !modified; ++i) {
-        std::vector<Path *>::iterator j = i;
+        std::vector<slicing::Path *>::iterator j = i;
         std::advance(j, 1);
         for (; j != p.end(); ++j) {
           if (i == j)
@@ -697,7 +621,7 @@ void IntraDFA::ruleIteraton() {
   };
 
   errs() << "====== Backtrack ======\n";
-  for (std::vector<Rule *>::iterator rule = toCheck.begin();
+  for (std::vector<slicing::Rule *>::iterator rule = toCheck.begin();
        rule != toCheck.end(); ++rule) {
     for (auto &C : (*rule)->getInitialInstruction()) {
       errs() << (*rule)->getRuleTitle() << "\n";
@@ -713,7 +637,7 @@ void IntraDFA::ruleIteraton() {
               if (path->getLast()->getElement() == C.first.first) {
                 p->setDismissable(path);
                 createPath(C.first.first, C.first.second, *rule,
-                           new Path(*path));
+                           new slicing::Path(*path));
               }
             }
           }
@@ -731,13 +655,16 @@ void IntraDFA::ruleIteraton() {
     rule->checkRule();
   }
 
-  std::vector<Rule *> checkRules(ruleWorklist);
+  std::vector<slicing::Rule *> checkRules(ruleWorklist);
   ruleWorklist.clear();
   for (auto &rule : checkRules) {
     for (auto &path : rule->getPaths()) {
-      if (path->getLast()->getType() == PathElementBase::ConstAddressElement) {
-        if (((ConstPathElement *)path->getLast())->shouldCreateNewCriterion()) {
-          Rule *newRule = new Rule(*rule, path->getLast()->getElement());
+      if (path->getLast()->getType() ==
+          slicing::PathElementBase::ConstAddressElement) {
+        if (((slicing::ConstPathElement *)path->getLast())
+                ->shouldCreateNewCriterion()) {
+          slicing::Rule *newRule =
+              new slicing::Rule(*rule, path->getLast()->getElement());
           if (!addRule(newRule)) {
             delete newRule;
           }
@@ -746,148 +673,15 @@ void IntraDFA::ruleIteraton() {
     }
   }
 }
-
-void IntraDFA::computeSlice() {
-  // while (ruleWorklist.size()) {
-  ruleIteraton();
-  // }
-}
-
-// Maybe we can develop a sliceFunction function.
-// TODO if modified removeUndefs on functions which are found by rules
-// callgraph.
-bool IntraDFA::sliceModule() {
-  bool modified = false;
-  for (Slicers::iterator s = slicers.begin(); s != slicers.end(); ++s) {
-    modified |= s->second->slice();
-  }
-  if (modified) {
-    for (Module::iterator I = module.begin(), E = module.end(); I != E; ++I) {
-      if (!I->isDeclaration()) {
-        FunctionIntraDFA::removeUndefs(MP, *I);
-      }
-    }
-  }
-
-  return modified;
-}
-
-// TODO
-bool IntraDFA::sliceFunction(Function *f) {
-  if (slicers[f]->slice()) {
-    if (!f->isDeclaration()) {
-      FunctionIntraDFA::removeUndefs(MP, *f);
-    }
-  }
-}
-
-bool IntraDFA::addRule(Rule *rule) {
-  if (std::find_if(rules.begin(), rules.end(), [&](Rule *other) {
-        return *rule == *other;
-      }) != rules.end()) {
-    return false;
-  }
-  rules.push_back(rule);
-  ruleWorklist.push_back(rule);
-  return true;
-}
-
-// TODO: The rule function as the callie, to find the caller function as a
-// initial function？
-bool addCriterion(FunctionIntraDFA &fidfa, std::string functionName,
-                  const Instruction *inst, uint64_t regNo, Rule &rule,
-                  std::vector<Rule *> preconditions) {
-  bool hadAsset = false;
-  DetectParametersPass::UserSet_t pre =
-      DetectParametersPass::getRegisterValuesBeforeCall(regNo, inst, true);
-  for (auto &p_it : pre) {
-    Rule::InstructionRuleList_t preconditionInstructions;
-
-    for (auto &preCond : preconditions) {
-      for (auto &preCrit : preCond->getCriterions()) {
-        if (preCrit.second.first.getFunctionName() != functionName) {
-          continue;
-          llvm_unreachable("Precondition has to be for the same function");
-        }
-        DetectParametersPass::UserSet_t prePreCond =
-            DetectParametersPass::getRegisterValuesBeforeCall(
-                preCrit.second.first.getRegNo(), (Instruction *)inst, true);
-        for (auto &prePreCond_it : prePreCond) {
-          const Instruction *prePreInst =
-              dyn_cast<const Instruction>(prePreCond_it);
-          Rule::InstructionRule_t instRule(prePreInst, (Rule *)preCrit.first);
-          preconditionInstructions.push_back(instRule);
-          fidfa.addInitialCriterion(inst,
-                                    ptr::PointsToSets::Pointee(prePreInst, -1));
-        }
-      }
-    }
-
-    fidfa.addInitialCriterion(inst, ptr::PointsToSets::Pointee(p_it, -1));
-    rule.addInitialInstruction(inst, dyn_cast<const Instruction>(p_it),
-                               preconditionInstructions);
-    hadAsset = true;
-  }
-  return hadAsset;
-};
-
-void IntraDFA::findInitialCriterions() {
-  bool hadAsset = false;
-  for (auto &rule : ruleWorklist) {
-    for (auto &criterion : rule->getCriterions()) {
-      SimpleCallGraph::InstructionSet_t callerInstructions =
-          ptr::getSimpleCallGraph().getCallers(
-              criterion.second.first.getFunctionName());
-      for (auto &inst : callerInstructions) {
-        const Function *f = inst->getParent()->getParent();
-        errs() << f->getName() << "\n";
-        if (f->isDeclaration() || memoryManStuff(&*f)) {
-          continue;
-        }
-        FunctionIntraDFA *fidfa = slicers[f];
-        hadAsset =
-            addCriterion(*fidfa, inst->getParent()->getParent()->getName(),
-                         inst, criterion.second.first.getRegNo(),
-                         *(Rule *)criterion.first, criterion.second.second);
-        errs() << "Found caller to " << criterion.second.first.getFunctionName()
-               << "\n";
-
-        if (hadAsset) {
-          initFuncs.push_back(f);
-          fidfa->initializeInfos();
-        }
-      }
-    }
-  }
-}
-
-void IntraDFA::addInitialSlicingCriterion(const Instruction *C) {
-  InitialCriterions.insert(C);
-}
-
-InsInfo *IntraDFA::getInsInfo(const Instruction *I) {
-  if (!I) {
-    return nullptr;
-  }
-
-  const Function *f = I->getParent()->getParent();
-  FunctionIntraDFA *fidfa = slicers[f];
-
-  if (!fidfa->isInitialized()) {
-    return nullptr;
-  } else {
-    return fidfa->getInsInfo(I);
-  }
-}
-} // namespace dfa
+} // namespace beta
 } // namespace llvm
 
-char FunctionSlicer::ID = 0;
-static RegisterPass<FunctionSlicer> X("slice-intra", "view CFG of function", false,
-                              true);
-static RegisterAnalysisGroup<FunctionSlicer> Y(X);
+char FunctionIntraDFAbeta::ID = 0;
+static RegisterPass<FunctionIntraDFAbeta> X("intra-dfa", "view CFG of function",
+                                            false, true);
+static RegisterAnalysisGroup<FunctionIntraDFAbeta> Y(X);
 
-bool FunctionSlicer::runOnModule(Module &M) {
+bool FunctionIntraDFAbeta::runOnModule(Module &M) {
   ptr::PointsToSets *PS = new ptr::PointsToSets();
   ptr::ProgramStructure P(M);
   computePointsToSets(P, *PS);
@@ -895,7 +689,7 @@ bool FunctionSlicer::runOnModule(Module &M) {
   callgraph::Callgraph CG(M, *PS);
   mods::Modifies MOD;
   mods::ProgramStructure P1(M, *PS);
-  // computeModifies(P1, CG, *PS, MOD);
+  computeModifies(P1, CG, *PS, MOD);
 
   using llvm::slicing::Constraint;
   using llvm::slicing::Parameter;
@@ -912,11 +706,9 @@ bool FunctionSlicer::runOnModule(Module &M) {
     }
   }
 
-  dfa::IntraDFA DFA(this, M, (*PS), CG, MOD, rules);
-  DFA.computeSlice();
-
+  beta::DFA dfa(this, M, (*PS), CG, MOD, rules);
+  dfa.ruleIteration();
   free(PS);
-  bool s = DFA.sliceModule();
 
   raw_fd_ostream *report_stream = nullptr;
   if (ReportFilename.length()) {
@@ -928,25 +720,23 @@ bool FunctionSlicer::runOnModule(Module &M) {
       errs() << EC.message() << '\n';
     }
   }
-
   llvm::slicing::HTMLReportPrinter reportPrinter(report_stream ? *report_stream
                                                                : nulls());
-  for (auto &rule : DFA.getRules()) {
+  for (auto &rule : dfa.getRules()) {
     errs() << "Print results of \"" << rule->getRuleTitle() << "\"\n";
     const Rule::CompletePathResultList_t &results = rule->getResults();
     errs() << results.size() << " paths\n";
     reportPrinter.addResults(rule, results);
   }
   reportPrinter.close();
-
   if (report_stream) {
     report_stream->close();
     delete (report_stream);
   }
-  return s;
+  return false;
 }
 
-void FunctionSlicer::getAnalysisUsage(AnalysisUsage &AU) const {
+void FunctionIntraDFAbeta::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addRequired<PostDominatorTree>();
   AU.addRequired<PostDominanceFrontier>();
 }

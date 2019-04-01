@@ -1,9 +1,9 @@
-#include "./FunctionIntraDFA.h"
+#include "./FunctionIntraDFAbeta.h"
 #include "../Languages/LLVMSupport.h"
 #include "../Modifies/Modifies.h"
 #include "../PointsTo/PointsTo.h"
 #include "../Slicing/PostDominanceFrontier.h"
-#include "ExternalHandler.h"
+#include "ExternalHandlerbeta.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Analysis/Andersen/StackAccessPass.h"
@@ -31,7 +31,7 @@
 #define DEBUG_TYPE "function-dfa"
 
 using namespace llvm;
-using namespace llvm::dfa;
+using namespace llvm::beta;
 
 InsInfo::StructSliceInfoSet_t::iterator InsInfo::defaultStructIterator;
 
@@ -2001,26 +2001,26 @@ void FunctionIntraDFA::calculateStaticSlice() {
   slicerLock.unlock();
 }
 
-bool FunctionIntraDFA::slice() {
-  bool removed = false;
-  for (inst_iterator I = inst_begin(fun), E = inst_end(fun); I != E;) {
-    Instruction &i = *I;
-    InsInfoMap::iterator ii_iter = insInfoMap.find(&i);
-    assert(ii_iter != insInfoMap.end() || !infosInitialized);
-    const InsInfo *ii = infosInitialized ? ii_iter->second : nullptr;
-    ++I;
+// bool FunctionIntraDFA::slice() {
+//   bool removed = false;
+//   for (inst_iterator I = inst_begin(fun), E = inst_end(fun); I != E;) {
+//     Instruction &i = *I;
+//     InsInfoMap::iterator ii_iter = insInfoMap.find(&i);
+//     assert(ii_iter != insInfoMap.end() || !infosInitialized);
+//     const InsInfo *ii = infosInitialized ? ii_iter->second : nullptr;
+//     ++I;
 
-    if ((!infosInitialized || ii->isSliced()) && canSlice(i)) {
-      i.replaceAllUsesWith(UndefValue::get(i.getType()));
-      i.eraseFromParent();
-      // if (infosInitialized && ii_iter != insInfoMap.end()) {
-      //   insInfoMap.erase(ii_iter);
-      //   delete ii;
-      // }
-      removed = true;
-    }
-  }
-}
+//     if ((!infosInitialized || ii->isSliced()) && canSlice(i)) {
+//       i.replaceAllUsesWith(UndefValue::get(i.getType()));
+//       i.eraseFromParent();
+//       // if (infosInitialized && ii_iter != insInfoMap.end()) {
+//       //   insInfoMap.erase(ii_iter);
+//       //   delete ii;
+//       // }
+//       removed = true;
+//     }
+//   }
+// }
 
 static bool handleAssert(llvm::Function &F, FunctionIntraDFA &DFA,
                          const llvm::CallInst *CI) {
@@ -2062,7 +2062,7 @@ count:
   return true;
 }
 
-bool llvm::dfa::findInitialCriterion(
+bool llvm::beta::findInitialCriterion(
     inst_iterator inst_it, FunctionIntraDFA &DFA,
     std::vector<llvm::slicing::Rule *> &rules) {
   bool added = false;
@@ -2232,65 +2232,65 @@ bool llvm::dfa::findInitialCriterion(
   return added;
 }
 
-bool llvm::dfa::findInitialCriterion(Function &F, FunctionIntraDFA &DFA,
-                                     bool starting) {
-  bool added = false;
+// bool llvm::beta::findInitialCriterion(Function &F, FunctionIntraDFA &DFA,
+//                                      bool starting) {
+//   bool added = false;
 
-  const Function *Fklee_assume = F.getParent()->getFunction("klee_assume");
-  const Function *F__assert_fail = F.getParent()->getFunction("__assert_fail");
-  const Function *F_donothing = F.getParent()->getFunction("llvm.donothing");
-  const Function *F_slice = F.getParent()->getFunction("llvm.slice");
+//   const Function *Fklee_assume = F.getParent()->getFunction("klee_assume");
+//   const Function *F__assert_fail = F.getParent()->getFunction("__assert_fail");
+//   const Function *F_donothing = F.getParent()->getFunction("llvm.donothing");
+//   const Function *F_slice = F.getParent()->getFunction("llvm.slice");
 
-  for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
-    const Instruction *i = &*I;
-    errs() << "[+]Instruction: " << i->getName() << "\n";
-    if (const StoreInst *SI = dyn_cast<StoreInst>(i)) {
-      const Value *LHS = SI->getPointerOperand();
-      if (LHS->hasName() && LHS->getName().startswith("__ai_state_")) {
+//   for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
+//     const Instruction *i = &*I;
+//     errs() << "[+]Instruction: " << i->getName() << "\n";
+//     if (const StoreInst *SI = dyn_cast<StoreInst>(i)) {
+//       const Value *LHS = SI->getPointerOperand();
+//       if (LHS->hasName() && LHS->getName().startswith("__ai_state_")) {
 
-        DFA.addInitialCriterion(SI, ptr::PointsToSets::Pointee(LHS, -1));
-      }
-    } else if (const CallInst *CI = dyn_cast<CallInst>(i)) {
-      Function *callie = CI->getCalledFunction();
-      if (callie && F__assert_fail && callie == F__assert_fail) {
-        added = handleAssert(F, DFA, CI);
-      } else if (callie && callie == Fklee_assume) { // this is kind of hack
-        const Value *l = elimConstExpr(CI->getArgOperand(0));
-        DFA.addInitialCriterion(CI, ptr::PointsToSets::Pointee(l, -1));
-        added = true;
-      } else if (callie && callie == F_donothing) {
-        DFA.addInitialCriterion(CI);
-        added = true;
-      } else if (callie && callie == F_slice) {
-        Value *v = CI->arg_operands().begin()->get();
-        DFA.addInitialCriterion(CI, ptr::PointsToSets::Pointee(v, -1));
-        added = true;
-      }
-    } else if (const ReturnInst *RI = dyn_cast<ReturnInst>(i)) {
-      if (starting) {
-        const Module *M = F.getParent();
-        for (Module::const_global_iterator II = M->global_begin(),
-                                           EE = M->global_end();
-             II != EE; ++II) {
-          const GlobalVariable &GV = *II;
-          if (!GV.hasName() || !GV.getName().startswith("__ai_state_"))
-            continue;
+//         DFA.addInitialCriterion(SI, ptr::PointsToSets::Pointee(LHS, -1));
+//       }
+//     } else if (const CallInst *CI = dyn_cast<CallInst>(i)) {
+//       Function *callie = CI->getCalledFunction();
+//       if (callie && F__assert_fail && callie == F__assert_fail) {
+//         added = handleAssert(F, DFA, CI);
+//       } else if (callie && callie == Fklee_assume) { // this is kind of hack
+//         const Value *l = elimConstExpr(CI->getArgOperand(0));
+//         DFA.addInitialCriterion(CI, ptr::PointsToSets::Pointee(l, -1));
+//         added = true;
+//       } else if (callie && callie == F_donothing) {
+//         DFA.addInitialCriterion(CI);
+//         added = true;
+//       } else if (callie && callie == F_slice) {
+//         Value *v = CI->arg_operands().begin()->get();
+//         DFA.addInitialCriterion(CI, ptr::PointsToSets::Pointee(v, -1));
+//         added = true;
+//       }
+//     } else if (const ReturnInst *RI = dyn_cast<ReturnInst>(i)) {
+//       if (starting) {
+//         const Module *M = F.getParent();
+//         for (Module::const_global_iterator II = M->global_begin(),
+//                                            EE = M->global_end();
+//              II != EE; ++II) {
+//           const GlobalVariable &GV = *II;
+//           if (!GV.hasName() || !GV.getName().startswith("__ai_state_"))
+//             continue;
 
-          DFA.addInitialCriterion(RI, ptr::PointsToSets::Pointee(&GV, -1),
-                                  false);
-        }
-      }
-    }
-  }
+//           DFA.addInitialCriterion(RI, ptr::PointsToSets::Pointee(&GV, -1),
+//                                   false);
+//         }
+//       }
+//     }
+//   }
 
-  return added;
-}
+//   return added;
+// }
 
 bool FunctionDFA::runOnFunction(llvm::Function &F,
                                 const llvm::ptr::PointsToSets &PS,
                                 const mods::Modifies &MOD) {
   FunctionIntraDFA DFA(F, this, PS, MOD);
-  findInitialCriterion(F, DFA);
+  // findInitialCriterion(F, DFA);
 }
 
 bool FunctionDFA::runOnModule(llvm::Module &M) {

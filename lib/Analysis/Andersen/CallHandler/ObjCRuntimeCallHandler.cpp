@@ -228,6 +228,7 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
             if (ConstantDataArray *ClassData =
                     dyn_cast<ConstantDataArray>((Value *)*X1PT_it)) {
               StringRef Methodname = ClassData->getAsString();
+              //errs() << "[+] Classname: Methodname: " << Classname << " " << Methodname << "\n";
               handleCall(Classname, Methodname, Meta, (Instruction *)CallInst,
                          X0, X1, andersen);
             }
@@ -957,6 +958,7 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
                                 std::string methodName =
                                     "-[" + superDataArray->getAsString().str() +
                                     " " + selector->getAsString().str() + "]";
+                                //errs() << "[+]method name: " << methodName << "\n";
 
                                 CallInfos_t infos;
                                 std::get<0>(infos) =

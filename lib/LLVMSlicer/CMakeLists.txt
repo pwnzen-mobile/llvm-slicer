@@ -15,4 +15,6 @@ Backtrack/Constraint.cpp
 Backtrack/Backtrack.cpp
 IntraDFA/FunctionIntraDFA.cpp
 IntraDFA/IntraDFA.cpp
+IntraDFA/FunctionIntraDFAbeta.cpp
+IntraDFA/FunctionIntraDFAbt.cpp
 )
