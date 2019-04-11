@@ -274,7 +274,7 @@ bool Andersen::runOnModule(Module &M) {
     }
   }
   #if 1
-  int n = 2;
+  int n = 1;
   do {
   {
     errs() << "Optimize and solve constraints\n";
@@ -345,7 +345,7 @@ bool Andersen::runOnModule(Module &M) {
   }
   } while(n--);
   // } while (CallInstWorklist.size() || FunctionWorklist.size());
-  // } while (FunctionWorklist.size());
+  // } while (CallInstWorklist.size());
   #endif
 
   if (DumpDebugInfo) {
@@ -374,7 +374,7 @@ bool Andersen::runOnModule(Module &M) {
   //    CallGraph->finalize();
 
   DEBUG_WITH_TYPE("simple-callgraph", CallGraph->print(errs()););
-  //CallGraph->print(errs());
+  CallGraph->print(errs());
   //    assert(false);
 
   unhandledFunctions->flush();

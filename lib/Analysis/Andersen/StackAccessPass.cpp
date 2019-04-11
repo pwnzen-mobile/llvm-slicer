@@ -282,6 +282,40 @@ int64_t StackAccessPass::getStackPointerValue(const Instruction *Inst,
         }
         break;
       }
+      case Instruction::And: {
+        Value *V = nullptr;
+        uint64_t Const = 0;
+        if (PatternMatch::match(
+                CurrentInst,
+                PatternMatch::m_And(PatternMatch::m_Value(V),
+                                    PatternMatch::m_ConstantInt(Const)))) {
+          CurrentInst = dyn_cast<Instruction>(V);
+          CurrentSize &= (int64_t)Const;
+        } else {
+          Run = false;
+          break;
+          CurrentInst->dump();
+          llvm_unreachable("Sub with non-constant int");
+        }
+        break;
+      }
+      case Instruction::Or: {
+        Value *V = nullptr;
+        uint64_t Const = 0;
+        if (PatternMatch::match(
+                CurrentInst,
+                PatternMatch::m_Or(PatternMatch::m_Value(V),
+                                    PatternMatch::m_ConstantInt(Const)))) {
+          CurrentInst = dyn_cast<Instruction>(V);
+          CurrentSize |= (int64_t)Const;
+        } else {
+          Run = false;
+          break;
+          CurrentInst->dump();
+          llvm_unreachable("Sub with non-constant int");
+        }
+        break;
+      }
       case Instruction::PHI: {
         for (unsigned i = 1; i < CurrentInst->getNumOperands(); ++i) {
           Worklist.push_back(std::pair<Instruction *, int64_t>(

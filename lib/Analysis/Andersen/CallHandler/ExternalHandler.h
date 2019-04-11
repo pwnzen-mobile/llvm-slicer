@@ -2243,6 +2243,23 @@ DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAf
 }
 }
 
+void anonymous_nshome(llvm::Instruction *CallInst, Andersen *andersen) {
+//Handle "NSHomeDirectory"
+{
+DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
+  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+    if (valIndex == AndersNodeFactory::InvalidIndex)
+      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+    if (objIndex == AndersNodeFactory::InvalidIndex)
+      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+    andersen->setType(*Post_it, "NSString");
+    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  }
+}
+}
+
 void anonymous_843(llvm::Instruction *CallInst, Andersen *andersen) {
 //Handle "CC_SHA256_Init"
 }
@@ -3415,6 +3432,10 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen, const std::stri
   }
   if (FName == "CC_SHA256_Update") {
     anonymous_847(CallInst, andersen);
+    return true;
+  }
+  if (FName == "NSHomeDirectory") {
+    anonymous_nshome(CallInst, andersen);
     return true;
   }
   if (FName == "NSLog") {

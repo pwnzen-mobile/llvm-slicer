@@ -4298,6 +4298,32 @@ void anonymous_925(llvm::dfa::InsInfo *CallInst, const ptr::PointsToSets &PS) {
 //Handle "NSLog"
 }
 
+void anonymous_nshome(llvm::dfa::InsInfo *CallInst, const ptr::PointsToSets &PS) {
+  // Handle "NSHomeDirectory"
+  { //Def
+    DetectParametersPass::UserSet_t DefRegs = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), (Instruction*)CallInst->getIns());
+    for (auto DefRegs_it = DefRegs.begin(); DefRegs_it != DefRegs.end(); ++DefRegs_it) {
+      CallInst->addDEF(llvm::ptr::PointsToSets::Pointee(*DefRegs_it, -1));
+    }
+  } //End Def
+  { //Def
+  DetectParametersPass::UserSet_t DefRegs;
+  {
+  DetectParametersPass::UserSet_t Src = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), (Instruction*)CallInst->getIns());
+  for (auto S : Src) {
+    const ptr::PointsToSets::PointsToSet &PtsTo = ptr::getPointsToSet(S, PS);//get points to sets
+    for (auto &P : PtsTo) {
+      assert(isa<const User>(P.first));
+      DefRegs.insert((User*)P.first);
+    }
+  }
+  }
+  for (auto DefRegs_it = DefRegs.begin(); DefRegs_it != DefRegs.end(); ++DefRegs_it) {
+    CallInst->addDEF(llvm::ptr::PointsToSets::Pointee(*DefRegs_it, -1));
+  }
+  }
+}
+
 void anonymous_926(llvm::dfa::InsInfo *CallInst, const ptr::PointsToSets &PS) {
 //Handle "__stack_chk_fail"
 }
@@ -5175,6 +5201,10 @@ bool handleCall(llvm::dfa::InsInfo *CallInst, std::string FName, const ptr::Poin
   }
   if (FName == "NSLog") {
     anonymous_925(CallInst, PS);
+    return true;
+  }
+  if (FName == "NSHomeDirectory") {
+    anonymous_nshome(CallInst, PS);
     return true;
   }
   if (FName == "SecRandomCopyBytes") {

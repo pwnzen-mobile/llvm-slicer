@@ -444,21 +444,21 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
         *(uint32_t *)ConstData.slice(IVARsPtr - ConstSection->getAddress() + 4)
              .data();
 
-    uint64_t CurrentIVAROffest = 8;
+    uint64_t CurrentIVAROffset = 8;
     for (unsigned i = 0; i < IVAREntryCount; ++i) {
       uint64_t OffsetPtr =
           *(uint64_t *)ConstData
-               .slice(IVARsPtr - ConstSection->getAddress() + CurrentIVAROffest)
+               .slice(IVARsPtr - ConstSection->getAddress() + CurrentIVAROffset)
                .data();
       uint64_t IVARNamePtr = *(uint64_t *)ConstData
                                   .slice(IVARsPtr - ConstSection->getAddress() +
-                                         CurrentIVAROffest + 8)
+                                         CurrentIVAROffset + 8)
                                   .data();
       StringRef IVARName = getString(IVARNamePtr);
 
       uint64_t IVARTypePtr = *(uint64_t *)ConstData
                                   .slice(IVARsPtr - ConstSection->getAddress() +
-                                         CurrentIVAROffest + 16)
+                                         CurrentIVAROffset + 16)
                                   .data();
       StringRef IVARType = getString(IVARTypePtr);
       if (IVARType.find("@") == 0 && IVARType != "@?") {
@@ -475,13 +475,13 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
         IVARType = "";
       }
 
+      if(IVARs.find(OffsetPtr) != IVARs.end()) continue;
       ObjectiveC::IVAR ivar(IVARName, OffsetPtr, IVARType);
       ClassPtr->addIVAR(ivar);
-      assert(IVARs.find(OffsetPtr) == IVARs.end());
       //            IVARs[OffsetPtr] = ivar;
       IVARs.insert(std::pair<uint64_t, ObjectiveC::IVAR>(OffsetPtr, ivar));
 
-      CurrentIVAROffest += IVAREntrySize;
+      CurrentIVAROffset += IVAREntrySize;
     }
   }
 
@@ -603,20 +603,20 @@ ObjectiveCBinary::parseMethods(uint64_t MethodsPtr, uint64_t SignatureStartPtr,
       *(uint32_t *)ConstData.slice(MethodsPtr - ConstSection->getAddress() + 4)
            .data();
 
-  uint64_t CurrentMethodOffest = 8;
+  uint64_t CurrentMethodOffset = 8;
   for (unsigned i = 0; i < MethodEntryCount; ++i) {
     uint64_t MethodNamePtr =
         *(uint64_t *)ConstData
              .slice(MethodsPtr - ConstSection->getAddress() +
-                    CurrentMethodOffest)
+                    CurrentMethodOffset)
              .data();
     uint64_t IMPPtr = *(uint64_t *)ConstData
                            .slice(MethodsPtr - ConstSection->getAddress() +
-                                  CurrentMethodOffest + 16)
+                                  CurrentMethodOffset + 16)
                            .data();
     uint64_t MethTypePtr = *(uint64_t *)ConstData
                                 .slice(MethodsPtr - ConstSection->getAddress() +
-                                       CurrentMethodOffest + 8)
+                                       CurrentMethodOffset + 8)
                                 .data();
     StringRef MethodName = getString(MethodNamePtr);
     StringRef MethodType = getString(MethTypePtr);
@@ -631,7 +631,7 @@ ObjectiveCBinary::parseMethods(uint64_t MethodsPtr, uint64_t SignatureStartPtr,
 
     methods.push_back(ObjectiveC::Method(MethodName, IMPPtr, MethodType));
 
-    CurrentMethodOffest += MethodEntrySize;
+    CurrentMethodOffset += MethodEntrySize;
   }
   return methods;
 }

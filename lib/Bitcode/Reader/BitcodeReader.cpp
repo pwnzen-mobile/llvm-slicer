@@ -1782,6 +1782,7 @@ std::error_code BitcodeReader::parseValueSymbolTable(unsigned Offset) {
     // if (Entry.Kind == BitstreamEntry::SubBlock || Entry.ID == bitc::VALUE_SYMTAB_BLOCK_ID) {
     //   return ;
     // }
+    errs() << "[+]Entry.Kind: " << Entry.Kind << " Entry.ID: " << Entry.ID << "\n";
     assert(Entry.Kind == BitstreamEntry::SubBlock);
     assert(Entry.ID == bitc::VALUE_SYMTAB_BLOCK_ID);
 #else

@@ -447,6 +447,7 @@ bool Kleerer::run() {
   return false;
 }
 
+#if 0
 bool KleererPass::runOnModule(Module &M) {
   errs() << "[i]Start Kleerer Pass\n";
   const DataLayout &TD = M.getDataLayout();
@@ -461,3 +462,4 @@ bool KleererPass::runOnModule(Module &M) {
   Kleerer K(*this, M, (DataLayout&)TD, CG);
   return K.run();
 }
+#endif

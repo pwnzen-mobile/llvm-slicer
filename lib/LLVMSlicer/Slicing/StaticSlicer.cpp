@@ -984,9 +984,14 @@ static RegisterPass<Slicer> X("slice-inter", "View CFG of function", false,
 static RegisterAnalysisGroup<Slicer> Y(X);
 
 bool Slicer::runOnModule(Module &M) {
+  using llvm::slicing::Constraint;
+  using llvm::slicing::Parameter;
+  using llvm::slicing::Rule;
+  std::vector<Rule *> rules = llvm::slicing::parseRules();
+
   ptr::PointsToSets *PS = new ptr::PointsToSets();
   {
-    ptr::ProgramStructure P(M);
+    ptr::ProgramStructure P(M, rules);
     errs() << "[i]first ProgramStructure\n";
     computePointsToSets(P, *PS);
   }
@@ -1000,12 +1005,6 @@ bool Slicer::runOnModule(Module &M) {
     computeModifies(P1, CG, *PS, MOD);
   }
   errs() << "done\n";
-
-  using llvm::slicing::Constraint;
-  using llvm::slicing::Parameter;
-  using llvm::slicing::Rule;
-
-  std::vector<Rule *> rules = llvm::slicing::parseRules();
 
   for (auto &r : rules) {
     if (r->getParentRuleTitle().size()) {

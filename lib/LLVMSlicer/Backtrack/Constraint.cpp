@@ -189,11 +189,13 @@ bool ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
             else if (compare == NOTIN)
               return false;
           } else {
-            if (compare == IN) return false;
-            if (compare == NOTIN) return true;
+            if (compare == IN)
+              return false;
+            if (compare == NOTIN)
+              return true;
           }
         } else {
-            return false;
+          return false;
         }
         break;
       }
@@ -479,7 +481,7 @@ bool Rule::checkRule() {
       PrecondResultList_t preConditionResults;
       for (auto &preCond : initIns.second) {
         for (auto &p : preCond.second->getPaths(preCond.first)) {
-          //p->dump();
+          // p->dump();
           hasPrecond = true;
           bool result = preCond.second->checkRule(p);
           PrecondResult_t preResult;
@@ -632,6 +634,14 @@ bool CallConstraint::shouldStop(PathElementBase *pathElement) const {
     SimpleCallGraph::FunctionSet_t calledFunctions =
         ptr::getSimpleCallGraph().getCalled(inst);
     for (auto &calledFunction : calledFunctions) {
+      if (calledFunction == "objc_retain" ||
+          calledFunction == "objc_autoreleaseReturnValue" ||
+          calledFunction == "objc_autorelease" ||
+          calledFunction == "objc_release" ||
+          calledFunction == "objc_retainAutoreleasedReturnValue" ||
+          calledFunction == "objc_retainAutorelease") {
+        return false;
+      }
       if (calledFunction == functionName) {
         return true;
       }

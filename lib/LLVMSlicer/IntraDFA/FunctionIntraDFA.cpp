@@ -187,33 +187,54 @@ void InsInfo::handleVariousFuns(const ptr::PointsToSets &PS,
     addDEFArray(PS, l, lenConst);
     if (!isConstantValue(len))
       addREF(Pointee(len, -1));
-  } else {
-    if (fName.equals("objc_msgSend")) {
-      DetectParametersPass::UserSet_t Pre_X0 =
-          DetectParametersPass::getRegisterValuesBeforeCall(5, C, true);
-      DetectParametersPass::UserSet_t Pre_X1 =
-          DetectParametersPass::getRegisterValuesBeforeCall(6, C, true);
+  } else if (fName.equals("objc_msgSend")) {
+    DetectParametersPass::UserSet_t Pre_X0 =
+        DetectParametersPass::getRegisterValuesBeforeCall(5, C, true);
+    DetectParametersPass::UserSet_t Pre_X1 =
+        DetectParametersPass::getRegisterValuesBeforeCall(6, C, true);
 
-      for (auto Pre : Pre_X0) {
-        addREF(Pointee(Pre, -1));
-      }
-      for (auto Pre : Pre_X1) {
-        addREF(Pointee(Pre, -1));
+    for (auto Pre : Pre_X0) {
+      addREF(Pointee(Pre, -1));
+    }
+    for (auto Pre : Pre_X1) {
+      addREF(Pointee(Pre, -1));
+    }
+  } else if (fName.equals("SecItemCopyMatching")) {
+    DetectParametersPass::UserSet_t PreX1 =
+        DetectParametersPass::getRegisterValuesBeforeCall(6, C);
+    for (auto &X1 : PreX1) {
+      std::vector<const Value *> ptsToSet1;
+      ptr::getAndersen()->getPointsToSet(X1, ptsToSet1);
+      for (auto &pts1 : ptsToSet1) {
+        addDEF(Pointee(pts1, -1));
       }
     }
+  } 
+  // else if (fName.equals("objc_retain") ||
+  //            fName.equals("objc_autoreleaseReturnValue") ||
+  //            fName.equals("objc_autorelease") || fName.equals("objc_release") ||
+  //            fName.equals("objc_retainAutoreleasedReturnValue") ||
+  //            fName.equals("objc_retainAutorelease")) {
+  //   DetectParametersPass::UserSet_t Pre =
+  //       DetectParametersPass::getRegisterValuesBeforeCall(5, C);
+  //   DetectParametersPass::UserSet_t Post =
+  //       DetectParametersPass::getRegisterValuesAfterCall(5, C);
 
-    if (fName.equals("SecItemCopyMatching")) {
-      DetectParametersPass::UserSet_t PreX1 =
-          DetectParametersPass::getRegisterValuesBeforeCall(6, C);
-      for (auto &X1 : PreX1) {
-        std::vector<const Value *> ptsToSet1;
-        ptr::getAndersen()->getPointsToSet(X1, ptsToSet1);
-        for (auto &pts1 : ptsToSet1) {
-          addDEF(Pointee(pts1, -1));
-        }
-      }
-    }
-  }
+  //   for (DetectParametersPass::UserSet_t::iterator Pre_it = Pre.begin();
+  //        Pre_it != Pre.end(); ++Pre_it) {
+  //     addREF(Pointee(*Pre_it, -1));
+  //   }
+  //   for (DetectParametersPass::UserSet_t::iterator Post_it = Post.begin();
+  //        Post_it != Post.end(); ++Post_it) {
+  //     ptr::PointsToSets::PointsToSet X0_ptsTo =
+  //         ptr::getPointsToSet(*Post_it, PS);
+  //     for (auto &def_it : X0_ptsTo) {
+  //       addDEF(def_it);
+  //     }
+  //     addDEF(Pointee(*Post_it, -1));
+  //   }
+  // }
+
   const Module *M = C->getParent()->getParent()->getParent();
   SimpleCallGraph &CG = ptr::getSimpleCallGraph();
   for (SimpleCallGraph::FunctionSet_t::iterator F_it = CG.getCalled(C).begin();
@@ -284,61 +305,18 @@ bool InsInfo::backtrack(InsInfoProvider *provider,
     SimpleCallGraph::FunctionSet_t &called =
         ptr::getSimpleCallGraph().getCalled(ins);
     for (auto &functionName : called) {
+      errs() << "[+] " << functionName << "\n";
+      const Function *function = M->getFunction(functionName);
+
       if (functionName == "CCKeyDerivationPBKDF") {
-        assert(true);
-      }
-      if (functionName == "-[NSString dataUsingEncoding:]") {
         assert(true);
       }
       if (functionName ==
           "+[RNEncryptor encryptData:withSettings:password:error:]") {
         assert(true);
       }
-      if (functionName == "fn_10006EE1C") {
-        assert(true);
-      }
-
-      const Function *function = M->getFunction(functionName);
       if (!function || function->isDeclaration() || function->isIntrinsic())
         continue;
-      const Instruction *ret = nullptr;
-      for (auto &BB_it : function->getBasicBlockList()) {
-        if (BB_it.getTerminator() &&
-            BB_it.getTerminator()->getOpcode() == Instruction::Ret) {
-          ret = BB_it.getTerminator();
-        }
-      }
-      assert(ret);
-
-      InsInfo *retInfo = provider->getInsInfo(ret);
-      if (!retInfo) {
-        errs() << "Function " << functionName
-               << " not sliced. Can not continue path!\n";
-        continue;
-      }
-      for (ValSet::const_iterator rc_it = DEF_begin(); rc_it != DEF_end();
-           ++rc_it) {
-
-        for (ValSet::const_iterator ret_rc_it = retInfo->RC_begin();
-             ret_rc_it != retInfo->RC_end(); ++ret_rc_it) {
-          IncType_t RC_inc = retInfo->getRCInc(*ret_rc_it);
-          if (!(RC_inc < INC_MAX))
-            continue;
-          if (pathElement->getRelevantVariable() != ret_rc_it->first)
-            continue;
-          if (ret_rc_it->first == rc_it->first) {
-            if (retInfo->SlicedPredecessors.find(rc_it->first) !=
-                retInfo->SlicedPredecessors.end()) {
-              std::pair<const Instruction *, const Value *> v(
-                  ret, prevRelevantVariable);
-              predecessors.insert(
-                  Pred_t(retInfo, pathElement->getRelevantVariable()));
-              pathElement->getParent()->addCall(dyn_cast<CallInst>(ins));
-              //                                visited.insert(v);
-            }
-          }
-        }
-      }
     }
   }
 
@@ -1194,6 +1172,27 @@ void FunctionIntraDFA::initializeInfos() {
       if (call->getCalledFunction() &&
           (call->getCalledFunction()->isIntrinsic() ||
            call->getCalledFunction()->isDeclaration())) {
+        if (call->getCalledFunction()->getName() == "objc_retain" ||
+            call->getCalledFunction()->getName() ==
+                "objc_autoreleaseReturnValue" ||
+            call->getCalledFunction()->getName() == "objc_autorelease" ||
+            call->getCalledFunction()->getName() == "objc_release" ||
+            call->getCalledFunction()->getName() ==
+                "objc_retainAutoreleasedReturnValue" ||
+            call->getCalledFunction()->getName() == "objc_retainAutorelease") {
+          DetectParametersPass::UserSet_t Ret =
+              DetectParametersPass::getRegisterValuesBeforeCall(5, call);
+          DetectParametersPass::UserSet_t Post_X0 =
+              DetectParametersPass::getRegisterValuesAfterCall(5, call);
+
+          for (auto &r_it : Ret) {
+            for (auto &post_it : Post_X0) {
+              getInsInfo(dyn_cast<Instruction>(post_it))
+                  ->addREF(Pointee(r_it, -1), 1);
+            }
+          }
+          continue;
+        }
 
         // Add a 'self-REF' for a parameter/return value that is defined by an
         // external function
@@ -2111,7 +2110,8 @@ bool llvm::dfa::findInitialCriterion(
     for (auto &rule : rules) {
       for (auto &criterion : rule->getCriterions()) {
         for (auto &called : calledFunctions) {
-          // errs() << called << "\n" << criterion.second.first.getFunctionName() << "\n";
+          // errs() << called << "\n" <<
+          // criterion.second.first.getFunctionName() << "\n";
           if (called == criterion.second.first.getFunctionName()) {
             addCriterion(called, &*inst_it, criterion.second.first.getRegNo(),
                          *(llvm::slicing::Rule *)criterion.first,
@@ -2294,6 +2294,7 @@ bool FunctionDFA::runOnFunction(llvm::Function &F,
 }
 
 bool FunctionDFA::runOnModule(llvm::Module &M) {
+#if 0
   ptr::PointsToSets PS;
   {
     ptr::ProgramStructure P(M);
@@ -2316,6 +2317,7 @@ bool FunctionDFA::runOnModule(llvm::Module &M) {
       modified |= runOnFunction(F, PS, MOD);
   }
   return modified;
+#endif
 }
 
 bool InsInfo::addRC(const Pointee &var, const Value *src,

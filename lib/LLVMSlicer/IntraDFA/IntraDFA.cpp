@@ -579,6 +579,12 @@ void IntraDFA::ruleIteraton() {
     // errs() << "[+]tmp.size(): " << tmp.size() << "\n";
     emitToExits(f, std::inserter(tmp, tmp.end()));
     // errs() << "[+]exits tmp.size(): " << tmp.size() << "\n";
+    if (!tmp.empty()) {
+      for (auto &f : tmp) {
+        emitToCalls(f, std::inserter(tmp, tmp.end()));
+        emitToExits(f, std::inserter(tmp, tmp.end()));
+      }
+    }
   }
   errs() << "Found " << initFuncs.size() << " initial criterions\n";
   initFuncs.clear();
@@ -888,15 +894,6 @@ static RegisterPass<FunctionSlicer> X("slice-intra", "view CFG of function", fal
 static RegisterAnalysisGroup<FunctionSlicer> Y(X);
 
 bool FunctionSlicer::runOnModule(Module &M) {
-  ptr::PointsToSets *PS = new ptr::PointsToSets();
-  ptr::ProgramStructure P(M);
-  computePointsToSets(P, *PS);
-
-  callgraph::Callgraph CG(M, *PS);
-  mods::Modifies MOD;
-  mods::ProgramStructure P1(M, *PS);
-  // computeModifies(P1, CG, *PS, MOD);
-
   using llvm::slicing::Constraint;
   using llvm::slicing::Parameter;
   using llvm::slicing::Rule;
@@ -911,6 +908,16 @@ bool FunctionSlicer::runOnModule(Module &M) {
       }
     }
   }
+
+  ptr::PointsToSets *PS = new ptr::PointsToSets();
+  ptr::ProgramStructure P(M, rules);
+  computePointsToSets(P, *PS);
+
+  callgraph::Callgraph CG(M, *PS);
+  mods::Modifies MOD;
+  mods::ProgramStructure P1(M, *PS);
+  computeModifies(P1, CG, *PS, MOD);
+
 
   dfa::IntraDFA DFA(this, M, (*PS), CG, MOD, rules);
   DFA.computeSlice();

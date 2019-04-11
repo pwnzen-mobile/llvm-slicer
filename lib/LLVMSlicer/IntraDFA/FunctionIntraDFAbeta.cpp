@@ -682,8 +682,13 @@ static RegisterPass<FunctionIntraDFAbeta> X("intra-dfa", "view CFG of function",
 static RegisterAnalysisGroup<FunctionIntraDFAbeta> Y(X);
 
 bool FunctionIntraDFAbeta::runOnModule(Module &M) {
+  using llvm::slicing::Constraint;
+  using llvm::slicing::Parameter;
+  using llvm::slicing::Rule;
+  std::vector<Rule *> rules = llvm::slicing::parseRules();
+
   ptr::PointsToSets *PS = new ptr::PointsToSets();
-  ptr::ProgramStructure P(M);
+  ptr::ProgramStructure P(M, rules);
   computePointsToSets(P, *PS);
 
   callgraph::Callgraph CG(M, *PS);
@@ -691,10 +696,6 @@ bool FunctionIntraDFAbeta::runOnModule(Module &M) {
   mods::ProgramStructure P1(M, *PS);
   computeModifies(P1, CG, *PS, MOD);
 
-  using llvm::slicing::Constraint;
-  using llvm::slicing::Parameter;
-  using llvm::slicing::Rule;
-  std::vector<Rule *> rules = llvm::slicing::parseRules();
 
   for (auto &r : rules) {
     if (r->getParentRuleTitle().size()) {

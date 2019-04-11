@@ -73,7 +73,10 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "typeinfo": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "__errc": "cpp",
+        "__node_handle": "cpp",
+        "optional": "cpp"
     },
     "C_Cpp.configurationWarnings": "Disabled",
     "python.linting.pylintEnabled": true

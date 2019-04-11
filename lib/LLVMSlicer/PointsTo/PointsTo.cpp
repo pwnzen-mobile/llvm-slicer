@@ -28,9 +28,11 @@ private:
   /* return type -> function */
   typedef std::multimap<const Type *, const Function *> FunctionsMap;
   typedef std::multimap<const Type *, const CallInst *> CallsMap;
+  std::vector<llvm::slicing::Rule *> rules;
 
 public:
-  CallMaps(const Module &M) { buildCallMaps(M); }
+  CallMaps(const Module &M, std::vector<llvm::slicing::Rule *> rules) {}
+  bool buildCallMaps(const Function *f, std::string FuncName);
 
   template <typename OutIterator>
   void collectCallRuleCodes(const CallInst *c, const Function *f,
@@ -50,7 +52,6 @@ private:
   static bool compatibleFunTypes(const FunctionType *f1,
                                  const FunctionType *f2);
   static RuleCode argPassRuleCode(const Value *l, const Value *r);
-  void buildCallMaps(const Module &M);
 };
 
 RuleCode CallMaps::argPassRuleCode(const Value *l, const Value *r) {
@@ -174,20 +175,26 @@ void CallMaps::collectReturnRuleCodes(const ReturnInst *r, OutIterator out) {
   }
 }
 
-void CallMaps::buildCallMaps(const Module &M) {
-  for (Module::const_iterator f = M.begin(); f != M.end(); ++f) {
-    if (!f->isDeclaration()) {
-      const FunctionType *funTy = f->getFunctionType();
+bool CallMaps::buildCallMaps(const Function *f, std::string FuncName) {
+  bool found = false;
+  if (!f->isDeclaration()) {
+    const FunctionType *funTy = f->getFunctionType();
+    FM.insert(std::make_pair(funTy->getReturnType(), &*f));
+  }
 
-      FM.insert(std::make_pair(funTy->getReturnType(), &*f));
-    }
-
+  if (!f->isIntrinsic()) {
     for (const_inst_iterator i = inst_begin(f), E = inst_end(f); i != E; ++i) {
       if (const CallInst *CI = dyn_cast<CallInst>(&*i)) {
-        if (!isInlineAssembly(CI) && !callToMemoryManStuff(CI)) {
+        if (!isInlineAssembly(CI) && !callToMemoryManStuff(CI) &&
+            CI->getCalledFunction() && CI->getCalledFunction()->hasName()) {
           const FunctionType *funTy = getCalleePrototype(CI);
-
-          CM.insert(std::make_pair(funTy->getReturnType(), CI));
+          std::string funcName = CI->getCalledFunction()->getName();
+          if (CI->getCalledFunction()->isDeclaration() || funcName == FuncName || funcName == "objc_msgSend" || funcName == "objc_msgSendSuper2") {
+            // errs() << "[++++++]\nCI->getCalledFunction()->getName() " << funcName
+            //       << "\n";
+            CM.insert(std::make_pair(funTy->getReturnType(), CI));
+            found = true;
+          }
         }
       } else if (const StoreInst *SI = dyn_cast<StoreInst>(&*i)) {
         const Value *r = SI->getValueOperand();
@@ -201,6 +208,8 @@ void CallMaps::buildCallMaps(const Module &M) {
       }
     }
   }
+
+  return found;
 }
 
 } // namespace detail
@@ -493,30 +502,30 @@ static bool applyRules(const RuleCode &RC, PointsToSets &S,
   const llvm::Value *rval = RC.getRvalue();
 
   switch (RC.getType()) {
-    case RCT_VAR_ASGN_ALLOC:
-      return applyRule(S, (ruleVar(lval) = ruleAllocSite(rval)).getSort());
-    case RCT_VAR_ASGN_NULL:
-      return applyRule(S, (ruleVar(lval) = ruleNull(rval)).getSort());
-    case RCT_VAR_ASGN_VAR:
-      return applyRule(S, (ruleVar(lval) = ruleVar(rval)).getSort());
-    case RCT_VAR_ASGN_GEP:
-      return applyRule(S, DL, (ruleVar(lval) = ruleVar(rval).gep()).getSort());
-    case RCT_VAR_ASGN_REF_VAR:
-      return applyRule(S, (ruleVar(lval) = &ruleVar(rval)).getSort());
-    case RCT_VAR_ASGN_DREF_VAR:
-      return applyRule(S, (ruleVar(lval) = *ruleVar(rval)).getSort());
-    case RCT_DREF_VAR_ASGN_NULL:
-      return applyRule(S, (*ruleVar(lval) = ruleNull(rval)).getSort());
-    case RCT_DREF_VAR_ASGN_VAR:
-      return applyRule(S, (*ruleVar(lval) = ruleVar(rval)).getSort());
-    case RCT_DREF_VAR_ASGN_REF_VAR:
-      return applyRule(S, (*ruleVar(lval) = &ruleVar(rval)).getSort());
-    case RCT_DREF_VAR_ASGN_DREF_VAR:
-      return applyRule(S, (*ruleVar(lval) = *ruleVar(rval)).getSort());
-    case RCT_DEALLOC:
-      return applyRule(S, ruleDeallocSite(RC.getValue()).getSort());
-    default:
-      assert(0);
+  case RCT_VAR_ASGN_ALLOC:
+    return applyRule(S, (ruleVar(lval) = ruleAllocSite(rval)).getSort());
+  case RCT_VAR_ASGN_NULL:
+    return applyRule(S, (ruleVar(lval) = ruleNull(rval)).getSort());
+  case RCT_VAR_ASGN_VAR:
+    return applyRule(S, (ruleVar(lval) = ruleVar(rval)).getSort());
+  case RCT_VAR_ASGN_GEP:
+    return applyRule(S, DL, (ruleVar(lval) = ruleVar(rval).gep()).getSort());
+  case RCT_VAR_ASGN_REF_VAR:
+    return applyRule(S, (ruleVar(lval) = &ruleVar(rval)).getSort());
+  case RCT_VAR_ASGN_DREF_VAR:
+    return applyRule(S, (ruleVar(lval) = *ruleVar(rval)).getSort());
+  case RCT_DREF_VAR_ASGN_NULL:
+    return applyRule(S, (*ruleVar(lval) = ruleNull(rval)).getSort());
+  case RCT_DREF_VAR_ASGN_VAR:
+    return applyRule(S, (*ruleVar(lval) = ruleVar(rval)).getSort());
+  case RCT_DREF_VAR_ASGN_REF_VAR:
+    return applyRule(S, (*ruleVar(lval) = &ruleVar(rval)).getSort());
+  case RCT_DREF_VAR_ASGN_DREF_VAR:
+    return applyRule(S, (*ruleVar(lval) = *ruleVar(rval)).getSort());
+  case RCT_DEALLOC:
+    return applyRule(S, ruleDeallocSite(RC.getValue()).getSort());
+  default:
+    assert(0);
   }
 }
 
@@ -634,32 +643,51 @@ Andersen *getAndersen() { return andersen; }
 
 DetectParametersPass &getDetectParametersPass() { return *DPP; }
 
-ProgramStructure::ProgramStructure(Module &M) : M(M) {
-  errs() << "[+]init ptr::ProgramStructure\n";
-  for (Module::const_global_iterator g = M.global_begin(), E = M.global_end();
-       g != E; ++g) {
-    errs() << "[i]g: " << g->getName() << "\n";
-    if (isGlobalPointerInitialization(&*g))
-      detail::toRuleCode(&*g, std::back_inserter(this->getContainer()));
-  }
-  errs() << "[i]get callMap of Module\n";
-  detail::CallMaps CM(M);
+ProgramStructure::ProgramStructure(Module &M,
+                                   std::vector<llvm::slicing::Rule *> rules)
+    : M(M), rules(rules) {
+  // errs() << "[+]init ptr::ProgramStructure\n";
+  // for (Module::const_global_iterator g = M.global_begin(), E =
+  // M.global_end();
+  //      g != E; ++g) {
+  //   errs() << "[i]g: " << g->getName() << "\n";
+  //   if (isGlobalPointerInitialization(&*g))
+  //     detail::toRuleCode(&*g, std::back_inserter(this->getContainer()));
+  // }
+  // errs() << "[i]get callMap of Module\n";
+  std::string functionName;
+  detail::CallMaps CM(M, rules);
 
-  errs() << "[+]M: " << M.getName() << "\n";
-  for (Module::const_iterator f = M.begin(); f != M.end(); ++f) {
-    errs() << "[+]f->getName(): " << f->getName() << "\n";
-    for (const_inst_iterator i = inst_begin(f), E = inst_end(f); i != E; ++i) {
-      if (isPointerManipulation(&*i))
-        detail::toRuleCode(&*i, std::back_inserter(this->getContainer()));
-      else if (const CallInst *c = dyn_cast<CallInst>(&*i)) {
-        if (!isInlineAssembly(c))
-          CM.collectCallRuleCodes(c, std::back_inserter(this->getContainer()));
-      } else if (const ReturnInst *r = dyn_cast<ReturnInst>(&*i)) {
-        CM.collectReturnRuleCodes(r, std::back_inserter(this->getContainer()));
+  for (auto &rule : rules) {
+    for (auto &criterion : rule->getCriterions()) {
+      functionName = criterion.second.first.getFunctionName();
+      errs() << "[+]f->getName(): " << functionName << "\n";
+
+      for (Module::const_iterator f = M.begin(); f != M.end(); ++f) {
+        if (f->isIntrinsic()) {
+          continue;
+        }
+
+        if (CM.buildCallMaps(f, functionName)) {
+          for (const_inst_iterator i = inst_begin(f), E = inst_end(f); i != E;
+               ++i) {
+            if (isPointerManipulation(&*i))
+              detail::toRuleCode(&*i, std::back_inserter(this->getContainer()));
+            else if (const CallInst *c = dyn_cast<CallInst>(&*i)) {
+              if (!isInlineAssembly(c))
+                CM.collectCallRuleCodes(
+                    c, std::back_inserter(this->getContainer()));
+            } else if (const ReturnInst *r = dyn_cast<ReturnInst>(&*i)) {
+              CM.collectReturnRuleCodes(
+                  r, std::back_inserter(this->getContainer()));
+            }
+          }
+        }
       }
     }
   }
   errs() << "[+]init ptr::ProgramStructure end\n";
+
 #ifdef PS_DEBUG
   errs() << "==PS START\n";
   for (const_iterator I = getContainer().begin(), E = getContainer().end();

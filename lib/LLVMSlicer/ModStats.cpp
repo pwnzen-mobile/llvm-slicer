@@ -253,6 +253,7 @@ getFlags(const FunInfo *funInfo, bool nested = false) {
   return flags;
 }
 
+#if 0
 void StatsComputer::run() {
   ptr::PointsToSets PS;
   {
@@ -344,6 +345,7 @@ void StatsComputer::run() {
 
   modInfo.dump();
 }
+#endif
 
 bool ModStats::runOnModule(Module &M) {
   StatsComputer sc(*this, M);

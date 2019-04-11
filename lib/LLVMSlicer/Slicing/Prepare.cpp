@@ -284,7 +284,7 @@ void Prepare::findInitFuns(Module &M, const ptr::PointsToSets &PS) {
                      ConstantArray::get(ATy, initFns),
                      "__ai_init_functions");
 }
-
+#if 0
 bool Prepare::runOnModule(Module &M) {
   errs() << "[+]Start Prepare Pass\n";
   ptr::PointsToSets PS;
@@ -305,3 +305,4 @@ bool Prepare::runOnModule(Module &M) {
 
   return true;
 }
+#endif

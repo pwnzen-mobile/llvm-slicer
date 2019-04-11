@@ -2294,6 +2294,7 @@ bool FunctionDFA::runOnFunction(llvm::Function &F,
 }
 
 bool FunctionDFA::runOnModule(llvm::Module &M) {
+#if 0
   ptr::PointsToSets PS;
   {
     ptr::ProgramStructure P(M);
@@ -2316,6 +2317,7 @@ bool FunctionDFA::runOnModule(llvm::Module &M) {
       modified |= runOnFunction(F, PS, MOD);
   }
   return modified;
+#endif
 }
 
 bool InsInfo::addRC(const Pointee &var, const Value *src,

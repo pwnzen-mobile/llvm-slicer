@@ -363,6 +363,7 @@ public:
     // edges for constraints are implied but not explicit.  I.E for the
     // constraint a = &b, we add implicit edges *a = b.  This helps us capture
     // more cycles
+    errs() << "[+]build Predecessor Graph \n";
     buildPredecessorGraph();
   }
 

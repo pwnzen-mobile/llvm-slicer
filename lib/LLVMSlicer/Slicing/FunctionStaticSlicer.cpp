@@ -2207,29 +2207,29 @@ bool FunctionSlicer::runOnFunction(Function &F, const ptr::PointsToSets &PS,
   return sliced;
 }
 
-bool FunctionSlicer::runOnModule(Module &M) {
-  ptr::PointsToSets PS;
-  {
-    ptr::ProgramStructure P(M);
-    computePointsToSets(P, PS);
-  }
+// bool FunctionSlicer::runOnModule(Module &M) {
+//   ptr::PointsToSets PS;
+//   {
+//     ptr::ProgramStructure P(M);
+//     computePointsToSets(P, PS);
+//   }
 
-  callgraph::Callgraph CG(M, PS);
+//   callgraph::Callgraph CG(M, PS);
 
-  mods::Modifies MOD;
-  {
-    mods::ProgramStructure P1(M, PS);
-    computeModifies(P1, CG, PS, MOD);
-  }
+//   mods::Modifies MOD;
+//   {
+//     mods::ProgramStructure P1(M, PS);
+//     computeModifies(P1, CG, PS, MOD);
+//   }
 
-  bool modified = false;
-  for (Module::iterator I = M.begin(), E = M.end(); I != E; ++I) {
-    Function &F = *I;
-    if (!F.isDeclaration())
-      modified |= runOnFunction(F, PS, MOD);
-  }
-  return modified;
-}
+//   bool modified = false;
+//   for (Module::iterator I = M.begin(), E = M.end(); I != E; ++I) {
+//     Function &F = *I;
+//     if (!F.isDeclaration())
+//       modified |= runOnFunction(F, PS, MOD);
+//   }
+//   return modified;
+// }
 
 
 
