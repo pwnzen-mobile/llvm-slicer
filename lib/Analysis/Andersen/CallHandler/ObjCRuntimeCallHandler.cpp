@@ -197,6 +197,7 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
                       Andersen *andersen) {
   // TODO: for now we just add all instructions to the worklist. already handled
   // ones should be skipped (check callgraph)
+  // if (andersen->getCallGraph().containtsEdge(CallInst, F));
   andersen->addToWorklist((Instruction *)CallInst);
 
   DetectParametersPass::UserSet_t X0Values =

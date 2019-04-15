@@ -991,9 +991,9 @@ bool Slicer::runOnModule(Module &M) {
 
   ptr::PointsToSets *PS = new ptr::PointsToSets();
   {
-    ptr::ProgramStructure P(M, rules);
+    ptr::ProgramStructure P(M);
     errs() << "[i]first ProgramStructure\n";
-    computePointsToSets(P, *PS);
+    computePointsToSets(P, *PS, rules);
   }
 
   callgraph::Callgraph CG(M, *PS);

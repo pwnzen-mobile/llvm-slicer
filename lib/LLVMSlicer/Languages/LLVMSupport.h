@@ -25,7 +25,7 @@ void getCalledFunctions(const CallInst *CI, const ptr::PointsToSets &PS,
       Function *Called_F =
           CI->getParent()->getParent()->getParent()->getFunction(*Called_it);
       if (Called_F && Called_F != F) {
-        errs() << "[+]Called_F: " << Called_F->getName() << "\n";
+        // errs() << "[+]Called_F: " << Called_F->getName() << "\n";
         *out++ = Called_F;
       }
     }
@@ -34,7 +34,7 @@ void getCalledFunctions(const CallInst *CI, const ptr::PointsToSets &PS,
     const PTSet &S = getPointsToSet(stripped, PS);
     for (PTSet::const_iterator I = S.begin(), E = S.end(); I != E; ++I)
       if (const Function *F = dyn_cast<Function>(I->first)) {
-        errs() << "[+]Called F: " << F->getName() << "\n";
+        // errs() << "[+]Called F: " << F->getName() << "\n";
         *out++ = F;
       }
   }

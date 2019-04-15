@@ -76,7 +76,8 @@
         "unordered_map": "cpp",
         "__errc": "cpp",
         "__node_handle": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "forward_list": "cpp"
     },
     "C_Cpp.configurationWarnings": "Disabled",
     "python.linting.pylintEnabled": true

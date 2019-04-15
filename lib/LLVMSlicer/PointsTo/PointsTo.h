@@ -77,8 +77,7 @@ struct ProgramStructure {
   typedef Container::iterator iterator;
   typedef Container::const_iterator const_iterator;
 
-  explicit ProgramStructure(Module &M,
-                            std::vector<llvm::slicing::Rule *> rules);
+  explicit ProgramStructure(Module &M);
 
   llvm::Module &getModule() const { return M; }
 
@@ -94,7 +93,6 @@ struct ProgramStructure {
 private:
   Container C;
   llvm::Module &M;
-  std::vector<llvm::slicing::Rule *> rules;
 };
 
 } // namespace ptr
@@ -111,7 +109,7 @@ SimpleCallGraph &getSimpleCallGraph();
 DetectParametersPass &getDetectParametersPass();
 Andersen *getAndersen();
 
-PointsToSets &computePointsToSets(const ProgramStructure &P, PointsToSets &S);
+PointsToSets &computePointsToSets(const ProgramStructure &P, PointsToSets &S, std::vector<llvm::slicing::Rule *> rules);
 
 } // namespace ptr
 } // namespace llvm

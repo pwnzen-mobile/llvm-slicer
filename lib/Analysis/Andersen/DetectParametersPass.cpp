@@ -405,8 +405,8 @@ DetectParametersPass::getRegisterValuesBeforeCall(const uint64_t RegNo,
   std::set<const BasicBlock *> visited;
   UserSet_t Results = DetectParametersPass::getRegisterValuesBeforeCall(
       RegNo, Inst, visited, GetStores);
-  assert(Results.size() ||
-         Inst->getParent()->getParent()->getName() == "_EXTERNAL_");
+  // assert(Results.size() ||
+  //        Inst->getParent()->getParent()->getName() == "_EXTERNAL_");
   return Results;
 }
 

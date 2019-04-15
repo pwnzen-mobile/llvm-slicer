@@ -688,8 +688,8 @@ bool FunctionIntraDFAbeta::runOnModule(Module &M) {
   std::vector<Rule *> rules = llvm::slicing::parseRules();
 
   ptr::PointsToSets *PS = new ptr::PointsToSets();
-  ptr::ProgramStructure P(M, rules);
-  computePointsToSets(P, *PS);
+  ptr::ProgramStructure P(M);
+  computePointsToSets(P, *PS, rules);
 
   callgraph::Callgraph CG(M, *PS);
   mods::Modifies MOD;

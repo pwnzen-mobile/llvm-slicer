@@ -579,12 +579,6 @@ void IntraDFA::ruleIteraton() {
     // errs() << "[+]tmp.size(): " << tmp.size() << "\n";
     emitToExits(f, std::inserter(tmp, tmp.end()));
     // errs() << "[+]exits tmp.size(): " << tmp.size() << "\n";
-    if (!tmp.empty()) {
-      for (auto &f : tmp) {
-        emitToCalls(f, std::inserter(tmp, tmp.end()));
-        emitToExits(f, std::inserter(tmp, tmp.end()));
-      }
-    }
   }
   errs() << "Found " << initFuncs.size() << " initial criterions\n";
   initFuncs.clear();
@@ -910,13 +904,13 @@ bool FunctionSlicer::runOnModule(Module &M) {
   }
 
   ptr::PointsToSets *PS = new ptr::PointsToSets();
-  ptr::ProgramStructure P(M, rules);
-  computePointsToSets(P, *PS);
+  ptr::ProgramStructure P(M);
+  computePointsToSets(P, *PS, rules);
 
   callgraph::Callgraph CG(M, *PS);
   mods::Modifies MOD;
   mods::ProgramStructure P1(M, *PS);
-  computeModifies(P1, CG, *PS, MOD);
+  // computeModifies(P1, CG, *PS, MOD);
 
 
   dfa::IntraDFA DFA(this, M, (*PS), CG, MOD, rules);

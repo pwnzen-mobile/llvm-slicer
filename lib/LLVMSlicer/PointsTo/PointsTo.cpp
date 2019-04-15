@@ -10,6 +10,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Debug.h"
+#include <llvm/IR/PatternMatch.h>
 
 #include "PointsTo.h"
 #include "RuleExpressions.h"
@@ -189,8 +190,11 @@ bool CallMaps::buildCallMaps(const Function *f, std::string FuncName) {
             CI->getCalledFunction() && CI->getCalledFunction()->hasName()) {
           const FunctionType *funTy = getCalleePrototype(CI);
           std::string funcName = CI->getCalledFunction()->getName();
-          if (CI->getCalledFunction()->isDeclaration() || funcName == FuncName || funcName == "objc_msgSend" || funcName == "objc_msgSendSuper2") {
-            // errs() << "[++++++]\nCI->getCalledFunction()->getName() " << funcName
+          if (CI->getCalledFunction()->isDeclaration() ||
+              funcName == FuncName || funcName == "objc_msgSend" ||
+              funcName == "objc_msgSendSuper2") {
+            // errs() << "[++++++]\nCI->getCalledFunction()->getName() " <<
+            // funcName
             //       << "\n";
             CM.insert(std::make_pair(funTy->getReturnType(), CI));
             found = true;
@@ -594,10 +598,11 @@ static PointsToSets &fixpoint(const ProgramStructure &P, PointsToSets &S) {
 static Andersen *andersen = nullptr;
 static DetectParametersPass *DPP = nullptr;
 
-PointsToSets &computePointsToSets(const ProgramStructure &P, PointsToSets &S) {
+PointsToSets &computePointsToSets(const ProgramStructure &P, PointsToSets &S, std::vector<llvm::slicing::Rule *> rules) {
   legacy::PassManager *PM = new legacy::PassManager();
   DPP = new DetectParametersPass();
   andersen = new Andersen();
+  andersen->setRules(rules);
   PM->add(DPP);
   PM->add(andersen);
   PM->run(P.getModule());
@@ -643,9 +648,7 @@ Andersen *getAndersen() { return andersen; }
 
 DetectParametersPass &getDetectParametersPass() { return *DPP; }
 
-ProgramStructure::ProgramStructure(Module &M,
-                                   std::vector<llvm::slicing::Rule *> rules)
-    : M(M), rules(rules) {
+ProgramStructure::ProgramStructure(Module &M) : M(M) {
   // errs() << "[+]init ptr::ProgramStructure\n";
   // for (Module::const_global_iterator g = M.global_begin(), E =
   // M.global_end();
@@ -655,38 +658,8 @@ ProgramStructure::ProgramStructure(Module &M,
   //     detail::toRuleCode(&*g, std::back_inserter(this->getContainer()));
   // }
   // errs() << "[i]get callMap of Module\n";
-  std::string functionName;
-  detail::CallMaps CM(M, rules);
 
-  for (auto &rule : rules) {
-    for (auto &criterion : rule->getCriterions()) {
-      functionName = criterion.second.first.getFunctionName();
-      errs() << "[+]f->getName(): " << functionName << "\n";
-
-      for (Module::const_iterator f = M.begin(); f != M.end(); ++f) {
-        if (f->isIntrinsic()) {
-          continue;
-        }
-
-        if (CM.buildCallMaps(f, functionName)) {
-          for (const_inst_iterator i = inst_begin(f), E = inst_end(f); i != E;
-               ++i) {
-            if (isPointerManipulation(&*i))
-              detail::toRuleCode(&*i, std::back_inserter(this->getContainer()));
-            else if (const CallInst *c = dyn_cast<CallInst>(&*i)) {
-              if (!isInlineAssembly(c))
-                CM.collectCallRuleCodes(
-                    c, std::back_inserter(this->getContainer()));
-            } else if (const ReturnInst *r = dyn_cast<ReturnInst>(&*i)) {
-              CM.collectReturnRuleCodes(
-                  r, std::back_inserter(this->getContainer()));
-            }
-          }
-        }
-      }
-    }
-  }
-  errs() << "[+]init ptr::ProgramStructure end\n";
+  // errs() << "[+]init ptr::ProgramStructure end\n";
 
 #ifdef PS_DEBUG
   errs() << "==PS START\n";

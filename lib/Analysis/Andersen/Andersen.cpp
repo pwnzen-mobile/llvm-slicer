@@ -6,6 +6,7 @@
 #include <llvm/IR/PatternMatch.h>
 #include <llvm/Object/MachO.h>
 #include <llvm/Support/Debug.h>
+#include <llvm/ADT/StringExtras.h>
 
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/Andersen/DetectParametersPass.h"
@@ -107,13 +108,59 @@ bool Andersen::runOnModule(Module &M) {
 
   nodeFactory.setDataLayout(dataLayout);
 
+  std::string functionName;
+ 
+  for (auto &rule : this->rules) {
+    for (auto &criterion : rule->getCriterions()) {
+      functionName = criterion.second.first.getFunctionName();
+      if (functionName.back() == ']') {
+        int index = functionName.find(' ');
+        functionName = functionName.substr(index + 1, functionName.length() - index -2);
+      }
+      errs() << "[+]rule function name: " << functionName << "\n";
+      ConstantInt *constAddr = nullptr;
+      for (Module::const_iterator f = M.begin(); f != M.end(); ++f) {
+        if (f->isIntrinsic() || f->isDeclaration()) {
+          continue;
+        }
+
+        for (const_inst_iterator i = inst_begin(f), E = inst_end(f); i != E;
+             ++i) {
+          if (i->getOpcode() == Instruction::Load &&
+              PatternMatch::match(
+                  i->getOperand(0),
+                  PatternMatch::m_IntToPtr(
+                      PatternMatch::m_ConstantInt(constAddr)))) {
+            uint64_t addr = constAddr->getZExtValue();
+            // errs() << "[+]const addr: " << utohexstr(addr) << "\n";
+            if (this->MachO->isSelectorRef(addr)) {
+              StringRef selector = this->MachO->getString(addr);
+              // errs() << "[+]selector: " << selector << "\n";
+              if (functionName == selector) {
+                errs() << "[+] Found a function: " << f->getName() << "\n";
+                this->getInitTargetFunctions().push_back(
+                    M.getFunction(f->getName()));
+              }
+            }
+          }
+          else if (i->getOpcode() == Instruction::Call) {
+            Function *f = ((const CallInst *)&i)->getCalledFunction();
+            if (f && f->isDeclaration()) {
+              this->getInitTargetFunctions().push_back(M.getFunction(f->getName()));
+            }
+          }
+        }
+      }
+    }
+  }
+
   collectConstraints(M);
 
   uint64_t NumConstraints = constraints.size();
 
-  for (auto &fun : M) {
-    if (ObjectiveC::CallHandlerBase::isObjectiveCMethod(fun.getName())) {
-      for (auto &i : fun.getEntryBlock()) {
+  for (const Function *fun : InitTargetFunctions) {
+    if (ObjectiveC::CallHandlerBase::isObjectiveCMethod(fun->getName())) {
+      for (auto &i : fun->getEntryBlock()) {
         if (i.getOpcode() != Instruction::Load)
           continue;
         const GetElementPtrInst *getElementPtrInst =
@@ -127,7 +174,7 @@ bool Andersen::runOnModule(Module &M) {
         if (idx->getZExtValue() != 5)
           continue;
         StringRef typeName =
-            ObjectiveC::CallHandlerBase::getClassname(fun.getName());
+            ObjectiveC::CallHandlerBase::getClassname(fun->getName());
         NodeIndex valNode = nodeFactory.getValueNodeFor(&i);
         if (valNode == AndersNodeFactory::InvalidIndex)
           valNode = nodeFactory.createValueNode(&i);
@@ -139,7 +186,7 @@ bool Andersen::runOnModule(Module &M) {
         break;
       }
     }
-    for (auto &bb : fun) {
+    for (const auto &bb : *fun) {
       for (auto &i : bb) {
         if (i.getOpcode() == Instruction::Load) {
 
@@ -288,11 +335,11 @@ bool Andersen::runOnModule(Module &M) {
 
     stackOffsetMap.clear();
 
-    for (Function &f : M) {
-      if (f.isDeclaration() || f.isIntrinsic())
+    for (auto &f : InitTargetFunctions) {
+      if (f->isDeclaration() || f->isIntrinsic())
         continue;
 
-      StackAccessPass::OffsetMap_t &Offsets = SAP->getOffsets(&f);
+      StackAccessPass::OffsetMap_t &Offsets = SAP->getOffsets(f);
 
       StackAccessPass::OffsetMap_t::iterator end = Offsets.end();
 
@@ -309,7 +356,7 @@ bool Andersen::runOnModule(Module &M) {
         for (auto &ptsTo_it : ptsTo) {
           for (int64_t O : OffsetList) {
             stackOffsetMap[ptsTo_it].insert(
-                std::pair<const Function *, int64_t>(&f, O));
+                std::pair<const Function *, int64_t>(f, O));
           }
         }
       }
@@ -343,8 +390,8 @@ bool Andersen::runOnModule(Module &M) {
     }
     NumConstraints = constraints.size();
   }
-  } while(n--);
-  // } while (CallInstWorklist.size() || FunctionWorklist.size());
+  // } while(n--);
+  } while (CallInstWorklist.size() || FunctionWorklist.size());
   // } while (CallInstWorklist.size());
   #endif
 

@@ -148,19 +148,19 @@ void Andersen::collectConstraints(Module &M) {
   size_t handled = 0;
   const Function *currentFunction = nullptr;
 
-  for (auto const &f : M) {
-    currentFunction = &f;
+  for (const Function *f : InitTargetFunctions) {
+    currentFunction = f;
     handled++;
 
-    if (f.isDeclaration() || f.isIntrinsic())
+    if (f->isDeclaration() || f->isIntrinsic())
       continue;
 
-    if (f.getName() == "main_init_regset" ||
-        f.getName() == "main_fini_regset" || f.getName() == "main" ||
-        f.getName() == "-[AppDelegate window]")
+    if (f->getName() == "main_init_regset" ||
+        f->getName() == "main_fini_regset" || f->getName() == "main" ||
+        f->getName() == "-[AppDelegate window]")
       continue;
 
-    DEBUG(errs() << "Process function: \"" << f.getName() << "\"\n");
+    DEBUG(errs() << "Process function: \"" << f->getName() << "\"\n");
 
     // Scan the function body
     // A visitor pattern might help modularity, but it needs more boilerplate
@@ -288,7 +288,7 @@ void Andersen::collectConstraintsForInstruction(const Instruction *inst) {
 
     addConstraintForCall(cs);
 
-    // addToWorklist((Instruction *)inst);
+    addToWorklist((Instruction *)inst);
 
     break;
   }
@@ -1109,6 +1109,9 @@ void Andersen::addConstraintForCall(ImmutableCallSite cs) {
               << "Can't handle call: " << cs.getCalledFunction()->getName()
               << "\n";
         }
+        // if (!CallGraph->containtsEdge(cs.getInstruction(), f->getName())) {
+        //   CallGraph->addCallEdge(cs.getInstruction(), f->getName());
+        // }
         //            assert(false);
       }
       if (!CallGraph->containtsEdge(cs.getInstruction(), f->getName()))
