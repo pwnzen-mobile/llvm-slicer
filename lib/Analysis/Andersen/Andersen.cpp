@@ -1,4 +1,5 @@
 #include "llvm/Analysis/Andersen/Andersen.h"
+#include <llvm/ADT/StringExtras.h>
 #include <llvm/Analysis/Andersen/ObjectiveCBinary.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/IR/Dominators.h>
@@ -6,7 +7,6 @@
 #include <llvm/IR/PatternMatch.h>
 #include <llvm/Object/MachO.h>
 #include <llvm/Support/Debug.h>
-#include <llvm/ADT/StringExtras.h>
 
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/Andersen/DetectParametersPass.h"
@@ -14,6 +14,7 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "algorithm"
 #include "llvm/IR/Instructions.h"
 
 using namespace llvm;
@@ -86,7 +87,7 @@ bool Andersen::runOnModule(Module &M) {
   errs() << "[+]Start AndersenPass\n";
   Mod = &M;
   CallGraph = std::unique_ptr<SimpleCallGraph>(new SimpleCallGraph(M));
-  //dataLayout = &(getAnalysis<DataLayoutPass>().getDataLayout());
+  // dataLayout = &(getAnalysis<DataLayoutPass>().getDataLayout());
 
   if (!BinaryFile.length())
     llvm_unreachable("Binary file needs to be specified");
@@ -109,48 +110,54 @@ bool Andersen::runOnModule(Module &M) {
   nodeFactory.setDataLayout(dataLayout);
 
   std::string functionName;
- 
+
   for (auto &rule : this->rules) {
     for (auto &criterion : rule->getCriterions()) {
       functionName = criterion.second.first.getFunctionName();
       if (functionName.back() == ']') {
         int index = functionName.find(' ');
-        functionName = functionName.substr(index + 1, functionName.length() - index -2);
+        functionName =
+            functionName.substr(index + 1, functionName.length() - index - 2);
       }
       errs() << "[+]rule function name: " << functionName << "\n";
       ConstantInt *constAddr = nullptr;
-      for (Module::const_iterator f = M.begin(); f != M.end(); ++f) {
-        if (f->isIntrinsic() || f->isDeclaration()) {
+      for (auto &fun : M) {
+        if (fun.isIntrinsic() || fun.isDeclaration()) {
           continue;
         }
-
-        for (const_inst_iterator i = inst_begin(f), E = inst_end(f); i != E;
-             ++i) {
-          if (i->getOpcode() == Instruction::Load &&
-              PatternMatch::match(
-                  i->getOperand(0),
-                  PatternMatch::m_IntToPtr(
-                      PatternMatch::m_ConstantInt(constAddr)))) {
-            uint64_t addr = constAddr->getZExtValue();
-            // errs() << "[+]const addr: " << utohexstr(addr) << "\n";
-            if (this->MachO->isSelectorRef(addr)) {
-              StringRef selector = this->MachO->getString(addr);
-              // errs() << "[+]selector: " << selector << "\n";
-              if (functionName == selector) {
-                errs() << "[+] Found a function: " << f->getName() << "\n";
-                this->getInitTargetFunctions().push_back(
-                    M.getFunction(f->getName()));
+        for (const auto &bb : fun) {
+          for (auto &i : bb) {
+            if (i.getOpcode() == Instruction::Load &&
+                PatternMatch::match(
+                    i.getOperand(0),
+                    PatternMatch::m_IntToPtr(
+                        PatternMatch::m_ConstantInt(constAddr)))) {
+              uint64_t addr = constAddr->getZExtValue();
+              // errs() << "[+]const addr: " << utohexstr(addr) << "\n";
+              if (this->MachO->isSelectorRef(addr)) {
+                StringRef selector = this->MachO->getString(addr);
+                // errs() << "[+]selector: " << selector << "\n";
+                if (functionName == selector) {
+                  errs() << "[+] Found a function: " << fun.getName() << "\n";
+                  this->getInitTargetFunctions().push_back(
+                      M.getFunction(fun.getName()));
+                  break;
+                }
               }
-            }
-          }
-          else if (i->getOpcode() == Instruction::Call) {
-            Function *f = ((const CallInst *)&i)->getCalledFunction();
-            if (f && f->isDeclaration()) {
-              this->getInitTargetFunctions().push_back(M.getFunction(f->getName()));
+            } else if (i.getOpcode() == Instruction::Call) {
+              const CallInst *call = (const CallInst *)&i;
+              Function *f = call->getCalledFunction();
+              if (f && f->hasName() && (f->getName() == functionName)) {
+                errs() << "[+]fun->getName(): " << fun.getName() << "\n";
+                this->getInitTargetFunctions().push_back(
+                    M.getFunction(fun.getName()));
+                break;
+              }
             }
           }
         }
       }
+      errs() << "[+]functions size: " << this->getInitTargetFunctions().size() << "\n";
     }
   }
 
@@ -159,6 +166,10 @@ bool Andersen::runOnModule(Module &M) {
   uint64_t NumConstraints = constraints.size();
 
   for (const Function *fun : InitTargetFunctions) {
+    if (fun->getName() == "-[GCDWebUploader initWithUploadDirectory:]") {
+      assert(true);
+    }
+    
     if (ObjectiveC::CallHandlerBase::isObjectiveCMethod(fun->getName())) {
       for (auto &i : fun->getEntryBlock()) {
         if (i.getOpcode() != Instruction::Load)
@@ -320,80 +331,80 @@ bool Andersen::runOnModule(Module &M) {
       }
     }
   }
-  #if 1
+#if 1
   int n = 1;
   do {
-  {
-    errs() << "Optimize and solve constraints\n";
-    optimizeConstraints();
-    solveConstraints();
-    errs() << "End Optimizing and solving constraints\n";
+    {
+      errs() << "Optimize and solve constraints\n";
+      optimizeConstraints();
+      solveConstraints();
+      errs() << "End Optimizing and solving constraints\n";
 
-    StackAccessPass *SAP = getAnalysisIfAvailable<StackAccessPass>();
-    if (!SAP)
-      SAP = &getAnalysis<StackAccessPass>();
+      StackAccessPass *SAP = getAnalysisIfAvailable<StackAccessPass>();
+      if (!SAP)
+        SAP = &getAnalysis<StackAccessPass>();
 
-    stackOffsetMap.clear();
+      stackOffsetMap.clear();
 
-    for (auto &f : InitTargetFunctions) {
-      if (f->isDeclaration() || f->isIntrinsic())
-        continue;
-
-      StackAccessPass::OffsetMap_t &Offsets = SAP->getOffsets(f);
-
-      StackAccessPass::OffsetMap_t::iterator end = Offsets.end();
-
-      for (inst_iterator I_it = inst_begin(f); I_it != inst_end(f); ++I_it) {
-        const Instruction *I = &*I_it;
-        if (Offsets.find(I) == end)
+      for (auto &f : InitTargetFunctions) {
+        if (f->isDeclaration() || f->isIntrinsic())
           continue;
-        if (!Offsets[I])
-          continue;
-        StackAccessPass::Int64List_t &OffsetList = *Offsets[I];
 
-        std::vector<const Value *> ptsTo;
-        getPointsToSet(I, ptsTo);
-        for (auto &ptsTo_it : ptsTo) {
-          for (int64_t O : OffsetList) {
-            stackOffsetMap[ptsTo_it].insert(
-                std::pair<const Function *, int64_t>(f, O));
+        StackAccessPass::OffsetMap_t &Offsets = SAP->getOffsets(f);
+
+        StackAccessPass::OffsetMap_t::iterator end = Offsets.end();
+
+        for (inst_iterator I_it = inst_begin(f); I_it != inst_end(f); ++I_it) {
+          const Instruction *I = &*I_it;
+          if (Offsets.find(I) == end)
+            continue;
+          if (!Offsets[I])
+            continue;
+          StackAccessPass::Int64List_t &OffsetList = *Offsets[I];
+
+          std::vector<const Value *> ptsTo;
+          getPointsToSet(I, ptsTo);
+          for (auto &ptsTo_it : ptsTo) {
+            for (int64_t O : OffsetList) {
+              stackOffsetMap[ptsTo_it].insert(
+                  std::pair<const Function *, int64_t>(f, O));
+            }
           }
         }
       }
+      errs() << "[+]stackOffsetMap: " << stackOffsetMap.size() << "\n";
+
+      std::deque<Instruction *> CallInsts = CallInstWorklist;
+      CallInstWorklist.clear();
+
+      std::deque<Function *> Functions = FunctionWorklist;
+      FunctionWorklist.clear();
+
+      errs() << "Add function call constraints\n";
+      errs() << CallInsts.size() << " Call insts\n";
+      while (CallInsts.size()) {
+        Instruction *i = CallInsts.front();
+        CallInsts.pop_front();
+
+        ImmutableCallSite cs(i);
+        addConstraintForCall(cs);
+      }
+      std::sort(constraints.begin(), constraints.end());
+      constraints.erase(std::unique(constraints.begin(), constraints.end()),
+                        constraints.end());
+
+      errs() << constraints.size() << " constraints\n";
+
+      if (constraints.size() == NumConstraints) {
+        errs() << "NO NEW CONSTRAINTS!!!\n";
+        break;
+      }
+      NumConstraints = constraints.size();
     }
-    errs() << "[+]stackOffsetMap: " << stackOffsetMap.size() << "\n";
-
-    std::deque<Instruction *> CallInsts = CallInstWorklist;
-    CallInstWorklist.clear();
-
-    std::deque<Function *> Functions = FunctionWorklist;
-    FunctionWorklist.clear();
-
-    errs() << "Add function call constraints\n";
-    errs() << CallInsts.size() << " Call insts\n";
-    while (CallInsts.size()) {
-      Instruction *i = CallInsts.front();
-      CallInsts.pop_front();
-
-      ImmutableCallSite cs(i);
-      addConstraintForCall(cs);
-    }
-    std::sort(constraints.begin(), constraints.end());
-    constraints.erase(std::unique(constraints.begin(), constraints.end()),
-                      constraints.end());
-
-    errs() << constraints.size() << " constraints\n";
-
-    if (constraints.size() == NumConstraints) {
-      errs() << "NO NEW CONSTRAINTS!!!\n";
-      break;
-    }
-    NumConstraints = constraints.size();
-  }
-  // } while(n--);
+    // } while(n--);
   } while (CallInstWorklist.size() || FunctionWorklist.size());
-  // } while (CallInstWorklist.size());
-  #endif
+// } while (CallInstWorklist.size());
+#endif
 
   if (DumpDebugInfo) {
     errs() << "Unoptimized constraints\n";

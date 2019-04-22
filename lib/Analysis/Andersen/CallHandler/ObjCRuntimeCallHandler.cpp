@@ -200,6 +200,11 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
   // if (andersen->getCallGraph().containtsEdge(CallInst, F));
   andersen->addToWorklist((Instruction *)CallInst);
 
+  // if (CallInst->getParent()->getParent()->getName() ==
+  //     "-[GCDWebUploader initWithUploadDirectory:]") {
+  //   assert(true);
+  // }
+
   DetectParametersPass::UserSet_t X0Values =
       DetectParametersPass::getRegisterValuesBeforeCall(5, CallInst);
   DetectParametersPass::UserSet_t X1Values =
@@ -215,6 +220,21 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
       Instruction *X0Inst = dyn_cast<Instruction>(X0);
       Instruction *X1Inst = dyn_cast<Instruction>(X1);
 
+      StringRef SelectorName;
+      if (X1Inst && X1Inst->getOpcode() == Instruction::Load) {
+        uint64_t SelectorAddress;
+        if (PatternMatch::match(
+                X1Inst->getOperand(0),
+                PatternMatch::m_IntToPtr(
+                    PatternMatch::m_ConstantInt(SelectorAddress)))) {
+          if (andersen->getMachO().getSelector(SelectorAddress, SelectorName)) {
+            if (SelectorName == "addGETHandlerForBasePath:directoryPath:"
+                                "indexFilename:cacheAge:allowRangeRequests:" && CallInst->getParent()->getParent()->getName() == "-[GCDWebUploader initWithUploadDirectory:]")
+              assert(true);
+          }
+        }
+      }
+
       std::vector<const Value *> X0PT;
       andersen->getPointsToSet(X0, X0PT);
       std::vector<const Value *> X1PT;
@@ -229,7 +249,8 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
             if (ConstantDataArray *ClassData =
                     dyn_cast<ConstantDataArray>((Value *)*X1PT_it)) {
               StringRef Methodname = ClassData->getAsString();
-              //errs() << "[+] Classname: Methodname: " << Classname << " " << Methodname << "\n";
+              // errs() << "[+] Classname: Methodname: " << Classname << " " <<
+              // Methodname << "\n";
               handleCall(Classname, Methodname, Meta, (Instruction *)CallInst,
                          X0, X1, andersen);
             }
@@ -247,6 +268,91 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
         } else if (andersen->getType((Value *)*X0PT_it, Classnames)) {
           for (auto &className_it : Classnames) {
             handleLambda(className_it, Meta);
+          }
+        } else if (*X0PT_it) {
+          bool cond1 = false;
+          for (BasicBlock::const_reverse_iterator I_it =
+                   CallInst->getParent()->rbegin();
+               I_it != CallInst->getParent()->rend(); ++I_it) {
+            if (&*I_it == CallInst) {
+              cond1 = true;
+            }
+            if (!cond1) {
+              continue;
+            }
+            if (const StoreInst *store = dyn_cast<const StoreInst>(&*I_it)) {
+              if (const IntToPtrInst *ItoP =
+                      dyn_cast<const IntToPtrInst>(store->getOperand(1))) {
+                if (andersen->pointsTo(ItoP, *X0PT_it)) {
+                  if (!andersen->getAnalysis<StackAccessPass>().getOffsets(
+                          (Function *)ItoP->getParent()
+                              ->getParent())[ItoP->getOperand(0)]) {
+                    llvm_unreachable("'self' not stored on stack???");
+                  }
+
+                  StackAccessPass::Int64List_t &Offsets =
+                      *andersen->getAnalysis<StackAccessPass>().getOffsets(
+                          (Function *)ItoP->getParent()
+                              ->getParent())[ItoP->getOperand(0)];
+
+                  bool cond2 = false;
+                  for (BasicBlock::const_iterator I2_it =
+                           CallInst->getParent()->begin();
+                       I2_it != CallInst->getParent()->end() &&
+                       &*I2_it != CallInst;
+                       ++I2_it) {
+                    if (&*I2_it == store) {
+                      cond2 = true;
+                    }
+                    if (!cond2) {
+                      continue;
+                    }
+                    if (const StoreInst *store2 =
+                            dyn_cast<const StoreInst>(&*I2_it)) {
+                      if (const IntToPtrInst *ItoP2 =
+                              dyn_cast<const IntToPtrInst>(
+                                  store2->getOperand(1))) {
+                        if (!andersen->getAnalysis<StackAccessPass>()
+                                 .getOffsets(
+                                     (Function *)ItoP->getParent()
+                                         ->getParent())[ItoP2->getOperand(0)]) {
+                          continue;
+                        }
+                        StackAccessPass::Int64List_t &Offsets2 =
+                            *andersen->getAnalysis<StackAccessPass>()
+                                 .getOffsets(
+                                     (Function *)ItoP2->getParent()
+                                         ->getParent())[ItoP2->getOperand(0)];
+
+                        bool intersect = false;
+                        for (auto O1 : Offsets) {
+                          for (auto O2 : Offsets2) {
+                            if (O1 == (O2 - 8)) {
+                              intersect = true;
+                              break;
+                            }
+                          }
+                        }
+                        if (intersect) {
+                          std::vector<const Value *> Super;
+                          andersen->getPointsToSet(store2->getOperand(0),
+                                                   Super);
+
+                          for (auto &super_it : Super) {
+                            if (const ConstantDataArray *superDataArray =
+                                dyn_cast<const ConstantDataArray>(super_it)) {
+                                  errs() << "[+]super data: " << superDataArray->getAsString().str() << " in " << CallInst->getParent()->getParent()->getName() << "\n";
+                              handleLambda(superDataArray->getAsString().str(), Meta);
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  break;
+                }
+              }
+            }
           }
         } else {
           continue;
@@ -291,20 +397,21 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
         }
       }
 
-      StringRef SelectorName;
-      if (X1Inst && X1Inst->getOpcode() == Instruction::Load) {
-        uint64_t SelectorAddress;
-        if (PatternMatch::match(
-                X1Inst->getOperand(0),
-                PatternMatch::m_IntToPtr(
-                    PatternMatch::m_ConstantInt(SelectorAddress)))) {
-          if (andersen->getMachO().getSelector(SelectorAddress, SelectorName)) {
+      // StringRef SelectorName;
+      // if (X1Inst && X1Inst->getOpcode() == Instruction::Load) {
+      //   uint64_t SelectorAddress;
+      //   if (PatternMatch::match(
+      //           X1Inst->getOperand(0),
+      //           PatternMatch::m_IntToPtr(
+      //               PatternMatch::m_ConstantInt(SelectorAddress)))) {
+      //     if (andersen->getMachO().getSelector(SelectorAddress,
+      //     SelectorName)) {
 
-          } else {
-            assert(false);
-          }
-        }
-      }
+      //     } else {
+      //       assert(false);
+      //     }
+      //   }
+      // }
 
       if (ClassMethod && ClassName.size()) {
         if (SelectorName == "alloc" || SelectorName == "new" ||
@@ -378,34 +485,6 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
           }
         }
       }
-
-      //            if
-      //            (isObjectiveCMethod(CallInst->getParent()->getParent()->getName())
-      //            && isSelf(dyn_cast<Instruction>(X0))) {
-      //                std::deque<std::string> Candidates =
-      //                andersen->getMachO().getMethodCandidates(getClassname((Function*)CallInst->getParent()->getParent()->getName()),
-      //                SelectorName,
-      //                CallInst->getParent()->getParent()->getName().startswith("+"));
-      //                bool h = false;
-      //                for (std::deque<std::string>::iterator C_it =
-      //                Candidates.begin(); C_it != Candidates.end(); ++C_it) {
-      //                    if (Function *F =
-      //                    CallInst->getParent()->getParent()->getParent()->getFunction(*C_it))
-      //                    {
-      //                        andersen->addConstraintsForCall((Instruction*)CallInst,
-      //                        F); h = true; break;
-      //                    } else if
-      //                    (CallHandlerManager::getInstance().handleFunctionCall(CallInst,
-      //                    *C_it, andersen)) {
-      //                        h = true;
-      //                        break;
-      //                    }
-      //                }
-      //                if (!h && Candidates.size()) {
-      //                    errs() << "Can't find method: " << Candidates.back()
-      //                    << "\n";
-      //                }
-      //            }
     }
   }
 
@@ -454,6 +533,9 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
 
   for (std::deque<std::string>::iterator C_it = Candidates.begin();
        C_it != Candidates.end(); ++C_it) {
+    // errs() << "[+]C_it: " << *C_it << "\n";
+    // FIXME: should get function from Module ?
+    // -[NSBundle resourcePath]
     if (Function *F =
             CallInst->getParent()->getParent()->getParent()->getFunction(
                 *C_it)) {
@@ -473,8 +555,10 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
 }
 
 bool objcInit::shouldHandleCall(std::string &F) {
-  //    return F.startswith("-") && (F.find("init") != StringRef::npos);
-  return true;
+  // errs() << "[+]F.substr(F.find(' ')+1, 4): " << F.substr(F.find(' ')+1, 4)
+  // << "\n"; errs() << "[+]should handle init: " << F << "\n";
+  return (F.back() == ']' && (F.substr(F.find(' ') + 1, 4) == "init"));
+  // return true;
 }
 
 bool objcInit::run(const Instruction *CallInst, std::string &F,
@@ -511,7 +595,7 @@ bool objcInit::run(const Instruction *CallInst, std::string &F,
 }
 
 bool objcARC::shouldHandleCall(std::string &F) {
-  return false;
+  // return false;
   return F == "objc_retain" || F == "objc_release" ||
          F == "objc_retainAutoreleasedReturnValue";
 }
@@ -867,11 +951,17 @@ bool MsgSendSuper::shouldHandleCall(std::string &F) {
 bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
                        Andersen *andersen) {
   andersen->addToWorklist((Instruction *)CallInst);
+  if (CallInst->getParent()->getParent()->getName() ==
+      "-[GCDWebUploader initWithUploadDirectory:]") {
+    assert(true);
+  }
 
   DetectParametersPass::UserSet_t PreX0 =
       DetectParametersPass::getRegisterValuesBeforeCall(5, CallInst);
   DetectParametersPass::UserSet_t PreX1 =
       DetectParametersPass::getRegisterValuesBeforeCall(6, CallInst);
+  DetectParametersPass::UserSet_t X0Post =
+      DetectParametersPass::getRegisterValuesAfterCall(5, CallInst);
 
   DetectParametersPass::UserSet_t PreX0Replace;
 
@@ -959,7 +1049,8 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
                                 std::string methodName =
                                     "-[" + superDataArray->getAsString().str() +
                                     " " + selector->getAsString().str() + "]";
-                                //errs() << "[+]method name: " << methodName << "\n";
+                                // errs() << "[+]method name: " << methodName <<
+                                // "\n";
 
                                 CallInfos_t infos;
                                 std::get<0>(infos) =
@@ -1001,6 +1092,7 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
     for (std::deque<std::string>::iterator C_it = Candidates.begin();
          C_it != Candidates.end(); ++C_it) {
       StringRef MethodName = CallHandlerBase::getMethodname(*C_it);
+      // errs() << "[+]method name: " << MethodName << "\n";
       if (MethodName == "allocWithZone:") {
         if (!isObjectiveCMethod(CallInst->getParent()->getParent()->getName()))
           continue;
@@ -1040,6 +1132,28 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
           continue;
         }
       }
+      else if (MethodName == "init") {
+        DetectParametersPass::UserSet_t X0Values =
+            DetectParametersPass::getRegisterValuesBeforeCall(5, CallInst);
+        DetectParametersPass::UserSet_t X0Post =
+            DetectParametersPass::getRegisterValuesAfterCall(5, CallInst);
+
+        for (DetectParametersPass::UserSet_t::iterator X0_it = X0Values.begin();
+            X0_it != X0Values.end(); ++X0_it) {
+          for (DetectParametersPass::UserSet_t::iterator X0Post_it = X0Post.begin();
+              X0Post_it != X0Post.end(); ++X0Post_it) {
+            NodeIndex srcIndex = andersen->getNodeFactory().getValueNodeFor(*X0_it);
+            if (srcIndex == AndersNodeFactory::InvalidIndex)
+              srcIndex = andersen->getNodeFactory().createValueNode(*X0_it);
+            NodeIndex dstIndex =
+                andersen->getNodeFactory().getValueNodeFor(*X0Post_it);
+            if (dstIndex == AndersNodeFactory::InvalidIndex)
+              dstIndex = andersen->getNodeFactory().createValueNode(*X0Post_it);
+            andersen->addConstraint(AndersConstraint::COPY, dstIndex, srcIndex);
+          }
+        }
+      }
+
       if (Function *F =
               CallInst->getParent()->getParent()->getParent()->getFunction(
                   *C_it)) {
@@ -1201,7 +1315,8 @@ bool NSArray::run(const Instruction *CallInst, std::string &F,
                 valIdx =
                     andersen->getNodeFactory().createValueNode(offsetValue);
               // COPY because the object is already stored on the stack (STORE
-              // constraint) instead of a LOAD-STORE construct COPY works as well
+              // constraint) instead of a LOAD-STORE construct COPY works as
+              // well
               andersen->addConstraint(AndersConstraint::COPY, arrayValIdx,
                                       valIdx);
             }

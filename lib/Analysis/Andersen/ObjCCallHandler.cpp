@@ -31,7 +31,7 @@ CallHandlerManager &CallHandlerManager::getInstance() {
     Instance->registerCallHandler<dispatchBlock>();
     Instance->registerCallHandler<CopyProperty>();
     Instance->registerCallHandler<retainBlock>();
-    //        Instance->registerCallHandler<objcARC>();
+    Instance->registerCallHandler<objcARC>();
     //        Instance->registerCallHandler<objcPreserveX0>();
     //        Instance->registerCallHandler<objcPreserveNone>();
     //        Instance->registerCallHandler<specialAllocs>();
@@ -45,7 +45,7 @@ CallHandlerManager &CallHandlerManager::getInstance() {
 
     //        Instance->registerCallHandler<Dummy>();
 
-    //        Instance->registerCallHandler<objcInit>();
+    Instance->registerCallHandler<objcInit>();
     //        Instance->registerCallHandler<DummyHandler>();
   }
   initLock.unlock();

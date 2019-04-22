@@ -126,14 +126,14 @@ void Andersen::collectConstraints(Module &M) {
   collectConstraintsForGlobals(M);
 
   for (auto &c : MachO->getClasses()) {
-    errs() << "[+]Macho class name: " << c.second->getClassName().str() << "\n";
+    DEBUG(errs() << "[+]Macho class name: " << c.second->getClassName().str() << "\n");
     if (!c.second || c.second->getType() != ObjectiveC::Initialized) {
       continue;
     }
     ObjectiveCBinary::ClassPtr_t ClassPtr =
         std::static_pointer_cast<ObjectiveC::Class>(c.second);
     for (auto &p : ClassPtr->getProtocolList()) {
-      errs() << "[+]protocol: " << p.c_str() << "\n";
+      DEBUG(errs() << "[+]protocol: " << p.c_str() << "\n");
       addProtocolConstraints(c.second->getClassName(), p);
     }
   }
@@ -1105,17 +1105,14 @@ void Andersen::addConstraintForCall(ImmutableCallSite cs) {
                 cs.getInstruction(), functionName, this)) {
           std::unique_lock<std::mutex> lock(outputLock);
           addUnhandled(cs.getCalledFunction()->getName(), cs.getInstruction());
-          *unhandledFunctions
-              << "Can't handle call: " << cs.getCalledFunction()->getName()
-              << "\n";
+          // *unhandledFunctions
+          //     << "Can't handle call: " << cs.getCalledFunction()->getName()
+          //     << "\n";
         }
-        // if (!CallGraph->containtsEdge(cs.getInstruction(), f->getName())) {
-        //   CallGraph->addCallEdge(cs.getInstruction(), f->getName());
-        // }
         //            assert(false);
       }
-      if (!CallGraph->containtsEdge(cs.getInstruction(), f->getName()))
-        CallGraph->addCallEdge(cs.getInstruction(), f->getName());
+      // if (!CallGraph->containtsEdge(cs.getInstruction(), f->getName()))
+      //   CallGraph->addCallEdge(cs.getInstruction(), f->getName());
     } else { // Internal call
       // errs() << "Internal call: " << f->getName() << "\n";
       addToWorklist((Instruction *)cs.getInstruction());

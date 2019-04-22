@@ -700,13 +700,13 @@ void IntraDFA::ruleIteraton() {
   for (std::vector<Rule *>::iterator rule = toCheck.begin();
        rule != toCheck.end(); ++rule) {
     for (auto &C : (*rule)->getInitialInstruction()) {
-      errs() << (*rule)->getRuleTitle() << "\n";
+      // errs() << (*rule)->getRuleTitle() << "\n";
       for (auto &C_pre : C.second) {
         createPath(C.first.first, C_pre.first, C_pre.second);
       }
 
       if ((*rule)->getParentRuleTitle().size()) {
-        errs() << (*rule)->getRuleTitle() << "\n";
+        // errs() << (*rule)->getRuleTitle() << "\n";
         for (auto &p : rules) {
           if (p->getRuleTitle() == (*rule)->getParentRuleTitle()) {
             for (auto &path : p->getPaths()) {

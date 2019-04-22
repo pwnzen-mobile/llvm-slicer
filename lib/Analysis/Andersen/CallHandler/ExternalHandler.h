@@ -2,2577 +2,3048 @@
 #define LLVM_EXTERNALHANDLER_H
 
 namespace llvm {
-    namespace pointsto {
+namespace pointsto {
 namespace {
 int translateRegister(std::string RegName) {
-  if (RegName == "X0") 
+  if (RegName == "X0")
     return 5;
-  if (RegName == "X1") 
+  if (RegName == "X1")
     return 6;
-  if (RegName == "X2") 
+  if (RegName == "X2")
     return 7;
-  if (RegName == "X3") 
+  if (RegName == "X3")
     return 8;
-  if (RegName == "X4") 
+  if (RegName == "X4")
     return 9;
-  if (RegName == "X5") 
+  if (RegName == "X5")
     return 10;
-  if (RegName == "X6") 
+  if (RegName == "X6")
     return 11;
-  if (RegName == "X7") 
+  if (RegName == "X7")
     return 12;
   llvm_unreachable("Unknown Register");
 }
-}
+} // namespace
 void anonymous_1005(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "malloc"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "malloc"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1008(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSFileHandle fileHandleForReadingAtPath:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSFileHandle");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSFileHandle fileHandleForReadingAtPath:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSFileHandle");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1019(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSFileHandle readDataOfLength:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSFileHandle readDataOfLength:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1030(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[UITextField text]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[UITextField text]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1036(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[UITextView text]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[UITextView text]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1042(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[UILabel text]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[UILabel text]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1048(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString stringByTrimmingCharactersInSet:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString stringByTrimmingCharactersInSet:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1057(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString stringByAppendingString:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString stringByAppendingString:]"
+  // Handle "-[NSString stringByAppendingPathComponent:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_106(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSData dataWithContentsOfURL:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSData dataWithContentsOfURL:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1069(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString componentsSeparatedByString:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSArray");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
-  }
-}
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "-[NSString componentsSeparatedByString:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSArray");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
     }
   }
-}
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
+    }
+  }
 }
 
 void anonymous_1081(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[UIView initWithFrame:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[UIView initWithFrame:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_1088(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[UIViewController initWithNibName:bundle:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[UIViewController initWithNibName:bundle:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_1095(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSNull null]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSNull");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSNull null]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSNull");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1098(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[UIApplication sharedApplication]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "UIApplication");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[UIApplication sharedApplication]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "UIApplication");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1101(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSUserDefaults objectForKey:]"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "-[NSUserDefaults objectForKey:]"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_1108(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSUserDefaults setObject:forKey:]"
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "-[NSUserDefaults setObject:forKey:]"
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_1115(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSKeyedArchiver archivedDataWithRootObject:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSKeyedArchiver archivedDataWithRootObject:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1121(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[UIAlertView textFieldAtIndex:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "UITextField");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[UIAlertView textFieldAtIndex:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "UITextField");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_1127(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSDictionary objectForKey:]"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "-[NSDictionary objectForKey:]"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_1131(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSDictionary setObject:forKey:]"
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "-[NSDictionary setObject:forKey:]"
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_1138(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSDictionary valueForKey:]"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "-[NSDictionary valueForKey:]"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_1142(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSDictionary setValue:forKey:]"
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "-[NSDictionary setValue:forKey:]"
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_119(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSData dataWithData:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSData dataWithData:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_132(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData mutableCopy]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSData mutableCopy]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_145(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData isEqual:]"
+  // Handle "-[NSData isEqual:]"
 }
 
 void anonymous_148(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData writeToFile:options:error:]"
+  // Handle "-[NSData writeToFile:options:error:]"
 }
 
 void anonymous_149(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData dataWithBytes:length:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData dataWithBytes:length:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_162(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData data]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData data]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_17(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_autoreleaseReturnValue"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "objc_autoreleaseReturnValue"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_170(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData dataWithBytesNoCopy:length:freeWhenDone:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData dataWithBytesNoCopy:length:freeWhenDone:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_18(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_autorelease"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "objc_autorelease"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_183(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData dataWithContentsOfFile:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData dataWithContentsOfFile:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_19(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_retainAutoreleasedReturnValue"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "objc_retainAutoreleasedReturnValue"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_196(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData dataWithContentsOfFile:options:error:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData dataWithContentsOfFile:options:error:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_20(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_retainAutoreleaseReturnValue"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "objc_retainAutoreleaseReturnValue"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_209(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData dataWithContentsOfURL:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData dataWithContentsOfURL:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_21(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_retainAutorelease"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "objc_retainAutorelease"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_22(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSObject retain]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSObject retain]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_222(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData dataWithData:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData dataWithData:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_23(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSObject autorelease]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSObject autorelease]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_235(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData dataWithCapacity:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData dataWithCapacity:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_24(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_release"
+  // Handle "objc_release"
 }
 
 void anonymous_243(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableData dataWithLength:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableData dataWithLength:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_25(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSObject release]"
+  // Handle "-[NSObject release]"
 }
 
 void anonymous_251(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSMutableData mutableBytes]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSMutableData mutableBytes]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_26(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSObject dealloc]"
+  // Handle "-[NSObject dealloc]"
 }
 
 void anonymous_260(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString string]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSString string]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_266(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString stringWithString:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSString stringWithString:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_27(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSObject respondsToSelector:]"
+  // Handle "-[NSObject respondsToSelector:]"
 }
 
 void anonymous_277(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString stringWithCString:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSString stringWithCString:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_288(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString stringWithCharacters:length:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSString stringWithCharacters:length:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_299(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString initWithData:encoding:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSString initWithData:encoding:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_311(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString initWithString:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSString initWithString:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_323(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString getCString:maxLength:encoding:]"
-{ //Check object
-DetectParametersPass::UserSet_t Reg = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-  for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-if (objIndex != AndersNodeFactory::InvalidIndex)
-continue;    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNodeDummy(*Post_it, *CallInst->getParent()->getParent()->getParent());
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString getCString:maxLength:encoding:]"
+  { // Check object
+    DetectParametersPass::UserSet_t Reg =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex != AndersNodeFactory::InvalidIndex)
+        continue;
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNodeDummy(
+            *Post_it, *CallInst->getParent()->getParent()->getParent());
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_33(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSData dataWithBytes:length:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSData dataWithBytes:length:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_332(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString getBytes:maxLength:usedLength:encoding:options:range:remainingRange:]"
-{ //Check object
-DetectParametersPass::UserSet_t Reg = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-  for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-if (objIndex != AndersNodeFactory::InvalidIndex)
-continue;    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNodeDummy(*Post_it, *CallInst->getParent()->getParent()->getParent());
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString
+  // getBytes:maxLength:usedLength:encoding:options:range:remainingRange:]"
+  { // Check object
+    DetectParametersPass::UserSet_t Reg =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex != AndersNodeFactory::InvalidIndex)
+        continue;
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNodeDummy(
+            *Post_it, *CallInst->getParent()->getParent()->getParent());
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_341(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString cStringUsingEncoding:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString cStringUsingEncoding:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_350(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString lowercaseString]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString lowercaseString]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_361(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableString stringWithString:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableString stringWithString:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_372(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableString stringWithCharacters:length:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableString stringWithCharacters:length:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_383(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSDictionary dictionaryWithContentsOfFile:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSDictionary dictionaryWithContentsOfFile:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_389(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSDictionary dictionaryWithObject:forKey:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
-  }
-}
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "+[NSDictionary dictionaryWithObject:forKey:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
     }
   }
-}
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
+    }
+  }
 }
 
 void anonymous_398(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSDictionary dictionaryWithObjectsAndKeys:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSDictionary dictionaryWithObjectsAndKeys:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_404(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSDictionary dictionary]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSDictionary dictionary]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_410(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSDictionary dictionaryWithDictionary:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSDictionary dictionaryWithDictionary:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_416(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSDictionary dictionaryWithObjects:forKeys:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSDictionary dictionaryWithObjects:forKeys:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_422(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSDictionary dictionaryWithObjects:forKeys:count:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSDictionary dictionaryWithObjects:forKeys:count:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_428(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSDictionary initWithObjectsAndKeys:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSDictionary initWithObjectsAndKeys:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_435(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSDictionary objectForKey:]"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "-[NSDictionary objectForKey:]"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_442(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSDictionary valueForKey:]"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "-[NSDictionary valueForKey:]"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_449(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableDictionary dictionaryWithContentsOfFile:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableDictionary dictionaryWithContentsOfFile:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_455(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableDictionary dictionaryWithObject:forKey:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
-  }
-}
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "+[NSMutableDictionary dictionaryWithObject:forKey:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
     }
   }
-}
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
+    }
+  }
 }
 
 void anonymous_46(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSData dataWithBytesNoCopy:length:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSData dataWithBytesNoCopy:length:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_464(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableDictionary dictionaryWithObjectsAndKeys:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableDictionary dictionaryWithObjectsAndKeys:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_470(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableDictionary dictionary]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableDictionary dictionary]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_476(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableDictionary dictionaryWithDictionary:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableDictionary");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableDictionary dictionaryWithDictionary:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_482(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSJSONSerialization dataWithJSONObject:options:error:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSJSONSerialization dataWithJSONObject:options:error:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_488(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData bytes]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData bytes]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_500(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData getBytes:range:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData getBytes:range:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_517(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData getBytes:length:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData getBytes:length:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_537(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData subdataWithRange:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSData subdataWithRange:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_550(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSMutableData setLength:]"
+  // Handle "-[NSMutableData setLength:]"
 }
 
 void anonymous_553(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSMutableData appendData:]"
+  // Handle "-[NSMutableData appendData:]"
 }
 
 void anonymous_565(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSMutableData appendBytes:length:]"
+  // Handle "-[NSMutableData appendBytes:length:]"
 }
 
 void anonymous_577(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData length]"
+  // Handle "-[NSData length]"
 }
 
 void anonymous_580(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString dataUsingEncoding:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString dataUsingEncoding:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_59(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSData data]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSData data]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_593(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "memcpy"
-{ //Check object
-DetectParametersPass::UserSet_t Reg = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-if (objIndex != AndersNodeFactory::InvalidIndex)
-continue;    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNodeDummy(*Post_it, *CallInst->getParent()->getParent()->getParent());
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "memcpy"
+  { // Check object
+    DetectParametersPass::UserSet_t Reg =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex != AndersNodeFactory::InvalidIndex)
+        continue;
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNodeDummy(
+            *Post_it, *CallInst->getParent()->getParent()->getParent());
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_604(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CCKeyDerivationPBKDF"
-{ //Check object
-DetectParametersPass::UserSet_t Reg = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X7"), CallInst);
-  for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-if (objIndex != AndersNodeFactory::InvalidIndex)
-continue;    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNodeDummy(*Post_it, *CallInst->getParent()->getParent()->getParent());
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "CCKeyDerivationPBKDF"
+  { // Check object
+    DetectParametersPass::UserSet_t Reg =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X7"), CallInst);
+    for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex != AndersNodeFactory::InvalidIndex)
+        continue;
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNodeDummy(
+            *Post_it, *CallInst->getParent()->getParent()->getParent());
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_621(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CCCalibratePBKDF"
+  // Handle "CCCalibratePBKDF"
 }
 
 void anonymous_626(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CCCryptorCreate"
+  // Handle "CCCryptorCreate"
 }
 
 void anonymous_627(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CCCryptorCreateWithMode"
+  // Handle "CCCryptorCreateWithMode"
 }
 
 void anonymous_631(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CCCrypt"
+  // Handle "CCCrypt"
 }
 
 void anonymous_632(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CCCryptorUpdate"
+  // Handle "CCCryptorUpdate"
 }
 
 void anonymous_645(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_setProperty_nonatomic_copy"
+  // Handle "objc_setProperty_nonatomic_copy"
 }
 
 void anonymous_654(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_getProperty"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "objc_getProperty"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_668(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_setProperty_nonatomic"
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X3"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "objc_setProperty_nonatomic"
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X3"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_67(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSData dataWithBytesNoCopy:length:freeWhenDone:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSData dataWithBytesNoCopy:length:freeWhenDone:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_680(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_setProperty_atomic"
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X3"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "objc_setProperty_atomic"
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X3"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_692(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_setProperty"
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X3"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "objc_setProperty"
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X3"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_704(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_loadWeakRetained"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "objc_loadWeakRetained"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_718(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString UTF8String]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "char");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString UTF8String]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "char");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_731(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSArray arrayWithArray:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSArray");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSArray arrayWithArray:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSArray");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_734(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSArray arrayWithObject:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSArray");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSArray arrayWithObject:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSArray");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_735(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSArray arrayWithObjects:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSArray");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSArray arrayWithObjects:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSArray");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_736(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSArray array]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSArray");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSArray array]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSArray");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_737(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSArray objectAtIndex:]"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "-[NSArray objectAtIndex:]"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_747(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSArray objectAtIndexedSubscript:]"
-{ //Load operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+  // Handle "-[NSArray objectAtIndexedSubscript:]"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_757(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableString stringWithCapacity:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableString stringWithCapacity:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_763(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableString stringWithUTF8String:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableString stringWithUTF8String:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_764(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSMutableString string]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSMutableString string]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_765(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString stringWithCString:encoding:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSString stringWithCString:encoding:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_771(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString stringWithContentsOfFile:encoding:error:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSString stringWithContentsOfFile:encoding:error:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_772(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString stringWithFormat:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSString stringWithFormat:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_773(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString stringWithUTF8String:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSString stringWithUTF8String:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_774(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSString stringWithCString:encoding:]"
+  // Handle "+[NSString stringWithCString:encoding:]"
 }
 
 void anonymous_781(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSObject init]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSObject init]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_788(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSMutableData init]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSMutableData init]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_789(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData initWithBytes:length:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData initWithBytes:length:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_790(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData initWithBase64EncodedData:options:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData initWithBase64EncodedData:options:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_791(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData initWithContentsOfFile:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData initWithContentsOfFile:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_792(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData initWithData:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData initWithData:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_793(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData init]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData init]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_794(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData initWithBase64EncodedString:options:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSData initWithBase64EncodedString:options:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_795(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString initWithBytes:length:encoding:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSString initWithBytes:length:encoding:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_796(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString initWithData:encoding:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSString initWithData:encoding:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_797(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString initWithFormat:]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSString initWithFormat:]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_798(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSMutableDictionary init]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSMutableDictionary init]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_799(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSDictionary init]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[NSDictionary init]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_8(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_retain"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "objc_retain"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_80(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSData dataWithContentsOfFile:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSData dataWithContentsOfFile:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_800(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[UITableViewController init]"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "-[UITableViewController init]"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_801(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData initWithBytes:length:]"
+  // Handle "-[NSData initWithBytes:length:]"
 }
 
 void anonymous_810(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData initWithBase64EncodedString:options:]"
+  // Handle "-[NSData initWithBase64EncodedString:options:]"
 }
 
 void anonymous_816(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString copy]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSString copy]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_825(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSMutableString copy]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSMutableString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSMutableString copy]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSMutableString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_834(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSData copy]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "-[NSData copy]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_nshome(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "NSHomeDirectory"
-{
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSString");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "NSHomeDirectory"
+  {
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_843(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CC_SHA256_Init"
+  // Handle "CC_SHA256_Init"
 }
 
 void anonymous_847(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CC_SHA256_Update"
+  // Handle "CC_SHA256_Update"
 }
 
 void anonymous_857(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CC_SHA256_Final"
+  // Handle "CC_SHA256_Final"
 }
 
 void anonymous_864(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "arc4random"
+  // Handle "arc4random"
 }
 
 void anonymous_870(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "SecRandomCopyBytes"
-{ //Check object
-DetectParametersPass::UserSet_t Reg = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
-  for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-if (objIndex != AndersNodeFactory::InvalidIndex)
-continue;    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNodeDummy(*Post_it, *CallInst->getParent()->getParent()->getParent());
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "SecRandomCopyBytes"
+  { // Check object
+    DetectParametersPass::UserSet_t Reg =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), CallInst);
+    for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex != AndersNodeFactory::InvalidIndex)
+        continue;
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNodeDummy(
+            *Post_it, *CallInst->getParent()->getParent()->getParent());
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_878(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_storeStrong"
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X1"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "objc_storeStrong"
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X1"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_888(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_storeWeak"
-{ //Store operation
-DetectParametersPass::UserSet_t Vals = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X1"), CallInst);
-DetectParametersPass::UserSet_t Locs = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
-    NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
-    if (valIdx == AndersNodeFactory::InvalidIndex)
-      valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
-    for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
-      NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
-      if (locIdx == AndersNodeFactory::InvalidIndex)
-        locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
-      andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+  // Handle "objc_storeWeak"
+  { // Store operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X1"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::STORE, locIdx, valIdx);
+      }
     }
   }
-}
 }
 
 void anonymous_898(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_getClass"
-{ //Copy operation
-DetectParametersPass::UserSet_t From = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-DetectParametersPass::UserSet_t To = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
-    NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
-    if (srcIdx == AndersNodeFactory::InvalidIndex)
-      srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
-    for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
-      NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
-      if (dstIdx == AndersNodeFactory::InvalidIndex)
-        dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
-      andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+  // Handle "objc_getClass"
+  { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
     }
-  }
-} //end copy
+  } // end copy
 }
 
 void anonymous_907(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "bzero"
-{ //Check object
-DetectParametersPass::UserSet_t Reg = DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-if (objIndex != AndersNodeFactory::InvalidIndex)
-continue;    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNodeDummy(*Post_it, *CallInst->getParent()->getParent()->getParent());
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "bzero"
+  { // Check object
+    DetectParametersPass::UserSet_t Reg =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Reg.begin(); Post_it != Reg.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex != AndersNodeFactory::InvalidIndex)
+        continue;
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNodeDummy(
+            *Post_it, *CallInst->getParent()->getParent()->getParent());
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_915(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSBundle bundleWithPath:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSBundle");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSBundle bundleWithPath:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSBundle");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_923(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSBundle bundleForClass:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSBundle");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSBundle bundleForClass:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSBundle");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_924(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSBundle mainBundle]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSBundle");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSBundle mainBundle]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSBundle");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_925(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "NSLog"
+  // Handle "NSLog"
 }
 
 void anonymous_926(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "__stack_chk_fail"
+  // Handle "__stack_chk_fail"
 }
 
 void anonymous_927(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_enumerationMutation"
+  // Handle "objc_enumerationMutation"
 }
 
 void anonymous_928(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_terminate"
+  // Handle "objc_terminate"
 }
 
 void anonymous_929(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_sync_exit"
+  // Handle "objc_sync_exit"
 }
 
 void anonymous_93(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSData dataWithContentsOfFile:options:error:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSData");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSData dataWithContentsOfFile:options:error:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSData");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_930(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_sync_enter"
+  // Handle "objc_sync_enter"
 }
 
 void anonymous_931(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_exception_rethrow"
+  // Handle "objc_exception_rethrow"
 }
 
 void anonymous_932(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_exception_throw"
+  // Handle "objc_exception_throw"
 }
 
 void anonymous_933(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_destroyWeak"
+  // Handle "objc_destroyWeak"
 }
 
 void anonymous_934(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_end_catch"
+  // Handle "objc_end_catch"
 }
 
 void anonymous_935(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "objc_begin_catch"
+  // Handle "objc_begin_catch"
 }
 
 void anonymous_936(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "_Znam"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "_Znam"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_941(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "_Znwm"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "_Znwm"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_946(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "_ZnwmRKSt9nothrow_t"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "_ZnwmRKSt9nothrow_t"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_951(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CC_MD5"
+  // Handle "CC_MD5"
 }
 
 void anonymous_958(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "CC_SHA256"
+  // Handle "CC_SHA256"
 }
 
 void anonymous_965(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "read"
+  // Handle "read"
 }
 
 void anonymous_971(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "open"
+  // Handle "open"
 }
 
 void anonymous_977(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "+[NSNumber numberWithInt:]"
-{ //Alloc operation
-DetectParametersPass::UserSet_t Post = DetectParametersPass::getRegisterValuesAfterCall(translateRegister("X0"), CallInst);
-  for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
-    NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
-    if (valIndex == AndersNodeFactory::InvalidIndex)
-      valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
-    NodeIndex objIndex = andersen->getNodeFactory().getObjectNodeFor(*Post_it);
-    if (objIndex == AndersNodeFactory::InvalidIndex)
-      objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
-    andersen->setType(*Post_it, "NSNumber");
-    andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+  // Handle "+[NSNumber numberWithInt:]"
+  { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSNumber");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
   }
-}
 }
 
 void anonymous_987(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSNumber integerValue]"
+  // Handle "-[NSNumber integerValue]"
 }
 
 void anonymous_993(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString intValue]"
+  // Handle "-[NSString intValue]"
 }
 
 void anonymous_999(llvm::Instruction *CallInst, Andersen *andersen) {
-//Handle "-[NSString integerValue]"
+  // Handle "-[NSString integerValue]"
 }
 
 bool canHandleCall(const std::string &FName) {
@@ -2772,7 +3243,9 @@ bool canHandleCall(const std::string &FName) {
     return true;
   if (FName == "-[NSString dataUsingEncoding:]")
     return true;
-  if (FName == "-[NSString getBytes:maxLength:usedLength:encoding:options:range:remainingRange:]")
+  if (FName ==
+      "-[NSString "
+      "getBytes:maxLength:usedLength:encoding:options:range:remainingRange:]")
     return true;
   if (FName == "-[NSString getCString:maxLength:encoding:]")
     return true;
@@ -2790,7 +3263,8 @@ bool canHandleCall(const std::string &FName) {
     return true;
   if (FName == "-[NSString lowercaseString]")
     return true;
-  if (FName == "-[NSString stringByAppendingString:]")
+  if (FName == "-[NSString stringByAppendingString:]" ||
+      FName == "-[NSString stringByAppendingPathComponent]")
     return true;
   if (FName == "-[NSString stringByTrimmingCharactersInSet:]")
     return true;
@@ -2833,6 +3307,8 @@ bool canHandleCall(const std::string &FName) {
   if (FName == "CC_SHA256_Init")
     return true;
   if (FName == "CC_SHA256_Update")
+    return true;
+  if (FName == "NSHomeDirectory")
     return true;
   if (FName == "NSLog")
     return true;
@@ -2911,7 +3387,8 @@ bool canHandleCall(const std::string &FName) {
   return false;
 }
 
-bool handleCall(llvm::Instruction *CallInst, Andersen *andersen, const std::string &FName) {
+bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
+                const std::string &FName) {
   if (FName == "+[NSArray arrayWithArray:]") {
     anonymous_731(CallInst, andersen);
     return true;
@@ -3309,7 +3786,9 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen, const std::stri
     anonymous_580(CallInst, andersen);
     return true;
   }
-  if (FName == "-[NSString getBytes:maxLength:usedLength:encoding:options:range:remainingRange:]") {
+  if (FName ==
+      "-[NSString "
+      "getBytes:maxLength:usedLength:encoding:options:range:remainingRange:]") {
     anonymous_332(CallInst, andersen);
     return true;
   }
@@ -3346,7 +3825,8 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen, const std::stri
     anonymous_350(CallInst, andersen);
     return true;
   }
-  if (FName == "-[NSString stringByAppendingString:]") {
+  if (FName == "-[NSString stringByAppendingString:]" ||
+      FName == "-[NSString stringByAppendingPathComponent]") {
     anonymous_1057(CallInst, andersen);
     return true;
   }
@@ -3589,8 +4069,7 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen, const std::stri
   return false;
 }
 
-    }
-}
+} // namespace pointsto
+} // namespace llvm
 
-#endif //LLVM_EXTERNALHANDLER_H
-
+#endif // LLVM_EXTERNALHANDLER_H

@@ -375,6 +375,10 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
                     .data();
   }
 
+  if (Classname == "GCDWebUploader") {
+    assert(true);
+  }
+
   ClassNames[DataAddress] = Classname;
 
   BaseClassPtr_t BaseClassPtr =
@@ -413,13 +417,13 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
     assert((isAddressInSection(NamePtr, ClassnameSection) ||
             isAddressInSection(NamePtr, CStringSection)));
     StringRef SuperClassname;
-    if (isAddressInSection(NamePtr, ClassnameSection)) {
+    if (isAddressInSection(SuperNamePtr, ClassnameSection)) {
       SuperClassname = (const char *)ClassnameData
-                           .slice(NamePtr - ClassnameSection->getAddress())
+                           .slice(SuperNamePtr - ClassnameSection->getAddress())
                            .data();
     } else {
       SuperClassname = (const char *)ClassnameData
-                           .slice(NamePtr - CStringSection->getAddress())
+                           .slice(SuperNamePtr - CStringSection->getAddress())
                            .data();
     }
     ClassPtr->setSuperclass(SuperClassname);
@@ -432,9 +436,7 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
     }
   }
 
-  if (Classname == "AddAccountViewController") {
-    assert(true);
-  }
+
 
   if (IVARsPtr) {
     uint32_t IVAREntrySize =

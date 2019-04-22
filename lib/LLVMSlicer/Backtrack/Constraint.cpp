@@ -95,18 +95,20 @@ bool ChainConstraint::checkConstraint(PathElementBase *pathElement) const {
 bool ChainConstraint::shouldStop(PathElementBase *pathElement) const {
   bool result = false;
   switch (chainType) {
+  // FIXME: we just "NOT" the result when check constraint, so let it the same with "OR".
+  case NOT_AND:
   case OR: {
     for (auto &child : children) {
       result |= child->shouldStop(pathElement);
     }
     break;
   }
-  case NOT_AND: {
-    // TODO: how to handle this, we can't stop always when we NOT find
-    // something...
-    result = false;
-    break;
-  }
+  // case NOT_AND: {
+  //   // TODO: how to handle this, we can't stop always when we NOT find
+  //   // something...
+  //   result = false;
+  //   break;
+  // }
   default:
     llvm_unreachable("");
   }
@@ -436,7 +438,7 @@ bool Rule::checkRule() {
   }
   checkedPaths = true;
   for (auto &path : paths) {
-    path->dump();
+    // path->dump();
     if (!path->getEntry()->getNext())
       continue;
     const Instruction *first =
