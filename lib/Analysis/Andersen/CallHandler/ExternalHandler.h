@@ -1,6 +1,5 @@
 #ifndef LLVM_EXTERNALHANDLER_H
 #define LLVM_EXTERNALHANDLER_H
-#include <../../../LLVMSlicer/PointsTo/PointsTo.h>
 
 namespace llvm {
 namespace pointsto {
