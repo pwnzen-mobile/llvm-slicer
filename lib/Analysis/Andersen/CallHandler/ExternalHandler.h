@@ -1,5 +1,6 @@
 #ifndef LLVM_EXTERNALHANDLER_H
 #define LLVM_EXTERNALHANDLER_H
+#include <../../../LLVMSlicer/PointsTo/PointsTo.h>
 
 namespace llvm {
 namespace pointsto {
@@ -1348,7 +1349,49 @@ void anonymous_416(llvm::Instruction *CallInst, Andersen *andersen) {
 
 void anonymous_422(llvm::Instruction *CallInst, Andersen *andersen) {
   // Handle "+[NSDictionary dictionaryWithObjects:forKeys:count:]"
-  { // Alloc operation
+  { 
+    // Build dictionary
+    // X0 => values; X1 => keys; X2 => nums;
+    DetectParametersPass::UserSet_t X0 = 
+        DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t X1 = 
+        DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X1"), CallInst);
+    DetectParametersPass::UserSet_t X2 = 
+        DetectParametersPass::getRegisterValuesBeforeCall(translateRegister("X2"), CallInst);
+    // for (auto &X2_it : X2) {
+    //   if (const ConstantInt *num = dyn_cast<const ConstantInt>(X2_it)) {
+    //     int size = num->getZExtValue();
+        
+    //     StackAccessPass *SAP = andersen->getAnalysisIfAvailable<StackAccessPass>();
+    //     if (!SAP)
+    //       SAP = &andersen->getAnalysis<StackAccessPass>();
+    //     StackAccessPass::OffsetMap_t &Offsets = SAP->getOffsets(CallInst->getParent()->getParent());
+    //     std::vector<int64_t> StoredAtOffsets;
+
+    //     // TODO: In stack stored directory keys & values, then we restore the dic and create a new objcNode.
+    //     // stack base address is the first element, then "stack + 8 * size"
+    //     for (auto &O_it : Offsets) {
+    //       bool self_stored = false;
+    //       for (auto &U_it : O_it.first->uses()) {
+    //         if (const Instruction *ItoP = dyn_cast<const IntToPtrInst>(U_it.getUser())) {
+    //           for (auto &IU_it : ItoP->uses()) {
+    //             if (const StoreInst *Store =
+    //                 dyn_cast<const StoreInst>(IU_it.getUser())) {
+    //               if (!O_it.second)
+    //                 continue;
+    //               for (auto &Off_it : *O_it.second) {
+    //                 StoredAtOffsets.push_back(Off_it);
+    //               }
+    //               break;
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+
+    // Alloc operation
     DetectParametersPass::UserSet_t Post =
         DetectParametersPass::getRegisterValuesAfterCall(
             translateRegister("X0"), CallInst);

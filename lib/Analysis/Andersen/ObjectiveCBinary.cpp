@@ -457,6 +457,7 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
                                          CurrentIVAROffset + 8)
                                   .data();
       StringRef IVARName = getString(IVARNamePtr);
+      errs() << "[+] IVARName: " << IVARName.str() << "\n";
 
       uint64_t IVARTypePtr = *(uint64_t *)ConstData
                                   .slice(IVARsPtr - ConstSection->getAddress() +
@@ -476,6 +477,7 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
       } else {
         IVARType = "";
       }
+      errs() << "[+] IVARType: " << IVARType.str() << "\n";
 
       if(IVARs.find(OffsetPtr) != IVARs.end()) continue;
       ObjectiveC::IVAR ivar(IVARName, OffsetPtr, IVARType);

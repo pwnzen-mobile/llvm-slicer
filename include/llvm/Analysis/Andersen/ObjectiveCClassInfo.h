@@ -108,6 +108,7 @@ namespace llvm {
             std::string getID() {return ParentClass.str() + IVARName.str();};
 
             StringRef getType() {return IVARType;}
+            StringRef getName() {return IVARName;}
         private:
             StringRef IVARName;
             uint64_t OffsetPtr;

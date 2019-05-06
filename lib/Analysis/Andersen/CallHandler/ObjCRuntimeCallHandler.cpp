@@ -172,6 +172,15 @@ bool CallHandlerBase::isSelf(Instruction *v, Andersen *andersen) {
   return false;
 }
 
+bool CallHandlerBase::isSetOrGetProperty(StringRef FuncName, StringRef IVARName) {
+  StringRef sel = getMethodname(FuncName);
+  std::string front(1, (char)toupper(IVARName.substr(1).front()));
+  StringRef setter = (StringRef("set") + StringRef(front) + StringRef(IVARName.substr(2))).str();
+  if (sel == setter) {
+    return true;
+  } else return false;
+}
+
 StringRef CallHandlerBase::getClassname(StringRef F) {
   assert(isObjectiveCMethod(F));
   StringRef Name = F;
@@ -268,91 +277,6 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
         } else if (andersen->getType((Value *)*X0PT_it, Classnames)) {
           for (auto &className_it : Classnames) {
             handleLambda(className_it, Meta);
-          }
-        } else if (*X0PT_it) {
-          bool cond1 = false;
-          for (BasicBlock::const_reverse_iterator I_it =
-                   CallInst->getParent()->rbegin();
-               I_it != CallInst->getParent()->rend(); ++I_it) {
-            if (&*I_it == CallInst) {
-              cond1 = true;
-            }
-            if (!cond1) {
-              continue;
-            }
-            if (const StoreInst *store = dyn_cast<const StoreInst>(&*I_it)) {
-              if (const IntToPtrInst *ItoP =
-                      dyn_cast<const IntToPtrInst>(store->getOperand(1))) {
-                if (andersen->pointsTo(ItoP, *X0PT_it)) {
-                  if (!andersen->getAnalysis<StackAccessPass>().getOffsets(
-                          (Function *)ItoP->getParent()
-                              ->getParent())[ItoP->getOperand(0)]) {
-                    llvm_unreachable("'self' not stored on stack???");
-                  }
-
-                  StackAccessPass::Int64List_t &Offsets =
-                      *andersen->getAnalysis<StackAccessPass>().getOffsets(
-                          (Function *)ItoP->getParent()
-                              ->getParent())[ItoP->getOperand(0)];
-
-                  bool cond2 = false;
-                  for (BasicBlock::const_iterator I2_it =
-                           CallInst->getParent()->begin();
-                       I2_it != CallInst->getParent()->end() &&
-                       &*I2_it != CallInst;
-                       ++I2_it) {
-                    if (&*I2_it == store) {
-                      cond2 = true;
-                    }
-                    if (!cond2) {
-                      continue;
-                    }
-                    if (const StoreInst *store2 =
-                            dyn_cast<const StoreInst>(&*I2_it)) {
-                      if (const IntToPtrInst *ItoP2 =
-                              dyn_cast<const IntToPtrInst>(
-                                  store2->getOperand(1))) {
-                        if (!andersen->getAnalysis<StackAccessPass>()
-                                 .getOffsets(
-                                     (Function *)ItoP->getParent()
-                                         ->getParent())[ItoP2->getOperand(0)]) {
-                          continue;
-                        }
-                        StackAccessPass::Int64List_t &Offsets2 =
-                            *andersen->getAnalysis<StackAccessPass>()
-                                 .getOffsets(
-                                     (Function *)ItoP2->getParent()
-                                         ->getParent())[ItoP2->getOperand(0)];
-
-                        bool intersect = false;
-                        for (auto O1 : Offsets) {
-                          for (auto O2 : Offsets2) {
-                            if (O1 == (O2 - 8)) {
-                              intersect = true;
-                              break;
-                            }
-                          }
-                        }
-                        if (intersect) {
-                          std::vector<const Value *> Super;
-                          andersen->getPointsToSet(store2->getOperand(0),
-                                                   Super);
-
-                          for (auto &super_it : Super) {
-                            if (const ConstantDataArray *superDataArray =
-                                dyn_cast<const ConstantDataArray>(super_it)) {
-                                  errs() << "[+]super data: " << superDataArray->getAsString().str() << " in " << CallInst->getParent()->getParent()->getName() << "\n";
-                              handleLambda(superDataArray->getAsString().str(), Meta);
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                  break;
-                }
-              }
-            }
           }
         } else {
           continue;
@@ -541,6 +465,41 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
                 *C_it)) {
       andersen->addConstraintsForCall((Instruction *)CallInst, F);
       HandledCall = true;
+      
+      std::string IVARName = "_" + getMethodname(F->getName()).str();
+      if (!isSetOrGetProperty(F->getName(), IVARName)) {
+        DetectParametersPass::UserSet_t X0Values =
+            DetectParametersPass::getRegisterValuesBeforeCall(5, CallInst);
+        DetectParametersPass::UserSet_t X0Post =
+            DetectParametersPass::getRegisterValuesAfterCall(5, CallInst);
+        
+        NodeIndex valIdx;
+        std::map<uint64_t, ObjectiveC::IVAR> ivars = andersen->getMachO().getIVARs();
+        for (auto & ivar : ivars) {
+          if (ivar.second.getID() == IVARName) {
+            StringRef type = ivar.second.getType();
+            Value *dummy =
+                andersen->getNodeFactory().createDummy(andersen->getModule());
+            andersen->setType(dummy, type);
+            NodeIndex objIdx = andersen->getNodeFactory().createObjectNode(dummy);
+            valIdx = andersen->getNodeFactory().createValueNode(dummy);
+
+            andersen->addConstraint(AndersConstraint::ADDR_OF, valIdx, objIdx);
+          }
+        }
+
+        for (auto &d : X0Post) {
+          NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(d);
+          assert(dstIdx != AndersNodeFactory::InvalidIndex);
+          andersen->addConstraint(AndersConstraint::STORE, dstIdx, valIdx);
+
+          NodeIndex dummyLoad =
+              andersen->getNodeFactory().getValueNodeFor(CallInst);
+          if (dummyLoad == AndersNodeFactory::InvalidIndex)
+            dummyLoad = andersen->getNodeFactory().createValueNode(CallInst);
+          andersen->addConstraint(AndersConstraint::LOAD, dummyLoad, dstIdx);
+        }
+      }
       break;
     } else if (CallHandlerManager::getInstance().handleFunctionCall(
                    CallInst, *C_it, andersen)) {
@@ -1049,8 +1008,8 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
                                 std::string methodName =
                                     "-[" + superDataArray->getAsString().str() +
                                     " " + selector->getAsString().str() + "]";
-                                // errs() << "[+]method name: " << methodName <<
-                                // "\n";
+                                errs() << "[+]method name: " << methodName <<
+                                "\n";
 
                                 CallInfos_t infos;
                                 std::get<0>(infos) =
@@ -1092,7 +1051,7 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
     for (std::deque<std::string>::iterator C_it = Candidates.begin();
          C_it != Candidates.end(); ++C_it) {
       StringRef MethodName = CallHandlerBase::getMethodname(*C_it);
-      // errs() << "[+]method name: " << MethodName << "\n";
+      errs() << "[+]C_it name: " << *C_it << "\n";
       if (MethodName == "allocWithZone:") {
         if (!isObjectiveCMethod(CallInst->getParent()->getParent()->getName()))
           continue;
@@ -1411,6 +1370,118 @@ void NSArray::handleFastEnum(const Instruction *CallInst, Andersen *andersen) {
       }
     }
   }
+}
+
+bool NSDictionary::shouldHandleCall(std::string &F) {
+  if (F == "+[NSDictionary dictionaryWithObjects:forKeys:count:]") {
+    return true;
+  }
+  if (F == "-[NSDictionary initWithObjectsAndKeys:]")
+    return true;
+  return false;
+}
+
+typedef struct {
+  std::vector<const ConstantInt *> keys;
+  std::vector<const ConstantInt *> values;
+  int num;
+} Dictionary;
+
+bool NSDictionary::run(const Instruction *CallInst, std::string &F, Andersen *andersen) {
+  andersen->addToWorklist((Instruction *)CallInst);
+  if (andersen->getCallGraph().containtsEdge(CallInst, F))
+    return true;
+  andersen->getCallGraph().addCallEdge(CallInst, F);
+
+  DetectParametersPass::UserSet_t returnValues =
+      DetectParametersPass::getRegisterValuesAfterCall(5, CallInst);
+  if (returnValues.size() != 1) {
+    errs() << "Can't have more than one return value here...\n";
+    llvm_unreachable("");
+  }
+
+  Value *returnValue = *(returnValues.begin());
+  NodeIndex dicObjIdx =
+      andersen->getNodeFactory().getObjectNodeFor(returnValue);
+  if (dicObjIdx == AndersNodeFactory::InvalidIndex)
+    dicObjIdx = andersen->getNodeFactory().createObjectNode(returnValue);
+  NodeIndex dicValIdx =
+      andersen->getNodeFactory().getValueNodeFor(returnValue);
+  if (dicValIdx == AndersNodeFactory::InvalidIndex)
+    dicValIdx = andersen->getNodeFactory().createValueNode(returnValue);
+
+  andersen->addConstraint(AndersConstraint::ADDR_OF, dicValIdx, dicObjIdx);
+  andersen->setType(returnValue, "NSDictionary");
+
+  DetectParametersPass::UserSet_t valueObjects =
+      DetectParametersPass::getRegisterValuesBeforeCall(7, CallInst);
+  DetectParametersPass::UserSet_t keyObjects =
+      DetectParametersPass::getRegisterValuesBeforeCall(8, CallInst);
+  DetectParametersPass::UserSet_t numObjects =
+      DetectParametersPass::getRegisterValuesBeforeCall(9, CallInst);
+
+  StackAccessPass &SAP = andersen->getAnalysis<StackAccessPass>();
+  StackAccessPass::OffsetMap_t &stackOffsets =
+      SAP.getOffsets((Function *)CallInst->getParent()->getParent());
+  StackAccessPass::OffsetValueListMap_t &stackOffsetValues =
+      SAP.getOffsetValues((Function *)CallInst->getParent()->getParent());
+  
+  Dictionary dic;
+  for (DetectParametersPass::UserSet_t::iterator valueObject = valueObjects.begin(), keyObject = keyObjects.begin();
+   valueObject != valueObjects.end(), keyObject != keyObjects.end(); valueObject++, keyObject++) {
+    // The passed objects should all be stored on the stack in this case
+    if (stackOffsets.find(*valueObject) != stackOffsets.end()) {
+      for (auto &num : numObjects) {
+        const ConstantInt *constNumObjects = dyn_cast<const ConstantInt>(num);
+
+        // We can only handle this correct if this number is static
+        // TODO: probably add the first object anyways.
+        if (!constNumObjects)
+          continue;
+
+        for (auto &startStackOffset : *stackOffsets[*valueObject]) {
+          for (unsigned stackOffset = 0;
+               stackOffset < constNumObjects->getZExtValue(); ++stackOffset) {
+            if (stackOffsetValues.find(startStackOffset + (8 * stackOffset)) ==
+                stackOffsetValues.end())
+              continue;
+            for (auto &offsetValue :
+                 *stackOffsetValues[startStackOffset + (8 * stackOffset)]) {
+              NodeIndex valIdx =
+                  andersen->getNodeFactory().getValueNodeFor(offsetValue);
+              if (valIdx == AndersNodeFactory::InvalidIndex)
+                valIdx =
+                    andersen->getNodeFactory().createValueNode(offsetValue);
+              const ConstantInt *constInt = dyn_cast<const ConstantInt>(offsetValue);
+              dic.values.push_back(constInt);
+            }
+          }
+        }
+        for (auto &startStackOffset : *stackOffsets[*keyObject]) {
+          for (unsigned stackOffset = 0;
+               stackOffset < constNumObjects->getZExtValue(); ++stackOffset) {
+            if (stackOffsetValues.find(startStackOffset + (8 * stackOffset)) ==
+                stackOffsetValues.end())
+              continue;
+            for (auto &offsetValue :
+                 *stackOffsetValues[startStackOffset + (8 * stackOffset)]) {
+              const ConstantInt *constInt = dyn_cast<const ConstantInt>(offsetValue);
+              dic.keys.push_back(constInt);
+            }
+          }
+        }
+        dic.num = constNumObjects->getZExtValue();
+      }
+    }
+  }
+  StringRef type = "NSDictionary";
+  Value *dummy = andersen->getNodeFactory().createDummy(andersen->getModule());
+  andersen->setType(dummy, type);
+  NodeIndex objIdx = andersen->getNodeFactory().createObjectNode(dummy);
+  NodeIndex valIdx = andersen->getNodeFactory().createValueNode(dummy);
+  andersen->addConstraint(AndersConstraint::ADDR_OF, valIdx, objIdx);
+
+  andersen->addConstraint(AndersConstraint::COPY, dicValIdx, valIdx);
 }
 
 bool UIControlTarget::shouldHandleCall(std::string &F) {

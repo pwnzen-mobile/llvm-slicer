@@ -112,6 +112,13 @@ namespace llvm {
         private:
             void handleFastEnum(const Instruction *CallInst, Andersen *andersen);
         };
+        
+        class NSDictionary: public CallHandlerBase {
+        public:
+            virtual bool shouldHandleCall(std::string &F);
+            virtual bool run(const Instruction *CallInst, std::string &F, Andersen *andersen);
+            virtual int64_t getPriority() const {return 1;};
+        };
 
         class UIControlTarget: public CallHandlerBase {
         public:

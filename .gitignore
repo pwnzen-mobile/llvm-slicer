@@ -68,4 +68,5 @@ bindings/go/llvm/workdir
 
 .idea/*
 build/*
+build2
 Release/*

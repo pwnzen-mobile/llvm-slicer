@@ -38,6 +38,12 @@ private:
   Path *path;
 };
 
+typedef struct {
+  std::vector<const ConstantInt *> keys;
+  std::vector<const ConstantInt *> values;
+  int num;
+} Dictionary;
+
 class Constraint {
 public:
   typedef std::vector<const Constraint *> ConstraintList_t;
@@ -51,7 +57,7 @@ public:
 
   virtual void addConstraint(const Constraint *constraint);
 
-  virtual bool checkConstraint(PathElementBase *pathElement) const = 0;
+  virtual int checkConstraint(PathElementBase *pathElement) const = 0;
   virtual bool shouldStop(PathElementBase *pathElement) const = 0;
 
   virtual Type getType() const;
@@ -72,7 +78,7 @@ public:
 
   ChainConstraint(ConstraintType constraintType, ChainType chainType);
 
-  virtual bool checkConstraint(PathElementBase *pathElement) const;
+  virtual int checkConstraint(PathElementBase *pathElement) const;
   virtual bool shouldStop(PathElementBase *pathElement) const;
 
 protected:
@@ -99,7 +105,7 @@ public:
 
   typedef std::vector<Message> MessageList_t;
 
-  enum Result { ERROR, PRECOND_ERROR, UNKOWN, VALID };
+  enum Result { ERROR, PRECOND_ERROR, UNKNOWN, VALID };
 
   typedef std::pair<Result, Path *> PathResult_t;
   typedef std::tuple<Result, Rule *, Path *> PrecondResult_t;
@@ -117,7 +123,7 @@ public:
                              InstructionRuleList_t preconditionInstruction);
   const InitialInstructionList_t &getInitialInstruction() const;
 
-  virtual bool checkConstraint(PathElementBase *pathElement) const;
+  virtual int checkConstraint(PathElementBase *pathElement) const;
   virtual bool shouldStop(PathElementBase *pathElement) const;
   virtual bool dismissPath(PathElementBase *pathElementBase) const;
 
@@ -130,7 +136,7 @@ public:
 
   bool preconditions() const;
   bool checkRule();
-  bool checkRule(Path *path) const;
+  int checkRule(Path *path) const;
 
   void addPaths(PathList_t paths);
   std::string getRuleTitle() const;
@@ -185,21 +191,26 @@ private:
 
 class ConstConstraint : public Constraint {
 public:
-  enum Compare { EQUAL, GREATER, LOREQ, LORNEQ, IN, NOTIN, ANY };
+  enum Compare { EQUAL, GREATER, LOREQ, LORNEQ, IN, NOTIN, EXITS, ANY };
   ConstConstraint(Compare compare, ConstraintType constraintType,
                   uint64_t value, std::string strvalue,
                   std::vector<std::string> strings);
+  ConstConstraint(Compare compare, ConstraintType constraintType,
+                  uint64_t value,
+                  std::set<std::map<std::string, int>> intDicts, std::set<std::map<std::string, std::string>> strDicts);
   // ConstConstraint(Compare compare, std::string strvalue, ConstraintType
   // constraintType); ConstConstraint(Compare compare, std::vector<std::string>
   // strings, ConstraintType constraintType);
 
-  virtual bool checkConstraint(PathElementBase *pathElement) const;
+  virtual int checkConstraint(PathElementBase *pathElement) const;
   virtual bool shouldStop(PathElementBase *pathElement) const;
 
 private:
   uint64_t value;
   std::string strvalue;
   std::vector<std::string> strings;
+  std::set<std::map<std::string, int>> intDicts;
+  std::set<std::map<std::string, std::string>> strDicts;
   Compare compare;
 };
 
@@ -207,7 +218,7 @@ class CallConstraint : public Constraint {
 public:
   CallConstraint(ConstraintType constraintType, std::string functionName);
 
-  virtual bool checkConstraint(PathElementBase *pathElement) const;
+  virtual int checkConstraint(PathElementBase *pathElement) const;
   virtual bool shouldStop(PathElementBase *pathElement) const;
 
 private:

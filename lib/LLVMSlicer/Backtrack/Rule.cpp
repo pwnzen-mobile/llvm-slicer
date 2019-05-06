@@ -165,6 +165,33 @@ Constraint *parseCondition(json &cond) {
         } else {
             return new llvm::slicing::ConstConstraint(ConstConstraint::ANY, type, 0, "", std::vector<std::string>());
         }
+    } else if (cond["conditionType"].get<string>() == "ConstDict") {
+        // Directory type
+        std::map<string, string> strDict;
+        std::map<string, int> intDict;
+        std::set<map<string, string>> strDicts;
+        std::set<map<string, int>> intDicts;
+
+        if (cond["exits"].is_array()) {
+            for (auto &d : cond["in"]) {
+                if (d["valueType"].get<string>() == "int") {
+                    intDict.insert(std::pair<string, int>(d["key"], d["value"].get<int>()));
+                    intDicts.insert(intDict);
+                } else if (d["valueType"].get<string>() == "string") {
+                    strDict.insert(std::pair<string, string>(d["key"], d["value"].get<string>()));
+                    strDicts.insert(strDict);
+                }
+            }
+        } else {
+            if (cond["exits"]["valueType"].get<string>() == "int") {
+                intDict.insert(std::pair<string, int>(cond["in"]["key"], cond["in"]["value"].get<int>()));
+                intDicts.insert(intDict);
+            } else if (cond["exits"]["valueType"].get<string>() == "string") {
+                strDict.insert(std::pair<string, string>(cond["exits"]["key"], cond["in"]["value"].get<string>()));
+                strDicts.insert(strDict);
+            }
+        }
+        return new llvm::slicing::ConstConstraint(ConstConstraint::EXITS, type, 0, intDicts, strDicts);
     } else if (cond["conditionType"].get<string>() == "NOT") {
         ChainConstraint *notChain = new llvm::slicing::ChainConstraint(Constraint::STRICT, ChainConstraint::NOT_AND);
         for (auto &subCond : cond["conditions"]) {

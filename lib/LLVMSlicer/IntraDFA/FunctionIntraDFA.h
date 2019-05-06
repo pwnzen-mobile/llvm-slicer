@@ -430,7 +430,7 @@ private:
 bool findInitialCriterion(llvm::Function &F, FunctionIntraDFA &DFA,
                           bool startingFunction = false);
 
-bool findInitialCriterion(inst_iterator inst_it, FunctionIntraDFA &DFA,
+bool findInitialCriterion(llvm::Function &F, FunctionIntraDFA &DFA,
                           std::vector<llvm::slicing::Rule *> &rules);
 } // namespace dfa
 } // namespace llvm

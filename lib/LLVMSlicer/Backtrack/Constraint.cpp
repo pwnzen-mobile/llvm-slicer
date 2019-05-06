@@ -63,11 +63,12 @@ ChainConstraint::ChainConstraint(ConstraintType constraintType,
                                  ChainType chainType)
     : Constraint(constraintType), chainType(chainType) {}
 
-bool ChainConstraint::checkConstraint(PathElementBase *pathElement) const {
-  bool result = false;
+// 0 => ERROR; 2 => UNKNOWN; 3 => VALID
+int ChainConstraint::checkConstraint(PathElementBase *pathElement) const {
+  int result = 0;
   switch (chainType) {
   case AND: {
-    result = true;
+    result = 3;
     for (auto &child : children) {
       result &= child->checkConstraint(pathElement);
     }
@@ -80,16 +81,16 @@ bool ChainConstraint::checkConstraint(PathElementBase *pathElement) const {
     break;
   }
   case NOT_AND: {
-    result = true;
+    result = 3;
     for (auto &child : children) {
-      result &= !child->checkConstraint(pathElement);
+      result &= ~child->checkConstraint(pathElement);
     }
     break;
   }
   default:
     llvm_unreachable("");
   }
-  return result;
+  return result == 1 ? 2 : result;
 }
 
 bool ChainConstraint::shouldStop(PathElementBase *pathElement) const {
@@ -126,7 +127,14 @@ ConstConstraint::ConstConstraint(
     : compare(compare), Constraint(constraintType), value(value),
       strvalue(strvalue), strings(strings) {}
 
-bool ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
+ConstConstraint::ConstConstraint(
+    Compare compare, ConstraintType constraintType, uint64_t value = 0,
+    std::set<std::map<std::string, int>> intDicts = std::set<std::map<std::string, int>>(), std::set<std::map<std::string, std::string>> strDicts = std::set<std::map<std::string, std::string>>())
+    : compare(compare), Constraint(constraintType), value(value),
+      intDicts(intDicts), strDicts(strDicts) {}
+
+// 0 => ERROR; 2 => UNKNOWN; 3 => VALID
+int ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
   const Instruction *inst =
       dyn_cast<const Instruction>(pathElement->getElement());
   if (inst) {
@@ -137,34 +145,52 @@ bool ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
       // ConstantDataSequential>(inst->getOperand(0));
       switch (compare) {
       case EQUAL: {
-        if (constInt && constInt->getZExtValue() == value) {
-          return true;
+        if (constInt) {
+          if (constInt->getZExtValue() == value) {
+            return 3;
+          } else {
+            return 0;
+          }
         } else {
-          return false;
+          return 2;
         }
         break;
       }
       case GREATER: {
-        if (constInt && constInt->getZExtValue() > value) {
-          return true;
+        if (constInt) {
+          if (constInt->getZExtValue() > value) {
+            return 3;
+          } else {
+            return 0; 
+          }
         } else {
-          return false;
+          return 2;
         }
         break;
       }
       case LOREQ: {
-        if (constInt && (constInt->getZExtValue() | value) == value) {
-          return true;
+        if (constInt){
+          if ((constInt->getZExtValue() | value) == value) {
+            return 3;
+          }
+          else {
+            return 0;
+          }
         } else {
-          return false;
+          return 2;
         }
         break;
       }
       case LORNEQ: {
-        if (constInt && (constInt->getZExtValue() & value) != value) {
-          return true;
+        if (constInt){
+          if ((constInt->getZExtValue() & value) != value) {
+            return 3;
+          }
+          else {
+            return 0;
+          }
         } else {
-          return false;
+          return 2;
         }
         break;
       }
@@ -187,23 +213,29 @@ bool ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
           if (find(strings.begin(), strings.end(), ref.data()) !=
               strings.end()) {
             if (compare == IN)
-              return true;
+              return 3;
             else if (compare == NOTIN)
-              return false;
+              return 0;
           } else {
             if (compare == IN)
-              return false;
+              return 0;
             if (compare == NOTIN)
-              return true;
+              return 3;
           }
         } else {
-          return false;
+          return 2;
         }
         break;
       }
+      case EXITS: {
+        // TODO
+        
+      }
       case ANY: {
         if (constInt) {
-          return true;
+          return 3;
+        } else {
+          return 2;
         }
       }
       default:
@@ -228,28 +260,31 @@ bool ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
     default:
       llvm_unreachable("");
     }
-    errs() << "[+]width: , value: " << width << " " << value << "\n";
+    if (!value) {
+      return 2;
+    }
+    // errs() << "[+]width: , value: " << width << " " << value << "\n";`
 
     if (compare == EQUAL) {
       if (value == this->value) {
-        return true;
+        return 3;
       } else {
-        return false;
+        return 0;
       }
     } else if (compare == GREATER) {
       if (value > this->value) {
-        return true;
+        return 3;
       } else {
-        return false;
+        return 0;
       }
     } else if (compare == LORNEQ) {
       if ((value & this->value) != this->value) {
-        return true;
+        return 3;
       } else {
-        return false;
+        return 0;
       }
     } else if (compare == ANY) {
-      return true;
+      return 3;
     } else if (compare == IN || compare == NOTIN) {
       // constInt is a address, get value from constInt whether it's a const
       // string or type string.
@@ -266,21 +301,21 @@ bool ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
       }
       if (find(strings.begin(), strings.end(), ref.data()) != strings.end()) {
         if (compare == IN)
-          return true;
+          return 3;
         else if (compare == NOTIN)
-          return false;
+          return 0;
       }
     } else {
       if (compare == IN)
-        return false;
+        return 0;
       else if (compare == NOTIN)
-        return true;
+        return 3;
     }
   } else {
     llvm_unreachable("");
   }
 
-  return false;
+  return 2;
 }
 
 bool ConstConstraint::shouldStop(PathElementBase *pathElement) const {
@@ -306,10 +341,10 @@ Rule::Rule(std::string ruleTitle, ConstraintType constraintType,
 Rule::Rule(const Rule &base, const llvm::Value *criterion)
     : ChainConstraint(base.constraintType, base.chainType),
       relevantLocation(criterion) {
-  std::stringstream ss;
-  ss << "Write to 0x";
-  ss << utohexstr(((ConstantInt *)criterion)->getZExtValue());
-  ruleTitle = ss.str();
+  // std::stringstream ss;
+  // ss << "Write to 0x";
+  // ss << utohexstr(((ConstantInt *)criterion)->getZExtValue());
+  // ruleTitle = ss.str();
   for (auto user : criterion->users()) {
     std::vector<const Value *> ptsToSet;
     ptr::getAndersen()->getPointsToSet(user, ptsToSet);
@@ -336,7 +371,7 @@ const Rule::InitialInstructionList_t &Rule::getInitialInstruction() const {
   return initialInstructions;
 }
 
-bool Rule::checkConstraint(PathElementBase *pathElement) const {
+int Rule::checkConstraint(PathElementBase *pathElement) const {
   return ChainConstraint::checkConstraint(pathElement);
 }
 
@@ -485,7 +520,7 @@ bool Rule::checkRule() {
         for (auto &p : preCond.second->getPaths(preCond.first)) {
           // p->dump();
           hasPrecond = true;
-          bool result = preCond.second->checkRule(p);
+          int result = preCond.second->checkRule(p);
           PrecondResult_t preResult;
           std::get<1>(preResult) = preCond.second;
           std::get<2>(preResult) = p;
@@ -495,7 +530,7 @@ bool Rule::checkRule() {
             // preConditionResults.push_back(PathResult_t(ERROR, p));
           } else {
             // preConditionResults.push_back(PathResult_t(VALID, p));
-            std::get<0>(preResult) = VALID;
+            std::get<0>(preResult) = result == 2 ? UNKNOWN : VALID;
           }
           preConditionResults.push_back(preResult);
           precond |= result;
@@ -503,7 +538,8 @@ bool Rule::checkRule() {
       }
 
       if (precond || !hasPrecond) {
-        if (!checkRule(path)) {
+        int res = checkRule(path);
+        if (!res) {
           if (errorMessages.size()) {
             result = PRECOND_ERROR;
           } else {
@@ -514,7 +550,7 @@ bool Rule::checkRule() {
                                           preConditionResults);
           pathResults.push_back(pathResult);
         } else {
-          CompletePathResult_t pathResult(PathResult_t(VALID, path),
+          CompletePathResult_t pathResult(PathResult_t(res == 2 ? UNKNOWN : VALID, path),
                                           preConditionResults);
           pathResults.push_back(pathResult);
           //                        errs() << "VALID PATH:\n";
@@ -523,7 +559,8 @@ bool Rule::checkRule() {
         }
       } else {
         // TODO: this is only for debug purposes to keep ALL paths
-        if (!checkRule(path)) {
+        int res = checkRule(path);
+        if (!res) {
           if (errorMessages.size()) {
             result = PRECOND_ERROR;
           } else {
@@ -534,7 +571,7 @@ bool Rule::checkRule() {
                                           preConditionResults);
           pathResults.push_back(pathResult);
         } else {
-          CompletePathResult_t pathResult(PathResult_t(VALID, path),
+          CompletePathResult_t pathResult(PathResult_t(res == 2 ? UNKNOWN : VALID, path),
                                           preConditionResults);
           pathResults.push_back(pathResult);
           //                        errs() << "VALID PATH:\n";
@@ -570,7 +607,7 @@ bool Rule::checkRule() {
   return false;
 }
 
-bool Rule::checkRule(Path *path) const {
+int Rule::checkRule(Path *path) const {
   return checkConstraint(path->getLast());
 }
 
@@ -611,7 +648,8 @@ CallConstraint::CallConstraint(ConstraintType constraintType,
                                std::string functionName)
     : Constraint(constraintType), functionName(functionName) {}
 
-bool CallConstraint::checkConstraint(PathElementBase *pathElement) const {
+// 0 => ERROR; 2 => UNKNOWN; 3 => VALID
+int CallConstraint::checkConstraint(PathElementBase *pathElement) const {
   const Instruction *inst =
       dyn_cast<const Instruction>(pathElement->getElement());
   if (inst) {
@@ -619,11 +657,11 @@ bool CallConstraint::checkConstraint(PathElementBase *pathElement) const {
         ptr::getSimpleCallGraph().getCalled(inst);
     for (auto &calledFunction : calledFunctions) {
       if (calledFunction == functionName) {
-        return true;
+        return 3;
       }
     }
   }
-  return false;
+  return 0;
 }
 
 bool CallConstraint::shouldStop(PathElementBase *pathElement) const {
@@ -697,6 +735,8 @@ void HTMLReportPrinter::addResults(
       ruleHeaderClasses << "text-success ";
     } else if (r.first.first == Rule::ERROR) {
       ruleHeaderClasses << "text-danger ";
+    } else if (r.first.first == Rule::UNKNOWN) {
+      ruleHeaderClasses << "text-info ";
     }
     file_out << "<div class=\"tracebody "
              << (!preCond || r.first.first == Rule::VALID ? "dismiss" : "")
@@ -717,6 +757,8 @@ void HTMLReportPrinter::addResults(
         preconditionHeaderClasses << "text-success ";
       } else if (std::get<0>(pre) == Rule::ERROR) {
         preconditionHeaderClasses << "text-danger ";
+      } else if (std::get<0>(pre) == Rule::UNKNOWN) {
+        preconditionHeaderClasses << "text-info ";
       }
       file_out << "<h4 class=\"" << preconditionHeaderClasses.str()
                << "\">Precondition: " << std::get<1>(pre)->getRuleTitle()

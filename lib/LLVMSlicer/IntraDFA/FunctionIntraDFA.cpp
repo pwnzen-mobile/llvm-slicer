@@ -2062,7 +2062,7 @@ count:
 }
 
 bool llvm::dfa::findInitialCriterion(
-    inst_iterator inst_it, FunctionIntraDFA &DFA,
+    llvm::Function &F, FunctionIntraDFA &DFA,
     std::vector<llvm::slicing::Rule *> &rules) {
   bool added = false;
 
@@ -2102,8 +2102,8 @@ bool llvm::dfa::findInitialCriterion(
     }
   };
 
-  // for (inst_iterator inst_it = inst_begin(F), E = inst_end(F); inst_it != E;
-  // ++inst_it) {
+  for (inst_iterator inst_it = inst_begin(F), E = inst_end(F); inst_it != E;
+  ++inst_it) {
   if (inst_it->getOpcode() == Instruction::Call) {
     SimpleCallGraph::FunctionSet_t calledFunctions =
         ptr::getSimpleCallGraph().getCalled(&*inst_it);
@@ -2228,7 +2228,7 @@ bool llvm::dfa::findInitialCriterion(
       }
     }
   }
-  // }
+  }
   return added;
 }
 

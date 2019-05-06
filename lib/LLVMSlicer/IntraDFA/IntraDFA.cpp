@@ -792,6 +792,21 @@ bool IntraDFA::addRule(Rule *rule) {
   return true;
 }
 
+void IntraDFA::findInitialCriterions() {
+  for (Module::iterator f = module.begin(); f != module.end(); ++f) {
+    if (!f->isDeclaration() && !memoryManStuff(&*f)) {
+        FunctionIntraDFA *fidfa = slicers[f];
+        bool hadAssert = dfa::findInitialCriterion(*f, *fidfa, ruleWorklist);
+
+        if (hadAssert) {
+            initFuncs.push_back(f);
+            fidfa->initializeInfos();
+        }
+    }
+  }
+}
+
+#if 0
 // TODO: The rule function as the callie, to find the caller function as a
 // initial function？
 bool addCriterion(FunctionIntraDFA &fidfa, std::string functionName,
@@ -860,6 +875,7 @@ void IntraDFA::findInitialCriterions() {
     }
   }
 }
+#endif
 
 void IntraDFA::addInitialSlicingCriterion(const Instruction *C) {
   InitialCriterions.insert(C);
