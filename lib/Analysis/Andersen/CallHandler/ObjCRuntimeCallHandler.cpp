@@ -474,7 +474,7 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
         if (!isSetProperty(selector)) {
           IVARName = "_" + selector;
         } else {
-          selector = selector.substr(3, selector.size()-2);
+          selector = selector.substr(3, selector.size()-4);
           std::string front(1, tolower(selector.front()));
           IVARName = ("_" + StringRef(front) + selector.substr(1)).str();
         }
