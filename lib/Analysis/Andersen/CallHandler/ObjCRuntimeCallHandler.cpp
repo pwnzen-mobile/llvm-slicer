@@ -474,9 +474,9 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
         if (!isSetProperty(selector)) {
           IVARName = "_" + selector;
         } else {
-          selector = selector.substr(4);
-          std::string front(1, toupper(selector.front()));
-          IVARName = (StringRef(front) + selector.substr(2)).str();
+          selector = selector.substr(3, selector.size()-2);
+          std::string front(1, tolower(selector.front()));
+          IVARName = (StringRef(front) + selector.substr(1)).str();
         }
         NodeIndex valIdx;
         std::map<uint64_t, ObjectiveC::IVAR> ivars = andersen->getMachO().getIVARs();
@@ -490,20 +490,20 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
             valIdx = andersen->getNodeFactory().createValueNode(dummy);
 
             andersen->addConstraint(AndersConstraint::ADDR_OF, valIdx, objIdx);
+            
+            for (auto &d : X0Post) {
+              NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(d);
+              assert(dstIdx != AndersNodeFactory::InvalidIndex);
+              andersen->addConstraint(AndersConstraint::STORE, dstIdx, valIdx);
+
+              NodeIndex dummyLoad =
+                  andersen->getNodeFactory().getValueNodeFor(CallInst);
+              if (dummyLoad == AndersNodeFactory::InvalidIndex)
+                dummyLoad = andersen->getNodeFactory().createValueNode(CallInst);
+              andersen->addConstraint(AndersConstraint::LOAD, dummyLoad, dstIdx);
+            }
             break;
           }
-        }
-
-        for (auto &d : X0Post) {
-          NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(d);
-          assert(dstIdx != AndersNodeFactory::InvalidIndex);
-          andersen->addConstraint(AndersConstraint::STORE, dstIdx, valIdx);
-
-          NodeIndex dummyLoad =
-              andersen->getNodeFactory().getValueNodeFor(CallInst);
-          if (dummyLoad == AndersNodeFactory::InvalidIndex)
-            dummyLoad = andersen->getNodeFactory().createValueNode(CallInst);
-          andersen->addConstraint(AndersConstraint::LOAD, dummyLoad, dstIdx);
         }
       }
       break;
