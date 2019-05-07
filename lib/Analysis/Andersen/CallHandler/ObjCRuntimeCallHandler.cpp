@@ -172,11 +172,9 @@ bool CallHandlerBase::isSelf(Instruction *v, Andersen *andersen) {
   return false;
 }
 
-bool CallHandlerBase::isSetOrGetProperty(StringRef FuncName, StringRef IVARName) {
-  StringRef sel = getMethodname(FuncName);
-  std::string front(1, (char)toupper(IVARName.substr(1).front()));
-  StringRef setter = (StringRef("set") + StringRef(front) + StringRef(IVARName.substr(2))).str();
-  if (sel == setter) {
+bool CallHandlerBase::isSetProperty(StringRef sel) {
+  std::string front(1, (char)toupper(sel.substr(1).front()));
+  if (sel.substr(0, 3) == "set" && sel.back() == ':') {
     return true;
   } else return false;
 }
@@ -466,13 +464,20 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
       andersen->addConstraintsForCall((Instruction *)CallInst, F);
       HandledCall = true;
       
-      std::string IVARName = "_" + getMethodname(F->getName()).str();
-      if (!isSetOrGetProperty(F->getName(), IVARName)) {
-        DetectParametersPass::UserSet_t X0Values =
-            DetectParametersPass::getRegisterValuesBeforeCall(5, CallInst);
-        DetectParametersPass::UserSet_t X0Post =
-            DetectParametersPass::getRegisterValuesAfterCall(5, CallInst);
-        
+      DetectParametersPass::UserSet_t X0Values =
+          DetectParametersPass::getRegisterValuesBeforeCall(5, CallInst);
+      DetectParametersPass::UserSet_t X0Post =
+          DetectParametersPass::getRegisterValuesAfterCall(5, CallInst);
+      std::string selector = getMethodname(F->getName()).str();
+      {
+        StringRef IVARName;
+        if (!isSetProperty(selector)) {
+          IVARName = "_" + selector;
+        } else {
+          selector = selector.substr(4);
+          std::string front(1, toupper(selector.front()));
+          IVARName = (StringRef(front) + selector.substr(2)).str();
+        }
         NodeIndex valIdx;
         std::map<uint64_t, ObjectiveC::IVAR> ivars = andersen->getMachO().getIVARs();
         for (auto & ivar : ivars) {
@@ -485,6 +490,7 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
             valIdx = andersen->getNodeFactory().createValueNode(dummy);
 
             andersen->addConstraint(AndersConstraint::ADDR_OF, valIdx, objIdx);
+            break;
           }
         }
 
@@ -1050,7 +1056,7 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
 
     for (std::deque<std::string>::iterator C_it = Candidates.begin();
          C_it != Candidates.end(); ++C_it) {
-      StringRef MethodName = CallHandlerBase::getMethodname(*C_it);
+      StringRef MethodName = CallHandlerBase::getMethodname(*C_it).str();
       errs() << "[+]C_it name: " << *C_it << "\n";
       if (MethodName == "allocWithZone:") {
         if (!isObjectiveCMethod(CallInst->getParent()->getParent()->getName()))
@@ -1211,7 +1217,7 @@ bool NSArray::run(const Instruction *CallInst, std::string &F,
     return true;
   andersen->getCallGraph().addCallEdge(CallInst, F);
 
-  if (CallHandlerBase::getMethodname(F) ==
+  if (CallHandlerBase::getMethodname(F).str() ==
       "countByEnumeratingWithState:objects:count:") {
     handleFastEnum(CallInst, andersen);
     return true;

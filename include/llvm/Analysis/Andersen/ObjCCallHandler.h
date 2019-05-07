@@ -32,7 +32,7 @@ namespace llvm {
                 return getPriority() > other.getPriority();
             }
 
-            static bool isSetOrGetProperty(StringRef F, StringRef IVARName);
+            static bool isSetProperty(StringRef sel);
             static bool isObjectiveCMethod(StringRef F);
             static StringRef getClassname(StringRef F);
             static StringRef getMethodname(StringRef F);
