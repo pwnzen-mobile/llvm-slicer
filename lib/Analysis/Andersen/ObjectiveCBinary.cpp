@@ -386,7 +386,7 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
                     .slice(NamePtr - ClassnameSection->getAddress())
                     .data();
   } else {
-    Classname = (const char *)ClassnameData
+    Classname = (const char *)CStringData
                     .slice(NamePtr - CStringSection->getAddress())
                     .data();
   }
