@@ -426,20 +426,20 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
              .slice(Super - ObjcDataSection->getAddress() + DATA_OFFSET)
              .data();
     assert(isAddressInSection(SuperData, ConstSection));
-    if (SuperData & 1) { SuperData = SuperData - 1; }
+    if ((bool)(SuperData & 1)) { SuperData = SuperData - 1; }
     uint64_t SuperNamePtr =
         *(uint64_t *)ConstData
              .slice(SuperData - ConstSection->getAddress() + NAME_OFFSET)
              .data();
-    assert((isAddressInSection(NamePtr, ClassnameSection) ||
-            isAddressInSection(NamePtr, CStringSection)));
+    assert((isAddressInSection(SuperNamePtr, ClassnameSection) ||
+            isAddressInSection(SuperNamePtr, CStringSection)));
     StringRef SuperClassname;
     if (isAddressInSection(SuperNamePtr, ClassnameSection)) {
       SuperClassname = (const char *)ClassnameData
                            .slice(SuperNamePtr - ClassnameSection->getAddress())
                            .data();
     } else {
-      SuperClassname = (const char *)ClassnameData
+      SuperClassname = (const char *)CStringData
                            .slice(SuperNamePtr - CStringSection->getAddress())
                            .data();
     }
