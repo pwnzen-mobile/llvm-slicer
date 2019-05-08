@@ -312,11 +312,14 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
   object::section_iterator ConstSection = getSectionIterator(SEC_CONST);
   object::section_iterator CStringSection = getSectionIterator(SEC_CSTRING);
   object::section_iterator ObjcDataSection = getSectionIterator(SEC_OBJC_DATA);
-  object::section_iterator ClassnameSection = getSectionIterator(SEC_CLASSNAME);
   object::section_iterator DataSection = getSectionIterator(SEC_DATA);
+  object::section_iterator ClassnameSection = getSectionIterator(SEC_CLASSNAME);
 
   StringRef Content;
-
+  if (isAddressInSection(DataAddress, DataSection)) {
+    ObjcDataSection = DataSection;
+  }
+  
   ObjcDataSection->getContents(Content);
   ArrayRef<uint8_t> ObjcDataData((uint8_t *)Content.data(), Content.size());
 
