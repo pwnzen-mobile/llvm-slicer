@@ -83,7 +83,8 @@ bool ObjectiveCBinary::isMethname(uint64_t Address) {
 }
 
 bool ObjectiveCBinary::isData(uint64_t Address) {
-  return isAddressInSection(Address, getSectionIterator(SEC_OBJC_DATA));
+  return isAddressInSection(Address, getSectionIterator(SEC_OBJC_DATA)) ||
+     isAddressInSection(Address, getSectionIterator(SEC_DATA));
 }
 
 bool ObjectiveCBinary::isConst(uint64_t Address) {
@@ -126,8 +127,10 @@ void ObjectiveCBinary::loadClasses() {
     return ArrayRef<uint8_t>((uint8_t *)Content.data(), Content.size());
   };
 
-  object::section_iterator DataSection = getSectionIterator(SEC_OBJC_DATA);
-  ArrayRef<uint8_t> Data = getInt8ArrayRef(DataSection);
+  object::section_iterator ObjcDataSection = getSectionIterator(SEC_OBJC_DATA);
+  ArrayRef<uint8_t> ObjcData;
+  object::section_iterator DataSection = getSectionIterator(SEC_DATA);
+  ArrayRef<uint8_t> Data;
 
   object::section_iterator ClassList = getSectionIterator(SEC_CLASSLIST);
   ArrayRef<uint8_t> ClassListData = getInt8ArrayRef(ClassList);
@@ -135,7 +138,11 @@ void ObjectiveCBinary::loadClasses() {
   for (unsigned Idx = 0; Idx < ClassListData.size(); Idx += 8) {
     uint64_t DataAddress = *(uint64_t *)ClassListData.slice(Idx).data();
     // errs() << "[+]DataAddress: 0x" << utohexstr(DataAddress) << "\n";
-    if (!isAddressInSection(DataAddress, DataSection)) {
+    if (isAddressInSection(DataAddress, ObjcDataSection)) {
+      ObjcData = getInt8ArrayRef(ObjcDataSection);
+    } else if (isAddressInSection(DataAddress, DataSection)) {
+      Data = getInt8ArrayRef(DataSection);
+    } else {
       llvm_unreachable("Class does not point to objc_data");
       continue;
     }
@@ -178,9 +185,15 @@ void ObjectiveCBinary::loadClasses() {
     }
     if (!isData(ObjcDataAddress))
       continue;
-    uint64_t ConstAddress =
+    uint64_t ConstAddress;
+    if (ObjcData.size()) { 
+      Data = ObjcData;
+    } else {
+      ObjcDataSection = DataSection;
+    }
+    ConstAddress =
         *(uint64_t *)Data
-             .slice(ObjcDataAddress - DataSection->getAddress() + 32)
+             .slice(ObjcDataAddress - ObjcDataSection->getAddress() + 32)
              .data();
     //(errs() << "[+]ConstAddress: 0x" << utohexstr(ConstAddress) << "\n");
     if (ConstAddress & 1)
