@@ -679,7 +679,8 @@ bool CallConstraint::shouldStop(PathElementBase *pathElement) const {
           calledFunction == "objc_autorelease" ||
           calledFunction == "objc_release" ||
           calledFunction == "objc_retainAutoreleasedReturnValue" ||
-          calledFunction == "objc_retainAutorelease") {
+          calledFunction == "objc_retainAutorelease" ||
+          calledFunction == "objc_msgSend") {
         return false;
       }
       if (calledFunction == functionName) {

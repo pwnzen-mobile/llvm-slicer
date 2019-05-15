@@ -62,6 +62,7 @@ ObjectiveCBinary::ObjectiveCBinary(llvm::StringRef Path) {
   ADDSUBSUP("NSMutableData", "NSData")
   ADDSUBSUP("NSData", "NSObject")
   ADDSUBSUP("NSString", "NSObject")
+  ADDSUBSUP("NSArray", "NSObject")
   ADDSUBSUP("NSMutableString", "NSString")
   ADDSUBSUP("UIButton", "UIControl")
   ADDSUBSUP("UIControl", "UIView")
@@ -484,7 +485,7 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
       if (IVARType.find("@") == 0 && IVARType != "@?") {
         if (IVARType == "@") {
           // FIXME: we can't obtain any more information!?
-          IVARType = "NSObject";
+          IVARType = "";
         } else {
           assert(IVARType.find("\"") != StringRef::npos);
           IVARType = IVARType.substr(IVARType.find("\"") + 1);
@@ -818,7 +819,7 @@ StringRef ObjectiveCBinary::getString(uint64_t Address) {
     if (className.startswith("_OBJC_METACLASS_$_"))
       className = className.substr(strlen("_OBJC_METACLASS_$_"));
 
-    if (className == "NSObject")
+    if (className == "NSObject" || className == "NSArray" || className == "NSString" || className == "NSDictionary")
       return className;
 
     ClassMap_t::iterator class_it = Classes.find(className);

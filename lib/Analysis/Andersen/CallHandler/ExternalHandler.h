@@ -2107,6 +2107,29 @@ void anonymous_737(llvm::Instruction *CallInst, Andersen *andersen) {
   }
 }
 
+void anonymous_738(llvm::Instruction *CallInst, Andersen *andersen) {
+  // Handle "-[NSArray firstObject:]"
+  { // Load operation
+    DetectParametersPass::UserSet_t Vals =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Locs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    for (auto Vals_it = Vals.begin(); Vals_it != Vals.end(); ++Vals_it) {
+      NodeIndex valIdx = andersen->getNodeFactory().getValueNodeFor(*Vals_it);
+      if (valIdx == AndersNodeFactory::InvalidIndex)
+        valIdx = andersen->getNodeFactory().createValueNode(*Vals_it);
+      for (auto Locs_it = Locs.begin(); Locs_it != Locs.end(); ++Locs_it) {
+        NodeIndex locIdx = andersen->getNodeFactory().getValueNodeFor(*Locs_it);
+        if (locIdx == AndersNodeFactory::InvalidIndex)
+          locIdx = andersen->getNodeFactory().createValueNode(*Locs_it);
+        andersen->addConstraint(AndersConstraint::LOAD, valIdx, locIdx);
+      }
+    }
+  }
+}
+
 void anonymous_747(llvm::Instruction *CallInst, Andersen *andersen) {
   // Handle "-[NSArray objectAtIndexedSubscript:]"
   { // Load operation
@@ -2722,6 +2745,26 @@ void anonymous_nshome(llvm::Instruction *CallInst, Andersen *andersen) {
       if (objIndex == AndersNodeFactory::InvalidIndex)
         objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
       andersen->setType(*Post_it, "NSString");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
+  }
+}
+
+void anonymous_nssearchPath(llvm::Instruction *CallInst, Andersen *andersen) {
+  // Handle "NSSearchPathForDirectoriesInDomains"
+  {
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSArray");
       andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
     }
   }
@@ -3352,6 +3395,8 @@ bool canHandleCall(const std::string &FName) {
     return true;
   if (FName == "NSHomeDirectory")
     return true;
+  if (FName == "NSSearchPathForDirectoriesInDomains")
+    return true;
   if (FName == "NSLog")
     return true;
   if (FName == "SecRandomCopyBytes")
@@ -3650,6 +3695,10 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
   }
   if (FName == "+[UIApplication sharedApplication]") {
     anonymous_1098(CallInst, andersen);
+    return true;
+  }
+  if (FName == "-[NSArray firstObject:]") {
+    anonymous_738(CallInst, andersen);
     return true;
   }
   if (FName == "-[NSArray objectAtIndex:]") {
@@ -3958,6 +4007,10 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
   }
   if (FName == "NSHomeDirectory") {
     anonymous_nshome(CallInst, andersen);
+    return true;
+  }
+  if (FName == "NSSearchPathForDirectoriesInDomains") {
+    anonymous_nssearchPath(CallInst, andersen);
     return true;
   }
   if (FName == "NSLog") {

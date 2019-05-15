@@ -458,9 +458,9 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
     // errs() << "[+]C_it: " << *C_it << "\n";
     // FIXME: should get function from Module ?
     // -[NSBundle resourcePath]
-    if (Function *F =
-            CallInst->getParent()->getParent()->getParent()->getFunction(
-                *C_it)) {
+    Function *F;
+    F = CallInst->getParent()->getParent()->getParent()->getFunction(*C_it);
+    if (F) {
       andersen->addConstraintsForCall((Instruction *)CallInst, F);
       HandledCall = true;
       
@@ -469,43 +469,43 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
       DetectParametersPass::UserSet_t X0Post =
           DetectParametersPass::getRegisterValuesAfterCall(5, CallInst);
       std::string selector = getMethodname(F->getName()).str();
-      {
-        StringRef IVARName;
-        if (!isSetProperty(selector)) {
-          IVARName = "_" + selector;
-        } else {
-          selector = selector.substr(3, selector.size()-4);
-          std::string front(1, tolower(selector.front()));
-          IVARName = ("_" + StringRef(front) + selector.substr(1)).str();
-        }
-        NodeIndex valIdx;
-        std::map<uint64_t, ObjectiveC::IVAR> ivars = andersen->getMachO().getIVARs();
-        for (auto & ivar : ivars) {
-          if (ivar.second.getID() == IVARName) {
-            StringRef type = ivar.second.getType();
-            Value *dummy =
-                andersen->getNodeFactory().createDummy(andersen->getModule());
-            andersen->setType(dummy, type);
-            NodeIndex objIdx = andersen->getNodeFactory().createObjectNode(dummy);
-            valIdx = andersen->getNodeFactory().createValueNode(dummy);
+      // {
+      //   StringRef IVARName;
+      //   if (!isSetProperty(selector)) {
+      //     IVARName = "_" + selector;
+      //   } else {
+      //     selector = selector.substr(3, selector.size()-4);
+      //     std::string front(1, tolower(selector.front()));
+      //     IVARName = ("_" + StringRef(front) + selector.substr(1)).str();
+      //   }
+      //   NodeIndex valIdx;
+      //   std::map<uint64_t, ObjectiveC::IVAR> ivars = andersen->getMachO().getIVARs();
+      //   for (auto & ivar : ivars) {
+      //     if (ivar.second.getID() == IVARName) {
+      //       StringRef type = ivar.second.getType();
+      //       Value *dummy =
+      //           andersen->getNodeFactory().createDummy(andersen->getModule());
+      //       andersen->setType(dummy, type);
+      //       NodeIndex objIdx = andersen->getNodeFactory().createObjectNode(dummy);
+      //       valIdx = andersen->getNodeFactory().createValueNode(dummy);
 
-            andersen->addConstraint(AndersConstraint::ADDR_OF, valIdx, objIdx);
+      //       andersen->addConstraint(AndersConstraint::ADDR_OF, valIdx, objIdx);
             
-            for (auto &d : X0Post) {
-              NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(d);
-              assert(dstIdx != AndersNodeFactory::InvalidIndex);
-              andersen->addConstraint(AndersConstraint::STORE, dstIdx, valIdx);
+      //       for (auto &d : X0Post) {
+      //         NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(d);
+      //         assert(dstIdx != AndersNodeFactory::InvalidIndex);
+      //         andersen->addConstraint(AndersConstraint::STORE, dstIdx, valIdx);
 
-              NodeIndex dummyLoad =
-                  andersen->getNodeFactory().getValueNodeFor(CallInst);
-              if (dummyLoad == AndersNodeFactory::InvalidIndex)
-                dummyLoad = andersen->getNodeFactory().createValueNode(CallInst);
-              andersen->addConstraint(AndersConstraint::LOAD, dummyLoad, dstIdx);
-            }
-            break;
-          }
-        }
-      }
+      //         NodeIndex dummyLoad =
+      //             andersen->getNodeFactory().getValueNodeFor(CallInst);
+      //         if (dummyLoad == AndersNodeFactory::InvalidIndex)
+      //           dummyLoad = andersen->getNodeFactory().createValueNode(CallInst);
+      //         andersen->addConstraint(AndersConstraint::LOAD, dummyLoad, dstIdx);
+      //       }
+      //       break;
+      //     }
+      //   }
+      // }
       break;
     } else if (CallHandlerManager::getInstance().handleFunctionCall(
                    CallInst, *C_it, andersen)) {
@@ -1207,6 +1207,8 @@ bool NSArray::shouldHandleCall(std::string &F) {
   }
   if (F == "-[NSArray countByEnumeratingWithState:objects:count:]")
     return FastEnum && true;
+  if (getClassname(F) == "NSArray") 
+    return true;
   return false;
 }
 bool NSArray::run(const Instruction *CallInst, std::string &F,
@@ -1217,6 +1219,29 @@ bool NSArray::run(const Instruction *CallInst, std::string &F,
     return true;
   andersen->getCallGraph().addCallEdge(CallInst, F);
 
+  if (CallHandlerBase::getMethodname(F).str() == "firstObject") {
+    DetectParametersPass::UserSet_t X0Values =
+        DetectParametersPass::getRegisterValuesBeforeCall(5, CallInst);
+    DetectParametersPass::UserSet_t X0Post =
+        DetectParametersPass::getRegisterValuesAfterCall(5, CallInst);
+    for (DetectParametersPass::UserSet_t::iterator X0_it = X0Values.begin();
+        X0_it != X0Values.end(); ++X0_it) {
+      for (DetectParametersPass::UserSet_t::iterator X0Post_it = X0Post.begin();
+          X0Post_it != X0Post.end(); ++X0Post_it) {
+        NodeIndex srcIndex = andersen->getNodeFactory().getValueNodeFor(*X0_it);
+        if (srcIndex == AndersNodeFactory::InvalidIndex)
+          srcIndex = andersen->getNodeFactory().createValueNode(*X0_it);
+        NodeIndex dstIndex =
+            andersen->getNodeFactory().getValueNodeFor(*X0Post_it);
+        if (dstIndex == AndersNodeFactory::InvalidIndex)
+          dstIndex = andersen->getNodeFactory().createValueNode(*X0Post_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIndex, srcIndex);
+      }
+    }
+  
+    return true;
+  }
+  
   if (CallHandlerBase::getMethodname(F).str() ==
       "countByEnumeratingWithState:objects:count:") {
     handleFastEnum(CallInst, andersen);
@@ -1382,8 +1407,8 @@ bool NSDictionary::shouldHandleCall(std::string &F) {
   if (F == "+[NSDictionary dictionaryWithObjects:forKeys:count:]") {
     return true;
   }
-  if (F == "-[NSDictionary initWithObjectsAndKeys:]")
-    return true;
+  // if (F == "-[NSDictionary initWithObjectsAndKeys:]")
+  //   return true;
   return false;
 }
 
