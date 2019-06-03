@@ -679,7 +679,9 @@ bool CallConstraint::shouldStop(PathElementBase *pathElement) const {
           calledFunction == "objc_autorelease" ||
           calledFunction == "objc_release" ||
           calledFunction == "objc_retainAutoreleasedReturnValue" ||
-          calledFunction == "objc_retainAutorelease") {
+          calledFunction == "objc_retainAutorelease" ||
+          calledFunction == "objc_msgSend" || 
+          calledFunction == "NSSearchPathForDirectoriesInDomains") {
         return false;
       }
       if (calledFunction == functionName) {
@@ -693,6 +695,13 @@ bool CallConstraint::shouldStop(PathElementBase *pathElement) const {
 HTMLReportPrinter::HTMLReportPrinter(raw_ostream &file_out)
     : file_out(file_out) {
   printHeader();
+}
+
+bool checkIfInOnePath(Path *prev, Path *trace) {
+  PathElementBase *currentPrev = prev->getEntry();
+  PathElementBase *currentTrace = trace->getEntry();
+
+  return false;
 }
 
 void HTMLReportPrinter::addResults(
@@ -810,6 +819,7 @@ void HTMLReportPrinter::close() {
 
 void HTMLReportPrinter::printPath(Path *path, bool collapsable) {
   static unsigned pathID = 0;
+  bool inOne = false;
   std::stringstream ss;
   ss << "path" << pathID++;
   PathElementBase *current = path->getEntry();

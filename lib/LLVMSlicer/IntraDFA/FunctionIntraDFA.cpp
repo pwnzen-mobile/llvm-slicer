@@ -2066,38 +2066,72 @@ bool llvm::dfa::findInitialCriterion(
     std::vector<llvm::slicing::Rule *> &rules) {
   bool added = false;
 
-  auto addCriterion = [&](std::string functionName, const Instruction *inst,
+  auto addCriterion = [&](std::string functionName, llvm::Function &F, Instruction *inst,
                           uint64_t regNo, llvm::slicing::Rule &r,
                           std::vector<llvm::slicing::Rule *> preconditions) {
     DetectParametersPass::UserSet_t pre =
         DetectParametersPass::getRegisterValuesBeforeCall(regNo, inst, true);
+    llvm::User * pinst;
+    llvm::Instruction *ins;
     for (auto &p_it : pre) {
       llvm::slicing::Rule::InstructionRuleList_t preconditionInstructions;
-
       for (auto &preCond : preconditions) {
         for (auto &preCrit : preCond->getCriterions()) {
           if (preCrit.second.first.getFunctionName() != functionName) {
-            continue;
-            llvm_unreachable("Precondition has to be for the same function");
+            for (inst_iterator inst_it = inst_begin(F), E = inst_end(F); inst_it != E;
+              ++inst_it) {
+              if (inst_it->getOpcode() == Instruction::Call) {
+                SimpleCallGraph::FunctionSet_t calledFunctions =
+                    ptr::getSimpleCallGraph().getCalled(&*inst_it);
+                for (auto &calledFunction : calledFunctions) {
+                  if (calledFunction == preCrit.second.first.getFunctionName()) {
+                    DetectParametersPass::UserSet_t prePreCond =
+                        DetectParametersPass::getRegisterValuesBeforeCall(
+                            preCrit.second.first.getRegNo(), &*inst_it, true);
+                    for (auto &prePreCond_it : prePreCond) {
+                      const Instruction * prePreInst =
+                          dyn_cast<const Instruction>(prePreCond_it);
+                      llvm::slicing::Rule::InstructionRule_t instRule(
+                          prePreInst, (slicing::Rule *)preCrit.first);
+                      // preconditionInstructions.push_back(instRule);
+                      DFA.addInitialCriterion(&*inst_it,
+                                              ptr::PointsToSets::Pointee(prePreInst, -1));
+                      ins = &*inst_it;
+                      pinst = prePreCond_it;
+                      DFA.addInitialCriterion(ins, ptr::PointsToSets::Pointee(pinst, -1));
+                      r.addInitialInstruction(ins, dyn_cast<const Instruction>(pinst),
+                                              preconditionInstructions);
+                    }
+                  }
+                }
+              }
+            }
           }
-          DetectParametersPass::UserSet_t prePreCond =
-              DetectParametersPass::getRegisterValuesBeforeCall(
-                  preCrit.second.first.getRegNo(), (Instruction *)inst, true);
-          for (auto &prePreCond_it : prePreCond) {
-            const Instruction *prePreInst =
-                dyn_cast<const Instruction>(prePreCond_it);
-            llvm::slicing::Rule::InstructionRule_t instRule(
-                prePreInst, (slicing::Rule *)preCrit.first);
-            preconditionInstructions.push_back(instRule);
-            DFA.addInitialCriterion(inst,
-                                    ptr::PointsToSets::Pointee(prePreInst, -1));
+          else {
+            ins = inst;
+            pinst = p_it;
+            DetectParametersPass::UserSet_t prePreCond =
+                DetectParametersPass::getRegisterValuesBeforeCall(
+                    preCrit.second.first.getRegNo(), (Instruction *)inst, true);
+            for (auto &prePreCond_it : prePreCond) {
+              const Instruction *prePreInst =
+                  dyn_cast<const Instruction>(prePreCond_it);
+              llvm::slicing::Rule::InstructionRule_t instRule(
+                  prePreInst, (slicing::Rule *)preCrit.first);
+              preconditionInstructions.push_back(instRule);
+              DFA.addInitialCriterion(ins,
+                                      ptr::PointsToSets::Pointee(prePreInst, -1));
+            }
+            DFA.addInitialCriterion(inst, ptr::PointsToSets::Pointee(p_it, -1));
+            r.addInitialInstruction(inst, dyn_cast<const Instruction>(p_it),
+                                    preconditionInstructions);
           }
         }
       }
 
-      DFA.addInitialCriterion(inst, ptr::PointsToSets::Pointee(p_it, -1));
-      r.addInitialInstruction(inst, dyn_cast<const Instruction>(p_it),
-                              preconditionInstructions);
+      // DFA.addInitialCriterion(inst, ptr::PointsToSets::Pointee(p_it, -1));
+      // r.addInitialInstruction(inst, dyn_cast<const Instruction>(p_it),
+      //                         preconditionInstructions);
       added = true;
     }
   };
@@ -2113,7 +2147,7 @@ bool llvm::dfa::findInitialCriterion(
           // errs() << called << "\n" <<
           // criterion.second.first.getFunctionName() << "\n";
           if (called == criterion.second.first.getFunctionName()) {
-            addCriterion(called, &*inst_it, criterion.second.first.getRegNo(),
+            addCriterion(called, F, &*inst_it, criterion.second.first.getRegNo(),
                          *(llvm::slicing::Rule *)criterion.first,
                          criterion.second.second);
             errs() << "Found call to: " << called << "\n";

@@ -3994,6 +3994,50 @@ void anonymous_737(llvm::dfa::InsInfo *CallInst, const ptr::PointsToSets &PS) {
   } // End Ref1
 }
 
+void anonymous_738(llvm::dfa::InsInfo *CallInst, const ptr::PointsToSets &PS) {
+  // Handle "-[NSArray firstObject:]"
+  { // Def
+    DetectParametersPass::UserSet_t DefRegs;
+    {
+      DetectParametersPass::UserSet_t Src =
+          DetectParametersPass::getRegisterValuesAfterCall(
+              translateRegister("X0"), (Instruction *)CallInst->getIns());
+      for (auto S : Src) {
+        const ptr::PointsToSets::PointsToSet &PtsTo =
+            ptr::getPointsToSet(S, PS); // get points to sets
+        for (auto &P : PtsTo) {
+          assert(isa<const User>(P.first));
+          DefRegs.insert((User *)P.first);
+        }
+      }
+    }
+    for (auto DefRegs_it = DefRegs.begin(); DefRegs_it != DefRegs.end();
+         ++DefRegs_it) {
+      CallInst->addDEF(llvm::ptr::PointsToSets::Pointee(*DefRegs_it, -1));
+    }
+  } // End Def
+  { // Ref1
+    DetectParametersPass::UserSet_t RefRegs;
+    {
+      DetectParametersPass::UserSet_t Src =
+          DetectParametersPass::getRegisterValuesBeforeCall(
+              translateRegister("X0"), (Instruction *)CallInst->getIns());
+      for (auto S : Src) {
+        const ptr::PointsToSets::PointsToSet &PtsTo =
+            ptr::getPointsToSet(S, PS); // get points to sets
+        for (auto &P : PtsTo) {
+          assert(isa<const User>(P.first));
+          RefRegs.insert((User *)P.first);
+        }
+      }
+    }
+    for (auto RefRegs_it = RefRegs.begin(); RefRegs_it != RefRegs.end();
+         ++RefRegs_it) {
+      CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1), 1.0);
+    }
+  } // End Ref1
+}
+
 void anonymous_747(llvm::dfa::InsInfo *CallInst, const ptr::PointsToSets &PS) {
   // Handle "-[NSArray objectAtIndexedSubscript:]"
   { // Def
@@ -5388,6 +5432,83 @@ void anonymous_nshome(llvm::dfa::InsInfo *CallInst,
   }
 }
 
+void anonymous_nssearchPath(llvm::dfa::InsInfo *CallInst,
+                      const ptr::PointsToSets &PS) {
+  // Handle "NSSearchPathForDirectoriesInDomains"
+  { // Ref
+    DetectParametersPass::UserSet_t RefRegsX0 =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), (Instruction *)CallInst->getIns());
+    for (auto RefRegs_it = RefRegsX0.begin(); RefRegs_it != RefRegsX0.end();
+         ++RefRegs_it) {
+      CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1));
+    }
+    DetectParametersPass::UserSet_t RefRegsX1 =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X1"), (Instruction *)CallInst->getIns());
+    for (auto RefRegs_it = RefRegsX1.begin(); RefRegs_it != RefRegsX1.end();
+         ++RefRegs_it) {
+      CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1));
+    }
+    DetectParametersPass::UserSet_t RefRegsX2 =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), (Instruction *)CallInst->getIns());
+    for (auto RefRegs_it = RefRegsX2.begin(); RefRegs_it != RefRegsX2.end();
+         ++RefRegs_it) {
+      CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1));
+    }
+  } // End Ref
+  { // Def
+    DetectParametersPass::UserSet_t DefRegs =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), (Instruction *)CallInst->getIns());
+    for (auto DefRegs_it = DefRegs.begin(); DefRegs_it != DefRegs.end();
+         ++DefRegs_it) {
+      CallInst->addDEF(llvm::ptr::PointsToSets::Pointee(*DefRegs_it, -1));
+    }
+  } // End Def
+  { // Def
+    DetectParametersPass::UserSet_t DefRegs;
+    {
+      DetectParametersPass::UserSet_t Src =
+          DetectParametersPass::getRegisterValuesAfterCall(
+              translateRegister("X0"), (Instruction *)CallInst->getIns());
+      for (auto S : Src) {
+        const ptr::PointsToSets::PointsToSet &PtsTo =
+            ptr::getPointsToSet(S, PS); // get points to sets
+        for (auto &P : PtsTo) {
+          assert(isa<const User>(P.first));
+          DefRegs.insert((User *)P.first);
+        }
+      }
+    }
+    for (auto DefRegs_it = DefRegs.begin(); DefRegs_it != DefRegs.end();
+         ++DefRegs_it) {
+      CallInst->addDEF(llvm::ptr::PointsToSets::Pointee(*DefRegs_it, -1));
+    }
+  } // End Def
+  // { // Ref1
+  //   DetectParametersPass::UserSet_t RefRegs;
+  //   {
+  //     DetectParametersPass::UserSet_t Src =
+  //         DetectParametersPass::getRegisterValuesBeforeCall(
+  //             translateRegister("X0"), (Instruction *)CallInst->getIns());
+  //     for (auto S : Src) {
+  //       const ptr::PointsToSets::PointsToSet &PtsTo =
+  //           ptr::getPointsToSet(S, PS); // get points to sets
+  //       for (auto &P : PtsTo) {
+  //         assert(isa<const User>(P.first));
+  //         RefRegs.insert((User *)P.first);
+  //       }
+  //     }
+  //   }
+  //   for (auto RefRegs_it = RefRegs.begin(); RefRegs_it != RefRegs.end();
+  //        ++RefRegs_it) {
+  //     CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1), 1.0);
+  //   }
+  // } // End Ref1
+}
+
 void anonymous_926(llvm::dfa::InsInfo *CallInst, const ptr::PointsToSets &PS) {
   // Handle "__stack_chk_fail"
 }
@@ -6051,6 +6172,10 @@ bool handleCall(llvm::dfa::InsInfo *CallInst, std::string FName,
     anonymous_737(CallInst, PS);
     return true;
   }
+  if (FName == "-[NSArray firstObject:]") {
+    anonymous_738(CallInst, PS);
+    return true;
+  }
   if (FName == "-[NSArray objectAtIndexedSubscript:]") {
     anonymous_747(CallInst, PS);
     return true;
@@ -6357,6 +6482,10 @@ bool handleCall(llvm::dfa::InsInfo *CallInst, std::string FName,
   }
   if (FName == "NSHomeDirectory") {
     anonymous_nshome(CallInst, PS);
+    return true;
+  }
+  if (FName == "NSSearchPathForDirectoriesInDomains") {
+    anonymous_nssearchPath(CallInst, PS);
     return true;
   }
   if (FName == "SecRandomCopyBytes") {

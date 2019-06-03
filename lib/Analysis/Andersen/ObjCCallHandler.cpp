@@ -42,6 +42,7 @@ CallHandlerManager &CallHandlerManager::getInstance() {
     Instance->registerCallHandler<UIAppDelegate>();
     Instance->registerCallHandler<NSUserDefaults>();
     Instance->registerCallHandler<SecItemCopyAdd>();
+    Instance->registerCallHandler<NSDeclared>();
 
     //        Instance->registerCallHandler<Dummy>();
 

@@ -272,6 +272,10 @@ void Andersen::addGlobalInitializerConstraints(NodeIndex objNode,
 
 void Andersen::collectConstraintsForInstruction(const Instruction *inst) {
   // errs() << "[+]inst name: " << inst->getOpcodeName() << "\n";
+  if (inst->getParent()->getParent()->getName() ==
+          "-[AppDelegate application:didFinishLaunchingWithOptions:]") {
+    assert(true);
+  }
   switch (inst->getOpcode()) {
   case Instruction::Alloca: {
     NodeIndex valNode = nodeFactory.getValueNodeFor(inst);
@@ -1266,9 +1270,9 @@ void Andersen::addConstraintsForCall(const llvm::Instruction *Inst,
                                      const llvm::Function *F) {
   // errs() << Inst->getParent()->getParent()->getName() << " and " << F->getName() << "\n";
   if (Inst->getParent()->getParent()->getName() ==
-          "-[RNEncryptor initWithSettings:encryptionKey:HMACKey:IV:handler:]" &&
+          "-[AppDelegate application:didFinishLaunchingWithOptions:]" ||
       F->getName() ==
-          "-[RNCryptorEngine initWithOperation:settings:key:IV:error:]") {
+          "-[GCDWebUploader addGETHandlerForBasePath:directoryPath:indexFilename:cacheAge:allowRangeRequests:]") {
     assert(true);
   }
   if (CallGraph->containtsEdge(Inst, F->getName()))

@@ -164,6 +164,7 @@ bool Andersen::runOnModule(Module &M) {
   collectConstraints(M);
 
   uint64_t NumConstraints = constraints.size();
+  AndersConstraint end = *constraints.end();
 
   for (const Function *fun : InitTargetFunctions) {
     if (fun->getName() == "-[GCDWebUploader initWithUploadDirectory:]") {
@@ -332,7 +333,6 @@ bool Andersen::runOnModule(Module &M) {
     }
   }
 #if 1
-  int n = 1;
   do {
     {
       errs() << "Optimize and solve constraints\n";
@@ -382,6 +382,7 @@ bool Andersen::runOnModule(Module &M) {
 
       errs() << "Add function call constraints\n";
       errs() << CallInsts.size() << " Call insts\n";
+      int CallInstsSize = CallInsts.size();
       while (CallInsts.size()) {
         Instruction *i = CallInsts.front();
         CallInsts.pop_front();
@@ -396,14 +397,18 @@ bool Andersen::runOnModule(Module &M) {
       errs() << constraints.size() << " constraints\n";
 
       if (constraints.size() == NumConstraints) {
+        if (end.getSrc() != constraints.end()->getSrc() && end.getDest() != constraints.end()->getDest()) {
+          NumConstraints = constraints.size();
+          end = *constraints.end();
+          continue;
+        }
         errs() << "NO NEW CONSTRAINTS!!!\n";
         break;
       }
       NumConstraints = constraints.size();
+      end = *constraints.end();
     }
-    // } while(n--);
   } while (CallInstWorklist.size() || FunctionWorklist.size());
-// } while (CallInstWorklist.size());
 #endif
 
   if (DumpDebugInfo) {

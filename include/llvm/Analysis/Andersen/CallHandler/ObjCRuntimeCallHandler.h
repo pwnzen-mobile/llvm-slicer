@@ -151,6 +151,13 @@ namespace llvm {
             virtual bool run(const Instruction *CallInst, std::string &F, Andersen *andersen);
             virtual int64_t getPriority() const {return 1;};
         };
+
+        class NSDeclared : public CallHandlerBase {
+        public:
+            virtual bool shouldHandleCall(std::string &F);
+            virtual bool run(const Instruction *CallInst, std::string &F, Andersen *andersen);
+            virtual int64_t getPriority() const {return 1;};
+        };
         
 
 //        static RegisterCallHandler<objcMsgSend> X2 = RegisterCallHandler<objcMsgSend>();

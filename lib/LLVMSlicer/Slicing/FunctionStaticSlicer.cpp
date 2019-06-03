@@ -2207,7 +2207,7 @@ bool FunctionSlicer::runOnFunction(Function &F, const ptr::PointsToSets &PS,
   return sliced;
 }
 
-// bool FunctionSlicer::runOnModule(Module &M) {
+bool FunctionSlicer::runOnModule(Module &M) {
 //   ptr::PointsToSets PS;
 //   {
 //     ptr::ProgramStructure P(M);
@@ -2229,7 +2229,7 @@ bool FunctionSlicer::runOnFunction(Function &F, const ptr::PointsToSets &PS,
 //       modified |= runOnFunction(F, PS, MOD);
 //   }
 //   return modified;
-// }
+}
 
 
 
