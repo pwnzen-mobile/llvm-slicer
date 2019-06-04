@@ -5435,6 +5435,7 @@ void anonymous_nshome(llvm::dfa::InsInfo *CallInst,
 void anonymous_nssearchPath(llvm::dfa::InsInfo *CallInst,
                       const ptr::PointsToSets &PS) {
   // Handle "NSSearchPathForDirectoriesInDomains"
+<<<<<<< HEAD
   { // Ref
     DetectParametersPass::UserSet_t RefRegsX0 =
         DetectParametersPass::getRegisterValuesBeforeCall(
@@ -5458,6 +5459,8 @@ void anonymous_nssearchPath(llvm::dfa::InsInfo *CallInst,
       CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1));
     }
   } // End Ref
+=======
+>>>>>>> 7c3a3da5fa64452e6015ae5a984455f4c3ec6b7d
   { // Def
     DetectParametersPass::UserSet_t DefRegs =
         DetectParametersPass::getRegisterValuesAfterCall(
@@ -5486,6 +5489,7 @@ void anonymous_nssearchPath(llvm::dfa::InsInfo *CallInst,
          ++DefRegs_it) {
       CallInst->addDEF(llvm::ptr::PointsToSets::Pointee(*DefRegs_it, -1));
     }
+<<<<<<< HEAD
   } // End Def
   // { // Ref1
   //   DetectParametersPass::UserSet_t RefRegs;
@@ -5507,6 +5511,9 @@ void anonymous_nssearchPath(llvm::dfa::InsInfo *CallInst,
   //     CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1), 1.0);
   //   }
   // } // End Ref1
+=======
+  }
+>>>>>>> 7c3a3da5fa64452e6015ae5a984455f4c3ec6b7d
 }
 
 void anonymous_926(llvm::dfa::InsInfo *CallInst, const ptr::PointsToSets &PS) {

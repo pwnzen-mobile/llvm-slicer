@@ -680,8 +680,12 @@ bool CallConstraint::shouldStop(PathElementBase *pathElement) const {
           calledFunction == "objc_release" ||
           calledFunction == "objc_retainAutoreleasedReturnValue" ||
           calledFunction == "objc_retainAutorelease" ||
+<<<<<<< HEAD
           calledFunction == "objc_msgSend" || 
           calledFunction == "NSSearchPathForDirectoriesInDomains") {
+=======
+          calledFunction == "objc_msgSend") {
+>>>>>>> 7c3a3da5fa64452e6015ae5a984455f4c3ec6b7d
         return false;
       }
       if (calledFunction == functionName) {
