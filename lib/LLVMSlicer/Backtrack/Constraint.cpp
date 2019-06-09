@@ -664,6 +664,8 @@ int CallConstraint::checkConstraint(PathElementBase *pathElement) const {
   return 0;
 }
 
+// When backtrace here, we should just jump them and continue;
+// Otherwise the process will stop because it met a function call.
 bool CallConstraint::shouldStop(PathElementBase *pathElement) const {
   const Instruction *inst =
       dyn_cast<const Instruction>(pathElement->getElement());
@@ -696,11 +698,13 @@ bool CallConstraint::shouldStop(PathElementBase *pathElement) const {
   return false;
 }
 
+// Just make a html result file.
 HTMLReportPrinter::HTMLReportPrinter(raw_ostream &file_out)
     : file_out(file_out) {
   printHeader();
 }
 
+// Maybe we can use this function to check if pre and initialCriterion inst are the same.
 bool checkIfInOnePath(Path *prev, Path *trace) {
   PathElementBase *currentPrev = prev->getEntry();
   PathElementBase *currentTrace = trace->getEntry();

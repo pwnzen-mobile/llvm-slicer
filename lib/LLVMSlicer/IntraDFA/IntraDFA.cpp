@@ -555,7 +555,7 @@ IntraDFA::~IntraDFA() {
   }
 }
 
-
+// We just emitToCalls/Exits once because we don't want to walk into the function body.
 void IntraDFA::ruleIteraton() {
   findInitialCriterions();
 
@@ -806,6 +806,7 @@ void IntraDFA::findInitialCriterions() {
   }
 }
 
+// It's cleaner but can't handle Objective-c property.
 #if 0
 // TODO: The rule function as the callie, to find the caller function as a
 // initial function？

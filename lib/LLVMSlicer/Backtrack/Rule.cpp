@@ -109,6 +109,7 @@ Rule *parseRule(json &rule, bool precondition) {
     return r;
 }
 
+// TODO: Add other types here.
 Constraint *parseCondition(json &cond) {
     Constraint::ConstraintType type = Constraint::STRICT;
     if (cond["type"] == "PRE") {
