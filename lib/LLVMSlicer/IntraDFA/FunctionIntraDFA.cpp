@@ -2019,6 +2019,7 @@ bool FunctionIntraDFA::slice() {
       removed = true;
     }
   }
+  return removed;
 }
 
 static bool handleAssert(llvm::Function &F, FunctionIntraDFA &DFA,
