@@ -2752,7 +2752,6 @@ void anonymous_nshome(llvm::Instruction *CallInst, Andersen *andersen) {
 
 void anonymous_nssearchPath(llvm::Instruction *CallInst, Andersen *andersen) {
   // Handle "NSSearchPathForDirectoriesInDomains"
-<<<<<<< HEAD
   // { // Check object
   //   DetectParametersPass::UserSet_t Reg =
   //       DetectParametersPass::getRegisterValuesBeforeCall(
@@ -2771,8 +2770,6 @@ void anonymous_nssearchPath(llvm::Instruction *CallInst, Andersen *andersen) {
   //     andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
   //   }
   // }
-=======
->>>>>>> 7c3a3da5fa64452e6015ae5a984455f4c3ec6b7d
   {
     DetectParametersPass::UserSet_t Post =
         DetectParametersPass::getRegisterValuesAfterCall(

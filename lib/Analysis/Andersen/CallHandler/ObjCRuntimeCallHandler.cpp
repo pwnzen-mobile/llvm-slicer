@@ -1207,11 +1207,8 @@ bool NSArray::shouldHandleCall(std::string &F) {
   }
   if (F == "-[NSArray countByEnumeratingWithState:objects:count:]")
     return FastEnum && true;
-<<<<<<< HEAD
+
   if (isObjectiveCMethod(F) && getClassname(F) == "NSArray")
-=======
-  if (getClassname(F) == "NSArray") 
->>>>>>> 7c3a3da5fa64452e6015ae5a984455f4c3ec6b7d
     return true;
   return false;
 }
