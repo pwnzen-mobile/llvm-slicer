@@ -1977,9 +1977,16 @@ void FunctionIntraDFA::removeUndefs(ModulePass *MP, Function &F) {
   for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
     // removeUndefBranches(MP, I);
     // removeUndefCalls(MP, I);
-    removeUndefBranches(MP, F);
-    removeUndefCalls(MP, F);
+    //removeUndefBranches(MP, F);
+    //removeUndefCalls(MP, F);
   }
+   /*
+      kernal modified.  
+      why the original code remove branch and calls multiple times 
+      I change it to remove once.
+   */
+  removeUndefBranches(MP, F);
+  removeUndefCalls(MP, F);
 }
 
 void FunctionIntraDFA::dumpInfos() {
