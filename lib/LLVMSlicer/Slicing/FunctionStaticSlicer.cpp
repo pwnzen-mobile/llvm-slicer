@@ -43,7 +43,7 @@
 #include "FunctionStaticSlicer.h"
 #include "ExternalHandler.h"
 
-#define DEBUG_SLICE
+//#define DEBUG_SLICE
 //#define DEBUG_SLICING
 //#define DEBUG_RC
 
@@ -333,6 +333,7 @@ InsInfo::InsInfo(const Instruction *i, const ptr::PointsToSets &PS,
                     PatternMatch::match(getElemPtr->getOperand(2), PatternMatch::m_ConstantInt(Idx)) &&
                     (Idx->getZExtValue() == 3 || Idx->getZExtValue() == 0)) {
                   Function *f = (Function *) baseInst->getParent()->getParent();
+                  /* If your pass is capable of updating analyses if they exist (e.g., BreakCriticalEdges, as described above), you can use the getAnalysisIfAvailable method */
                   StackAccessPass *SAP = ptr::getAndersen()->getAnalysisIfAvailable<StackAccessPass>();
                   if (!SAP)
                     SAP = &ptr::getAndersen()->getAnalysis<StackAccessPass>();
@@ -1030,6 +1031,8 @@ void FunctionStaticSlicer::initializeInfos() {
     InsInfo *info = getInsInfo(Params_it->second);
     info->addREF(ptr::PointsToSets::Pointee(Params_it->second, -1), 1);
   }
+
+  /* This method call returns a reference to the pass desired. */
 
   DetectParametersPass &DPP = ptr::getAndersen()->getAnalysis<DetectParametersPass>();
 

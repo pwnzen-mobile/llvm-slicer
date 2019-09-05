@@ -112,10 +112,11 @@ int main(int argc, char **argv) {
         Err.print(argv[0], errs());
         return 1;
     }
-    // https://llvm.org/docs/WritingAnLLVMPass.html#what-passmanager-does
+
+    // http://llvm.org/docs/WritingAnLLVMPass.html
+
     legacy::PassManager *PM = new legacy::PassManager();
   
-    // https://llvm.org/docs/Passes.html
     PM->add(new PostDominatorTree());
     PM->add(new PostDominanceFrontier());
     PM->add(new LoopInfoWrapperPass());

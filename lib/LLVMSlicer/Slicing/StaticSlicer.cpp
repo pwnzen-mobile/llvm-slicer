@@ -977,12 +977,15 @@ InsInfo *StaticSlicer::getInsInfo(const Instruction *I) {
 } // namespace slicing
 } // namespace llvm
 
-char Slicer::ID = 0;
+char Slicer::ID = 0; /* pass id */
 
-static RegisterPass<Slicer> X("slice-inter", "View CFG of function", false,
-                              true);
+static RegisterPass<Slicer> X("slicer" /* command line argument */, "View CFG of function" /* name */, false /* only looks at CFG */,
+                              true /* this is an analysis pass */);
+
+// http://llvm.org/docs/WritingAnLLVMPass.html#using-registeranalysisgroup
+// it's useless to define such an analysis group maybe
 static RegisterAnalysisGroup<Slicer> Y(X);
-
+// https://llvm.org/docs/WritingAnLLVMPass.html#the-runonmodule-method
 bool Slicer::runOnModule(Module &M) {
   using llvm::slicing::Constraint;
   using llvm::slicing::Parameter;
@@ -1050,7 +1053,13 @@ bool Slicer::runOnModule(Module &M) {
   return s;
 }
 
+// https://llvm.org/docs/WritingAnLLVMPass.html#the-analysisusage-addpreserved-method
+/*
+ The required and invalidated sets may be specified
+ The implementation should fill in the AnalysisUsage object with information about which passes are required and not invalidated.
+ */
 void Slicer::getAnalysisUsage(AnalysisUsage &AU) const {
+  /* use this method to arrange for it to be run before your pass. */
   AU.addRequired<PostDominatorTree>();
   AU.addRequired<PostDominanceFrontier>();
 }
