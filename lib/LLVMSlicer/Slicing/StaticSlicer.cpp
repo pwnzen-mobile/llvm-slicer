@@ -344,7 +344,11 @@ static void getRelevantVarsAtExit(
 namespace llvm {
 namespace slicing {
 
-static cl::opt<int> limitCalls("limit-calls", cl::init(0), cl::Hidden);
+static cl::opt<int> limitCalls(
+                               "limit-calls",
+                               cl::init(0), /* use the cl::init option to specify an initial value for the command line option */
+                               cl::Hidden /* This modifier prevents it from being shown by the standard “-help” output (note that it is still shown in the “-help-hidden” output */
+    );
 
 class StaticSlicer : public InsInfoProvider {
 public:
@@ -979,8 +983,12 @@ InsInfo *StaticSlicer::getInsInfo(const Instruction *I) {
 
 char Slicer::ID = 0; /* pass id */
 
-static RegisterPass<Slicer> X("slicer" /* command line argument */, "View CFG of function" /* name */, false /* only looks at CFG */,
-                              true /* this is an analysis pass */);
+static RegisterPass<Slicer> X(
+                              "slicer", /* command line argument */
+                              "View CFG of function", /* name */
+                              false, /* only looks at CFG */
+                              true /* this is an analysis pass */
+);
 
 // http://llvm.org/docs/WritingAnLLVMPass.html#using-registeranalysisgroup
 // it's useless to define such an analysis group maybe

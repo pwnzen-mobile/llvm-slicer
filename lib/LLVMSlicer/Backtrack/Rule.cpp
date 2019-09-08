@@ -166,6 +166,19 @@ Constraint *parseCondition(json &cond) {
         } else {
             return new llvm::slicing::ConstConstraint(ConstConstraint::ANY, type, 0, "", std::vector<std::string>());
         }
+/*
+ rules for:
+ NSDictionary * options = @{
+ GCDWebServerOption_Port: @(8080),
+ GCDWebServerOption_BindToLocalhost: @(YES),
+ GCDWebServerOption_ServerName: @"Ionic"
+ };
+ [webServer startWithOptions:options error:nil];
+ 
+ I do not like this grammar, it's somewhat unreasonable and mysticism.
+ TODO: X2:[GCDWebServerOption_BindToLocalhost] -> X2_GCDWebServerOption_BindToLocalhost
+ Refer to: Nenad Jovanovic's phd thesis `web application security'
+ */
     } else if (cond["conditionType"].get<string>() == "ConstDict") {
         // Directory type
         std::map<string, string> strDict;
@@ -223,10 +236,12 @@ std::vector<Rule*> llvm::slicing::parseRules() {
     json j = json::parse(inFile);
     std::vector<Rule*> rules;
 
-    if (!j.is_array()) {
+    if (!j.is_array()) {    // rule file should start with `[' and ends with `]'
 //        errs() << content;
         llvm_unreachable("malformed rules");
     }
+    
+    // parse `calls' section
     for (size_t i = 0; i < j.size(); ++i) {
         if (j[i].find("calls") != j[i].end()) {
             if (!j[i]["calls"].is_array()) {
@@ -248,7 +263,7 @@ std::vector<Rule*> llvm::slicing::parseRules() {
                     llvm_unreachable("TODO");
                 }
 
-                uint64_t regNo = translateRegister(parameter);
+                uint64_t regNo = translateRegister(parameter);  /* registers supported are ranging from X0-X8 */
 
                 llvm::slicing::Parameter p(name, regNo, type);
 

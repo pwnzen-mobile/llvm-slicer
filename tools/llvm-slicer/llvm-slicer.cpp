@@ -114,7 +114,6 @@ int main(int argc, char **argv) {
     }
 
     // http://llvm.org/docs/WritingAnLLVMPass.html
-
     legacy::PassManager *PM = new legacy::PassManager();
   
     PM->add(new PostDominatorTree());
