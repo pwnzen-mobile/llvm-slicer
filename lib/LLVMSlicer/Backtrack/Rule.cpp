@@ -18,6 +18,10 @@ using std::vector;
 
 cl::opt<std::string> RulesFile("rules", cl::desc("r"), cl::init(""), cl::Hidden);
 
+/*
+\todo{crazy! bad grammar! re-design later}
+*/
+
 uint64_t translateRegister(string reg) {
     if (reg == "X0")
         return 5;
@@ -49,6 +53,12 @@ void dumpJSON(json &j) {
 }
 
 Constraint *parseCondition(json &cond);
+
+/*
+ name:          name of the criterion. a) backbone of the criterion is used for title of the report. b) key of the criterion.
+ criterion:     pointer (point to name) for the criterion.
+ conditions:    checker for the criterion.
+ */
 
 Rule *parseRule(json &rule, bool precondition) {
 
@@ -272,6 +282,7 @@ std::vector<Rule*> llvm::slicing::parseRules() {
         }
     }
 
+    // support multi rules in one file?
     for (auto &rule: j) {
         Rule *r = parseRule(rule, false);
         if (r) {
