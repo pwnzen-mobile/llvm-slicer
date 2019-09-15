@@ -13,8 +13,11 @@ using namespace llvm;
 #define DEBUG_TYPE "detect_params"
 
 char DetectParametersPass::ID = 0;
-static RegisterPass<DetectParametersPass> X("detect-param", "Detect Parameters",
-                                            true, true);
+static RegisterPass<DetectParametersPass> X("detect-param",
+                                            "Detect Parameters",
+                                            true,
+                                            true
+                                            );
 
 DetectParametersPass::InstRegUserSet_t DetectParametersPass::specialPreSets;
 
@@ -39,18 +42,30 @@ bool DetectParametersPass::runOnModule(Module &M) {
         new ParameterAccessPairSet_t());
     ReturnIndexes[&F] = std::unique_ptr<ParameterAccessPairSet_t>(
         new ParameterAccessPairSet_t());
-    DEBUG(errs() << "Find parameters for: " << F.getName() << "\n");
+//    errs() << "Find parameters for: " << F.getName() << "\n";
     CurrentFunction = &F;
+//      check the first BB
     for (BasicBlock::InstListType::iterator I_it = F.getEntryBlock().begin();
          I_it != F.getEntryBlock().end(); ++I_it) {
+      
+//      I_it->dump();
+//      errs() << I_it->getOpcodeName() << '\n';
       if (I_it->getOpcode() == Instruction::GetElementPtr) {
         if (ConstantInt *IdxValue =
                 dyn_cast<ConstantInt>(I_it->getOperand(2))) {
           if (isParameterRegister(IdxValue->getZExtValue())) {
             Instruction *LoadInst = nullptr;
             if (readBeforeWrite(&*I_it, LoadInst)) {
-              DEBUG(errs() << "PARAMETER: " << I_it->getName() << "("
-                           << LoadInst->getName() << ")\n");
+//              I_it->dump();
+//              LoadInst->dump();
+//              errs() << "PARAMETER: " << I_it->getName() << "("
+//                           << LoadInst->getName() << ")\n";
+                /*
+                 %X0_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 5
+                 %X0_init = load i64, i64* %X0_ptr, align 4
+                 PARAMETER: X0_ptr(X0_init)
+                 */
+
               RegisterIndexes[&F]->insert(
                   ParameterAccessPair_t(IdxValue->getZExtValue(), LoadInst));
             }
@@ -65,9 +80,11 @@ bool DetectParametersPass::runOnModule(Module &M) {
         continue;
       for (Instruction *I = BB_it->getTerminator(); I != &BB_it->front();
            I = I->getPrevNode()) {
+//          I->dump();
         if (I->getOpcode() != Instruction::Store)
           continue;
         Instruction *Ptr = (Instruction *)I->getOperand(1);
+//          Ptr->dump();
         if (Ptr->getOpcode() != Instruction::GetElementPtr)
           continue;
         ConstantInt *Idx = dyn_cast<ConstantInt>(Ptr->getOperand(2));
@@ -78,6 +95,10 @@ bool DetectParametersPass::runOnModule(Module &M) {
         if (Idx->getZExtValue() == 5) {
           if (HandledReturns.find(Idx->getZExtValue()) ==
               HandledReturns.end()) {
+              /*
+               store i64 %X0_41, i64* %X0_ptr, align 4
+               %X0_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 5
+               */
             ReturnIndexes[&F]->insert(
                 ParameterAccessPair_t(Idx->getZExtValue(), I));
             HandledReturns.insert(Idx->getZExtValue());
@@ -88,13 +109,42 @@ bool DetectParametersPass::runOnModule(Module &M) {
 
     StackAccessPass::OffsetValueListMap_t &OffsetValues =
         getAnalysis<StackAccessPass>().getOffsetValues(&F);
+//      https://blog.csdn.net/dashuniuniu/article/details/52224882
     const DominatorTree &DomTree =
         getAnalysis<DominatorTreeWrapperPass>(F).getDomTree();
 
+// stack access method
+//
+//      errs() << "Values for Offsets:\n";
+//      for (StackAccessPass::OffsetValueListMap_t::iterator OV_it = OffsetValues.begin();
+//                 OV_it != OffsetValues.end(); ++OV_it) {
+//                errs() << OV_it->first << "\n";
+//                for (StackAccessPass::ValueList_t::iterator V_it = OV_it->second->begin();
+//                     V_it != OV_it->second->end(); ++V_it) {
+//                    (*V_it)->dump();
+//                }
+//                errs() << "\n";
+//            };
+//
+// -output
+//      -152
+//      %204 = add i64 %SP_init, -152
+//
+//      -144
+//      %206 = add i64 %SP_init, -144
+//
+//      -136
+//      %202 = add i64 %SP_init, -136
+//
+//      -128
+//      %60 = add i64 %SP_init, -128
+//      %X0_3 = add i64 %SP_init, -128
+      
     for (StackAccessPass::OffsetValueListMap_t::iterator OV_it =
              OffsetValues.begin();
          OV_it != OffsetValues.end(); ++OV_it) {
 
+//      errs() << OV_it->first << "\n";
       InstructionList_t LoadInstruction, StoreInstructions;
 
       if (!OV_it->second) {
@@ -105,6 +155,7 @@ bool DetectParametersPass::runOnModule(Module &M) {
       for (StackAccessPass::ValueList_t::iterator V_it = OV_it->second->begin();
            V_it != OV_it->second->end(); ++V_it) {
         assert(isa<Instruction>(*V_it));
+//        (*V_it)->dump();
         getMemoryOperations((Instruction *)*V_it, LoadInstruction,
                             StoreInstructions);
       }
@@ -129,8 +180,9 @@ bool DetectParametersPass::runOnModule(Module &M) {
       }
 
       if (isParameter) {
-        DEBUG(errs() << "PARAMETER: " << OV_it->first << "\n");
-        //            StackOffsets[&F]->insert(OV_it->first);
+//        errs() << "PARAMETER: " << OV_it->first << "\n";
+//        //            StackOffsets[&F]->insert(OV_it->first);
+//        LoadParam->dump();
         StackOffsets[&F]->insert(
             ParameterAccessPair_t(OV_it->first, LoadParam));
       }
@@ -155,6 +207,16 @@ bool DetectParametersPass::readBeforeWrite(Instruction *Inst,
                                            Instruction *&LoadInst) {
   for (Instruction *I = Inst; I != I->getParent()->getTerminator();
        I = I->getNextNode()) {
+      
+/*
+ to check the basic block
+ 
+ ./opt -dot-dom /Users/demo/Desktop/iDFAer/code/ios-analysis-pwnzen/Bins/testcase/002-GCDWebStaticServer/GCDWebServer.arm64.opt.ll
+ 
+ dot -Tpdf "dom.-[GCDWebDAVServer initWithUploadDirectory:].dot" -o "dom.-[GCDWebDAVServer initWithUploadDirectory:].dot.pdf"
+*/
+//      I->getParent()->getTerminator()->dump();
+      
     if (I->getOpcode() == Instruction::Load && I->getOperand(0) == Inst) {
       LoadInst = I;
       break;
@@ -181,12 +243,15 @@ bool DetectParametersPass::readBeforeWrite(Instruction *Inst,
   //    return false;
 }
 
+// find all usage of %SP_2 for below Address
+// %SP_2 = add i64 %SP_init, -528
 void DetectParametersPass::getMemoryOperations(Instruction *Address,
                                                InstructionList_t &Load,
                                                InstructionList_t &Store) {
   for (Value::const_use_iterator U_it = Address->use_begin();
        U_it != Address->use_end(); ++U_it) {
     if (Instruction *Inst = dyn_cast<Instruction>(U_it->getUser())) {
+//      Inst->dump();
       // TODO: now only the addresses are considered that are directly converted
       // to a pointer variable offsets won't be recognized here
       switch (Inst->getOpcode()) {
