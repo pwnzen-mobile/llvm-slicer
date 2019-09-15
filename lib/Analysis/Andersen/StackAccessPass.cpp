@@ -30,6 +30,7 @@ void StackAccessPass::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.setPreservesAll();
 }
 
+// collect stack access operation
 bool StackAccessPass::runOnModule(Module &M) {
   errs() << "[+]Start StackAccess Pass onModule"
          << "\n";
@@ -61,15 +62,34 @@ bool StackAccessPass::runOnModule(Module &M) {
   return true;
 }
 
+// virtual or physical offset can be preserved in `metadata' field of the instruction
 void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
                                     OffsetValueListMap_t &OffsetValueListMap,
                                     std::set<uint64_t> SPIdx) {
-  // errs() << "Start StackAccess Pass on Function: " << F.getName() << "\n";
+//  errs() << "Start StackAccess Pass on Function: " << F.getName() << "\n";
 
   std::deque<const Instruction *> IntToPtrInstructions;
 
   for (inst_iterator I_it = inst_begin(F); I_it != inst_end(F); ++I_it) {
+//      I_it->dump();
+//    errs() << I_it->getOpcodeName() << '\n';
     if (I_it->getOpcode() == Instruction::IntToPtr) {
+//        errs() << I_it->getOpcodeName();
+//      I_it->dump();
+
+ /*
+ to match pattern like this:
+ __text:0000000100007540                 STP             D9, D8, [SP,#-112]!
+ 
+ %SP_1 = add i64 %SP_init, -112
+ %1 = trunc i512 %Q9_Q10_Q11_Q12_init to i64
+ %2 = inttoptr i64 %SP_1 to i64*
+ store i64 %1, i64* %2, align 1
+ %3 = trunc i512 %Q8_Q9_Q10_Q11_init to i64
+ %4 = add i64 %SP_init, -104
+ %5 = inttoptr i64 %4 to i64*
+ store i64 %3, i64* %5, align 1
+ */
       IntToPtrInstructions.push_back(
           dyn_cast<const Instruction>(&*I_it->getOperand(0)));
     } else if (I_it->getOpcode() == Instruction::Store &&
@@ -77,6 +97,17 @@ void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
                    (Value *)I_it->getOperand(0),
                    PatternMatch::m_BinOp(PatternMatch::m_Value(),
                                          PatternMatch::m_ConstantInt()))) {
+/*
+ to match pattern like this:
+ __text:000000010000755C                 ADD             X29, SP, #0x60
+ 
+ %FP_1 = add i64 %SP_init, -16
+ %FP_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 0
+ store i64 %FP_1, i64* %FP_ptr, align 4
+*/
+//      ((Value *)I_it->getOperand(0))->dump();
+//      ((Value *)I_it->getOperand(1))->dump();
+//      I_it->dump();
       // If something gets passed as stack stored parameter there will be no
       // 'inttoptr' instruction
       IntToPtrInstructions.push_back(
@@ -97,11 +128,12 @@ void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
       continue;
     handled.insert(I);
 
+//    I->dump();
     std::set<int64_t> Results =
         backtrackInstruction(I, IntToPtrInstructions, SPIdx);
     if (!Results.size())
       continue;
-    DEBUG(I->dump());
+//    I->dump();
 
     OffsetMap[I] = std::shared_ptr<Int64List_t>(new Int64List_t());
     Int64List_t &O = *OffsetMap[I];
@@ -133,8 +165,10 @@ void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
 bool StackAccessPass::isStackPointer(Value *Ptr, std::set<uint64_t> SPIdx) {
   assert(SPIdx.size());
   if (Instruction *I = dyn_cast<Instruction>(Ptr)) {
+//      I->dump();
     if (I->getOpcode() == Instruction::GetElementPtr) {
       if (ConstantInt *Idx = dyn_cast<ConstantInt>(I->getOperand(2))) {
+//          errs()<<Idx->getZExtValue()<<"\n";
         if (SPIdx.find(Idx->getZExtValue()) != SPIdx.end()) {
           return true;
         }
@@ -158,6 +192,7 @@ const Instruction *StackAccessPass::getStackPointer(const Function *F) {
   }
   return nullptr;
 }
+
 
 int64_t StackAccessPass::getStackPointerValue(const Instruction *Inst,
                                               bool findStackPointer) {
@@ -341,14 +376,23 @@ int64_t StackAccessPass::getStackPointerValue(const Instruction *Inst,
   return *Results.begin();
 }
 
+/*
+ track track example:
+ %SP_1 = add i64 %SP_init, -112
+ %SP_init = load i64, i64* %SP_ptr, align 4
+ %SP_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 3
+ */
+
 std::set<int64_t>
 StackAccessPass::backtrackInstruction(const Instruction *Inst,
                                       std::deque<const Instruction *> &InstList,
                                       const std::set<uint64_t> SPIdx) {
+//  lambda
   std::function<const Instruction *(const Instruction *, const Value *)>
       getStore = [](const Instruction *Inst, const Value *Ptr) {
         const Instruction *Store = nullptr;
         for (const Instruction *I = Inst;; I = I->getPrevNode()) {
+//            I->dump();
           if (I->getOpcode() == Instruction::Store && I->getOperand(1) == Ptr) {
             Store = &*I;
             break;
@@ -378,7 +422,9 @@ StackAccessPass::backtrackInstruction(const Instruction *Inst,
       if (!CurrentInst) {
         break;
       }
-
+        
+//      CurrentInst->dump();
+        
       if (Visited.find(CurrentInst) != Visited.end()) {
         break;
       }
@@ -390,6 +436,9 @@ StackAccessPass::backtrackInstruction(const Instruction *Inst,
         Run = false;
         continue;
       }
+      /*
+       support simple mode, access mode `lshr i512 %56, 384' is not likely to be stack access pattern
+       */
       switch (CurrentInst->getOpcode()) {
       default:
         Run = false;
