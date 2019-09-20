@@ -661,6 +661,7 @@ ProgramStructure::ProgramStructure(Module &M) : M(M) {
 
   // errs() << "[+]init ptr::ProgramStructure end\n";
 
+//#define PS_DEBUG
 #ifdef PS_DEBUG
   errs() << "==PS START\n";
   for (const_iterator I = getContainer().begin(), E = getContainer().end();

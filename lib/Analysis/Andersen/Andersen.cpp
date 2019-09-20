@@ -25,6 +25,7 @@ cl::opt<bool> DumpDebugInfo("dump-debug",
 cl::opt<bool> DumpResultInfo("dump-result",
                              cl::desc("Dump result info into stderr"),
                              cl::init(false), cl::Hidden);
+// pass argument --dump-cons
 cl::opt<bool> DumpConstraintInfo("dump-cons",
                                  cl::desc("Dump constraint info into stderr"),
                                  cl::init(false), cl::Hidden);
@@ -106,7 +107,7 @@ bool Andersen::runOnModule(Module &M) {
       unhandledFunctions = &nulls();
     }
   }
-
+//dataLayout == null?
   nodeFactory.setDataLayout(dataLayout);
 
   std::string functionName;
@@ -127,6 +128,7 @@ bool Andersen::runOnModule(Module &M) {
         }
         for (const auto &bb : fun) {
           for (auto &i : bb) {
+            // load str
             if (i.getOpcode() == Instruction::Load &&
                 PatternMatch::match(
                     i.getOperand(0),
@@ -138,16 +140,24 @@ bool Andersen::runOnModule(Module &M) {
                 StringRef selector = this->MachO->getString(addr);
                 // errs() << "[+]selector: " << selector << "\n";
                 if (functionName == selector) {
-                  errs() << "[+] Found a function: " << fun.getName() << "\n";
+//                    i.dump();
+//                    i.getOperand(0)->dump();
+                    errs() << "[+] Found a function in: " << fun.getName() << "\n";
                   this->getInitTargetFunctions().push_back(
                       M.getFunction(fun.getName()));
                   break;
                 }
               }
+            // call directly??
             } else if (i.getOpcode() == Instruction::Call) {
               const CallInst *call = (const CallInst *)&i;
               Function *f = call->getCalledFunction();
               if (f && f->hasName() && (f->getName() == functionName)) {
+                  //                    i.dump();
+                  //                    i.getOperand(0)->dump();
+//                I do not believe there is such a invocation.
+                errs() << "FIXME in Andersen class" << "\n";
+                assert(false);
                 errs() << "[+]fun->getName(): " << fun.getName() << "\n";
                 this->getInitTargetFunctions().push_back(
                     M.getFunction(fun.getName()));
