@@ -75,6 +75,18 @@ public:
     OS << "; [#uses=" << F->getNumUses() << ']';  // Output # uses
     OS << '\n';
   }
+
+    void emitInstructionAnnot(const Instruction *I,
+                              formatted_raw_ostream &OS) override{
+        if(MDNode* tmp_md = I->getMetadata("num")){
+            OS << "[0x" << cast<MDString>(tmp_md->getOperand(0))->getString() << "]";
+        }
+        else
+        {
+            OS << "[0xFFFFFFFFF]";
+        }
+    }
+    
   void printInfoComment(const Value &V, formatted_raw_ostream &OS) override {
     bool Padded = false;
     if (!V.getType()->isVoidTy()) {

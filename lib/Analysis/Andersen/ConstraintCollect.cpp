@@ -109,7 +109,7 @@ void Andersen::addProtocolConstraints(std::string className,
 // constraint, and setting up the initial points-to graph.
 
 void Andersen::collectConstraints(Module &M) {
-  errs() << "Collect constraints\n";
+//  errs() << "Collect constraints\n";
   // First, the universal ptr points to universal obj, and the universal obj
   // points to itself
   addConstraint(AndersConstraint::ADDR_OF, nodeFactory.getUniversalPtrNode(),
@@ -189,7 +189,7 @@ void Andersen::collectConstraints(Module &M) {
 void Andersen::collectConstraintsForGlobals(Module &M) {
   // Create a pointer and an object for each global variable
   for (auto const &globalVal : M.globals()) {
-    errs() << "[+]collect constraints -> M.globalVal: " << globalVal.getName() << "\n";
+//    errs() << "[+]collect constraints -> M.globalVal: " << globalVal.getName() << "\n";
     NodeIndex gVal = nodeFactory.createValueNode(&globalVal);
     NodeIndex gObj = nodeFactory.createObjectNode(&globalVal);
     addConstraint(AndersConstraint::ADDR_OF, gVal, gObj);
@@ -197,7 +197,7 @@ void Andersen::collectConstraintsForGlobals(Module &M) {
 
   // Functions and function pointers are also considered global
   for (auto const &f : M) {
-    errs() << "[+]collect constraints -> M.function: " << f.getName() << "\n";
+//    errs() << "[+]collect constraints -> M.function: " << f.getName() << "\n";
     // If f is an addr-taken function, create a pointer and an object for it
     if (f.hasAddressTaken()) {
       NodeIndex fVal = nodeFactory.createValueNode(&f);
