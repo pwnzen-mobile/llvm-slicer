@@ -460,6 +460,20 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
     // -[NSBundle resourcePath]
     Function *F;
     F = CallInst->getParent()->getParent()->getParent()->getFunction(*C_it);
+    /*
+    add by -death 
+    when the F is object.init(), it cannot make the return value as the object 
+    so we leverage objcinithandler to handle the objc init call.
+    */
+    if(F!=nullptr){
+      if((F->getName().back() == ']' && (F->getName().substr(F->getName().find(' ') + 1, 4) == "init"))){
+        //andersen->addConstraintsForCall((Instruction *)CallInst, F);
+        F = nullptr;
+      }
+    }
+    /*
+    add by -death end 
+    */
     if (F) {
       andersen->addConstraintsForCall((Instruction *)CallInst, F);
       HandledCall = true;
