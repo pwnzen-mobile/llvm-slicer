@@ -3149,7 +3149,72 @@ void anonymous_999(llvm::Instruction *CallInst, Andersen *andersen) {
   // Handle "-[NSString integerValue]"
 }
 
+
+/*
+add by -death 
+*/
+void anonymous_2005(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "-[NSBundle pathForResource:ofType:]"
+}
+
+
+void anonymous_2011(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "-[NSBundle pathForResource:ofType:inDirectory:]"
+}
+
+void anonymous_2017(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "-[NSBundle pathForResource:ofType:inDirectory:forLocalization:]"
+}
+
+
+void anonymous_2023(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "-[UIWebView loadData:MIMEType:textEncodingName:baseURL:]"
+}
+
+void anonymous_2029(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "srand()"
+}
+
+void anonymous_2035(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "rand()"
+}
+
+void anonymous_2041(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "srandom()"
+}
+
+void anonymous_2047(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "random()"
+}
+
+/*
+add by -death end 
+*/
+
+
 bool canHandleCall(const std::string &FName) {
+  /*
+  add by -death
+  */
+  if (FName == "random")
+    return true;
+  if (FName == "srandom")
+    return true;
+  if (FName == "rand")
+    return true;
+  if (FName == "srand")
+    return true;
+  if (FName == "-[UIWebView loadData:MIMEType:textEncodingName:baseURL:]")
+    return true;
+  if (FName == "-[NSBundle pathForResource:ofType:inDirectory:forLocalization:]")
+    return true;
+  if (FName == "-[NSBundle pathForResource:ofType:inDirectory:]")
+    return true;
+  if (FName == "-[NSBundle pathForResource:ofType:]")
+    return true;
+  /*
+  add by -death end 
+  */
   if (FName == "+[NSArray arrayWithArray:]")
     return true;
   if (FName == "+[NSArray arrayWithObject:]")
@@ -3494,6 +3559,44 @@ bool canHandleCall(const std::string &FName) {
 
 bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
                 const std::string &FName) {
+  /*
+    add by -death 
+  */
+  if (FName == "-[NSBundle pathForResource:ofType:]"){
+    anonymous_2005(CallInst, andersen);
+    return true;
+  }
+  if (FName == "-[NSBundle pathForResource:ofType:inDirectory:]"){
+    anonymous_2011(CallInst, andersen);
+    return true;
+  }
+  if (FName == "-[NSBundle pathForResource:ofType:inDirectory:forLocalization:]"){
+    anonymous_2017(CallInst, andersen);
+    return true;
+  }
+  if (FName == "-[UIWebView loadData:MIMEType:textEncodingName:baseURL:]"){
+    anonymous_2023(CallInst, andersen);
+    return true;
+  }
+  if (FName == "srand"){
+    anonymous_2029(CallInst, andersen);
+    return true;
+  }
+  if (FName == "rand"){
+    anonymous_2035(CallInst, andersen);
+    return true;
+  }
+  if (FName == "srandom"){
+    anonymous_2041(CallInst, andersen);
+    return true;
+  }
+  if (FName == "random"){
+    anonymous_2047(CallInst, andersen);
+    return true;
+  }
+  /*
+    add by -death end 
+  */
   if (FName == "+[NSArray arrayWithArray:]") {
     anonymous_731(CallInst, andersen);
     return true;
