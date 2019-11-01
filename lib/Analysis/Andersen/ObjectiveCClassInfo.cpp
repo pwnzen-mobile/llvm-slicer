@@ -111,6 +111,21 @@ void Method::parseType() {
       ++type_it;
       break;
     }
+    /*
+      add by -death
+     j+type means complex type, such as jd means _Complex double, 
+     the doc in objc didn't mention this type encoding
+     
+     https://gcc.gnu.org/onlinedocs/gcc-4.6.0/gcc/Type-encoding.html
+    */
+    case 'j': {
+
+      ++type_it;
+      break;
+    }
+    /*
+    add by -death end 
+    */
     case '@': {
       unsigned reg = currentGPR++;
       if (*(type_it + 1) == '\"') {
