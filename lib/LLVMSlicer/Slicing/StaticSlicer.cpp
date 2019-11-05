@@ -985,7 +985,7 @@ char Slicer::ID = 0; /* pass id */
 
 static RegisterPass<Slicer> X(
                               "slicer", /* command line argument */
-                              "View CFG of function", /* name */
+                              "Program Slicer", /* name */
                               false, /* only looks at CFG */
                               true /* this is an analysis pass */
 );
@@ -995,6 +995,9 @@ static RegisterPass<Slicer> X(
 static RegisterAnalysisGroup<Slicer> Y(X);
 // https://llvm.org/docs/WritingAnLLVMPass.html#the-runonmodule-method
 bool Slicer::runOnModule(Module &M) {
+  errs() << "[+]Start StaticSlicer Pass"
+        << "\n";
+
   using llvm::slicing::Constraint;
   using llvm::slicing::Parameter;
   using llvm::slicing::Rule;

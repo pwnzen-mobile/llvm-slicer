@@ -78,6 +78,10 @@ namespace llvm {
         static InstRegUserSet_t specialPreSets;
 
         static std::mutex passLock;
+          
+        // resort to a writer?
+        static void instructionOffsetPrinter(const Instruction *Inst);
+            
     };
 }
 

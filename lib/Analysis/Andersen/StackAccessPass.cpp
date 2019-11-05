@@ -34,8 +34,11 @@ void StackAccessPass::getAnalysisUsage(AnalysisUsage &AU) const {
 bool StackAccessPass::runOnModule(Module &M) {
   errs() << "[+]Start StackAccess Pass onModule"
          << "\n";
+        
   for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) {
     F->hasName();
+//      errs() << F->getName() << "\n";
+      
   }
   for (auto &F : M.functions()) {
     if (F.isDeclaration() || F.isIntrinsic())
@@ -52,6 +55,7 @@ bool StackAccessPass::runOnModule(Module &M) {
         std::shared_ptr<OffsetValueListMap_t>(new OffsetValueListMap_t());
     OffsetValueListMap_t &OffsetValueListMap = *ValuesForOffset[&F];
 
+// used to loc stack pointer
     std::set<uint64_t> SPIdx;
     SPIdx.insert(3);
     SPIdx.insert(0);
@@ -62,34 +66,27 @@ bool StackAccessPass::runOnModule(Module &M) {
   return true;
 }
 
-// virtual or physical offset can be preserved in `metadata' field of the instruction
 void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
                                     OffsetValueListMap_t &OffsetValueListMap,
                                     std::set<uint64_t> SPIdx) {
 //  errs() << "Start StackAccess Pass on Function: " << F.getName() << "\n";
-
+  
+  if (F.getName() == "-[AppDelegate application:didFinishLaunchingWithOptions:]")
+  {
+      assert(true);
+  }
+    
   std::deque<const Instruction *> IntToPtrInstructions;
 
   for (inst_iterator I_it = inst_begin(F); I_it != inst_end(F); ++I_it) {
-//      I_it->dump();
-//    errs() << I_it->getOpcodeName() << '\n';
     if (I_it->getOpcode() == Instruction::IntToPtr) {
-//        errs() << I_it->getOpcodeName();
-//      I_it->dump();
+        instructionOffsetPrinter(dyn_cast<const Instruction>(&*I_it->getOperand(0)));
+        instructionOffsetPrinter(dyn_cast<const Instruction>(&*I_it));
+/*
+[0x100005FB0]  %15 = add i64 %SP_1, 32, !num !15
+[0x100005FB0]  %16 = inttoptr i64 %15 to i64*, !num !15
+*/
 
- /*
- to match pattern like this:
- __text:0000000100007540                 STP             D9, D8, [SP,#-112]!
- 
- %SP_1 = add i64 %SP_init, -112
- %1 = trunc i512 %Q9_Q10_Q11_Q12_init to i64
- %2 = inttoptr i64 %SP_1 to i64*
- store i64 %1, i64* %2, align 1
- %3 = trunc i512 %Q8_Q9_Q10_Q11_init to i64
- %4 = add i64 %SP_init, -104
- %5 = inttoptr i64 %4 to i64*
- store i64 %3, i64* %5, align 1
- */
       IntToPtrInstructions.push_back(
           dyn_cast<const Instruction>(&*I_it->getOperand(0)));
     } else if (I_it->getOpcode() == Instruction::Store &&
@@ -97,17 +94,12 @@ void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
                    (Value *)I_it->getOperand(0),
                    PatternMatch::m_BinOp(PatternMatch::m_Value(),
                                          PatternMatch::m_ConstantInt()))) {
+        instructionOffsetPrinter(dyn_cast<const Instruction>(&*I_it->getOperand(0)));
+        instructionOffsetPrinter(dyn_cast<const Instruction>(&*I_it));
 /*
- to match pattern like this:
- __text:000000010000755C                 ADD             X29, SP, #0x60
- 
- %FP_1 = add i64 %SP_init, -16
- %FP_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 0
- store i64 %FP_1, i64* %FP_ptr, align 4
+ [0x100005F78]  %FP_1 = add i64 %SP_init, -16, !num !7
+ [0xFFFFFFFFF]  store i64 %FP_1, i64* %FP_ptr, align 4
 */
-//      ((Value *)I_it->getOperand(0))->dump();
-//      ((Value *)I_it->getOperand(1))->dump();
-//      I_it->dump();
       // If something gets passed as stack stored parameter there will be no
       // 'inttoptr' instruction
       IntToPtrInstructions.push_back(
@@ -129,12 +121,16 @@ void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
     handled.insert(I);
 
 //    I->dump();
+    instructionOffsetPrinter(I);
     std::set<int64_t> Results =
         backtrackInstruction(I, IntToPtrInstructions, SPIdx);
     if (!Results.size())
       continue;
 //    I->dump();
-
+    if (Results.size() > 1)
+    {
+        assert(true);
+    }
     OffsetMap[I] = std::shared_ptr<Int64List_t>(new Int64List_t());
     Int64List_t &O = *OffsetMap[I];
 
@@ -149,7 +145,25 @@ void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
     }
     DEBUG(errs() << "\n");
   }
+/*
+ -40
+   %11 = add i64 %SP_init, -40, !num !10
+   %17 = add i64 %SP_32, 24, !num !18
+   %23 = add i64 %SP_32, 24, !num !4
 
+ -32
+   %9 = add i64 %SP_init, -32, !num !3
+   %21 = add i64 %FP_26, -16, !num !20
+
+ -24
+   %7 = add i64 %SP_init, -24, !num !2
+   %19 = add i64 %FP_26, -8, !num !19
+
+ -20
+   %5 = add i64 %SP_init, -20, !num !9
+   %25 = add i64 %FP_26, -4, !num !22
+   %27 = add i64 %FP_26, -4, !num !24
+ */
   DEBUG(errs() << "Values for Offsets:\n";
         for (OffsetValueListMap_t::iterator OV_it = OffsetValueListMap.begin();
              OV_it != OffsetValueListMap.end(); ++OV_it) {
@@ -161,6 +175,8 @@ void StackAccessPass::runOnFunction(Function &F, OffsetMap_t &OffsetMap,
           errs() << "\n";
         });
 }
+
+// Is this a stack pointer register
 
 bool StackAccessPass::isStackPointer(Value *Ptr, std::set<uint64_t> SPIdx) {
   assert(SPIdx.size());
@@ -377,7 +393,7 @@ int64_t StackAccessPass::getStackPointerValue(const Instruction *Inst,
 }
 
 /*
- track track example:
+ back track example:
  %SP_1 = add i64 %SP_init, -112
  %SP_init = load i64, i64* %SP_ptr, align 4
  %SP_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 3
@@ -392,8 +408,10 @@ StackAccessPass::backtrackInstruction(const Instruction *Inst,
       getStore = [](const Instruction *Inst, const Value *Ptr) {
         const Instruction *Store = nullptr;
         for (const Instruction *I = Inst;; I = I->getPrevNode()) {
-//            I->dump();
           if (I->getOpcode() == Instruction::Store && I->getOperand(1) == Ptr) {
+//            instructionOffsetPrinter(dyn_cast<Instruction>(Ptr));
+//            instructionOffsetPrinter(dyn_cast<Instruction>(I->getOperand(1)));
+//            instructionOffsetPrinter(I);
             Store = &*I;
             break;
           }
@@ -423,6 +441,8 @@ StackAccessPass::backtrackInstruction(const Instruction *Inst,
         break;
       }
         
+        instructionOffsetPrinter(CurrentInst);
+        
 //      CurrentInst->dump();
         
       if (Visited.find(CurrentInst) != Visited.end()) {
@@ -444,6 +464,9 @@ StackAccessPass::backtrackInstruction(const Instruction *Inst,
         Run = false;
         break;
       case Instruction::Load: {
+//          instructionOffsetPrinter(dyn_cast<Instruction>(CurrentInst->getOperand(0)));
+//          instructionOffsetPrinter(CurrentInst);
+          
         if (!isStackPointer(CurrentInst->getOperand(0), SPIdx)) {
           Run = false;
           break;
@@ -523,4 +546,19 @@ StackAccessPass::backtrackInstruction(const Instruction *Inst,
   }
 
   return Results;
+}
+
+// ugly coding for I don't know how to pass a AssemblyAnnotationWriter to the AsmWriter, especially for an Instruction.
+void
+StackAccessPass::instructionOffsetPrinter(const Instruction *Inst)
+{
+    return;
+    if(MDNode* tmp_md = Inst->getMetadata("num")){
+      errs() << "[0x" << cast<MDString>(tmp_md->getOperand(0))->getString() << "]";
+    }
+    else
+    {
+      errs() << "[0xFFFFFFFFF]";
+    }
+    Inst->dump();
 }

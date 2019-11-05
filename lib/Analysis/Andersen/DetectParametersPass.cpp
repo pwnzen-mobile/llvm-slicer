@@ -42,14 +42,11 @@ bool DetectParametersPass::runOnModule(Module &M) {
         new ParameterAccessPairSet_t());
     ReturnIndexes[&F] = std::unique_ptr<ParameterAccessPairSet_t>(
         new ParameterAccessPairSet_t());
-//    errs() << "Find parameters for: " << F.getName() << "\n";
+    errs() << "Find parameters for: " << F.getName() << "\n";
     CurrentFunction = &F;
 //      check the first BB
     for (BasicBlock::InstListType::iterator I_it = F.getEntryBlock().begin();
          I_it != F.getEntryBlock().end(); ++I_it) {
-      
-//      I_it->dump();
-//      errs() << I_it->getOpcodeName() << '\n';
       if (I_it->getOpcode() == Instruction::GetElementPtr) {
         if (ConstantInt *IdxValue =
                 dyn_cast<ConstantInt>(I_it->getOperand(2))) {
@@ -61,9 +58,9 @@ bool DetectParametersPass::runOnModule(Module &M) {
 //              errs() << "PARAMETER: " << I_it->getName() << "("
 //                           << LoadInst->getName() << ")\n";
                 /*
-                 %X0_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 5
-                 %X0_init = load i64, i64* %X0_ptr, align 4
-                 PARAMETER: X0_ptr(X0_init)
+                 [0x100005F7C]  %X8_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 13
+                 [0x100005F7C]  %X8_init = load i64, i64* %X8_ptr, align 4
+                 PARAMETER: X8_ptr(X8_init)
                  */
 
               RegisterIndexes[&F]->insert(
@@ -80,11 +77,12 @@ bool DetectParametersPass::runOnModule(Module &M) {
         continue;
       for (Instruction *I = BB_it->getTerminator(); I != &BB_it->front();
            I = I->getPrevNode()) {
-//          I->dump();
+
         if (I->getOpcode() != Instruction::Store)
           continue;
+
         Instruction *Ptr = (Instruction *)I->getOperand(1);
-//          Ptr->dump();
+          
         if (Ptr->getOpcode() != Instruction::GetElementPtr)
           continue;
         ConstantInt *Idx = dyn_cast<ConstantInt>(Ptr->getOperand(2));
@@ -95,9 +93,9 @@ bool DetectParametersPass::runOnModule(Module &M) {
         if (Idx->getZExtValue() == 5) {
           if (HandledReturns.find(Idx->getZExtValue()) ==
               HandledReturns.end()) {
-              /*
-               store i64 %X0_41, i64* %X0_ptr, align 4
-               %X0_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 5
+              /* such pattern can reach here
+               [0x100005F8C]  %X0_ptr = getelementptr inbounds %regset, %regset* %0, i64 0, i32 5
+               [0xFFFFFFFFF]  store i64 %X0_3, i64* %X0_ptr
                */
             ReturnIndexes[&F]->insert(
                 ParameterAccessPair_t(Idx->getZExtValue(), I));
@@ -113,8 +111,6 @@ bool DetectParametersPass::runOnModule(Module &M) {
     const DominatorTree &DomTree =
         getAnalysis<DominatorTreeWrapperPass>(F).getDomTree();
 
-// stack access method
-//
 //      errs() << "Values for Offsets:\n";
 //      for (StackAccessPass::OffsetValueListMap_t::iterator OV_it = OffsetValues.begin();
 //                 OV_it != OffsetValues.end(); ++OV_it) {
@@ -208,13 +204,7 @@ bool DetectParametersPass::readBeforeWrite(Instruction *Inst,
   for (Instruction *I = Inst; I != I->getParent()->getTerminator();
        I = I->getNextNode()) {
       
-/*
- to check the basic block
- 
- ./opt -dot-dom /Users/demo/Desktop/iDFAer/code/ios-analysis-pwnzen/Bins/testcase/002-GCDWebStaticServer/GCDWebServer.arm64.opt.ll
- 
- dot -Tpdf "dom.-[GCDWebDAVServer initWithUploadDirectory:].dot" -o "dom.-[GCDWebDAVServer initWithUploadDirectory:].dot.pdf"
-*/
+//      instructionOffsetPrinter(dyn_cast<const Instruction>(&*I));
 //      I->getParent()->getTerminator()->dump();
       
     if (I->getOpcode() == Instruction::Load && I->getOperand(0) == Inst) {
@@ -230,6 +220,8 @@ bool DetectParametersPass::readBeforeWrite(Instruction *Inst,
 
   return true;
 
+// Why not using the def-use chain? Maybe `call` will corrupt the chain?
+    
   //    for (Value::const_use_iterator U_it = LoadInst->use_begin(); U_it !=
   //    LoadInst->use_end(); ++U_it) {
   //        if (Instruction *Use = dyn_cast<Instruction>(U_it->getUser())) {
@@ -244,14 +236,21 @@ bool DetectParametersPass::readBeforeWrite(Instruction *Inst,
 }
 
 // find all usage of %SP_2 for below Address
-// %SP_2 = add i64 %SP_init, -528
+//[0xFFFFFFFFF]  %SP_1 = add i64 %SP_init, -48
+
+//[0x100005FB0]  %17 = add i64 %SP_1, 40, !num !15
+//[0x100005FB4]  %SP_3 = add i64 %SP_1, 48, !num !16
+//[0x100005FB0]  %15 = add i64 %SP_1, 32, !num !15
+//[0xFFFFFFFFF]  store i64 %SP_1, i64* %SP_ptr, align 4
+
 void DetectParametersPass::getMemoryOperations(Instruction *Address,
                                                InstructionList_t &Load,
                                                InstructionList_t &Store) {
+    instructionOffsetPrinter(dyn_cast<const Instruction>(Address));
+
   for (Value::const_use_iterator U_it = Address->use_begin();
        U_it != Address->use_end(); ++U_it) {
     if (Instruction *Inst = dyn_cast<Instruction>(U_it->getUser())) {
-//      Inst->dump();
       // TODO: now only the addresses are considered that are directly converted
       // to a pointer variable offsets won't be recognized here
       switch (Inst->getOpcode()) {
@@ -532,4 +531,18 @@ DetectParametersPass::getStackParameters(Function &F,
     }
   }
   return StackParameters;
+}
+
+// ugly coding for I don't know how to pass a AssemblyAnnotationWriter to the AsmWriter, especially for an Instruction.
+void
+DetectParametersPass::instructionOffsetPrinter(const Instruction *Inst)
+{
+    if(MDNode* tmp_md = Inst->getMetadata("num")){
+      errs() << "[0x" << cast<MDString>(tmp_md->getOperand(0))->getString() << "]";
+    }
+    else
+    {
+      errs() << "[0xFFFFFFFFF]";
+    }
+    Inst->dump();
 }

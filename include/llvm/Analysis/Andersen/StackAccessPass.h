@@ -95,6 +95,10 @@ namespace llvm {
      * @return          All offset candidates at this point (Inst)
      */
     static std::set<int64_t> backtrackInstruction(const Instruction *Inst, std::deque<const Instruction *> &InstList, const std::set<uint64_t> SPIdx);
+      
+    // resort to a writer?
+    static void instructionOffsetPrinter(const Instruction *Inst);
+        
   };
 }
 
