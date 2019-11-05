@@ -927,6 +927,12 @@ bool MsgSendSuper::shouldHandleCall(std::string &F) {
   }
   return false;
 }
+/*
+    modified by death to handle msgsendsuper 
+    ori code only scan the code in the basic block of the call instruction, it seems wrong;
+    I modified it to scan the prev basic block of the call instruction, not sure it is correctly.  it runs fine in GCDWebServer
+    to be continued. 
+ */
 bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
                        Andersen *andersen) {
   andersen->addToWorklist((Instruction *)CallInst);
@@ -946,15 +952,40 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
 
   typedef std::tuple<std::string, std::string, bool> CallInfos_t;
   std::vector<CallInfos_t> calls;
+  
+  /*
+  add by -death  
+   */
+  const BasicBlock* code_search_block;
+  if(CallInst->getParent()->getPrevNode()!=nullptr){
+    code_search_block = CallInst->getParent()->getPrevNode();
+  }
+  else{
+    code_search_block = CallInst->getParent();
+  }
+  /*
+    add by -death end
+   */
 
   for (auto &pre_it : PreX0) {
     std::vector<const Value *> PtsTo;
     andersen->getPointsToSet(pre_it, PtsTo);
     for (auto &pts_it : PtsTo) {
       bool cond1 = false;
-      for (BasicBlock::const_reverse_iterator I_it =
+      /*
+        modified by -death
+       */
+      /* for (BasicBlock::const_reverse_iterator I_it =
                CallInst->getParent()->rbegin();
            I_it != CallInst->getParent()->rend(); ++I_it) {
+      */
+     cond1 = true;
+      for (BasicBlock::const_reverse_iterator I_it =
+               code_search_block->rbegin();
+           I_it != code_search_block->rend(); ++I_it) {
+      /*
+        modified by -death end
+       */
         if (&*I_it == CallInst) {
           cond1 = true;
         }
@@ -977,10 +1008,20 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
                           ->getParent())[ItoP->getOperand(0)];
 
               bool cond2 = false;
-              for (BasicBlock::const_iterator I2_it =
+              /*
+                add by -death 
+               */
+              /*for (BasicBlock::const_iterator I2_it =
                        CallInst->getParent()->begin();
                    I2_it != CallInst->getParent()->end() && &*I2_it != CallInst;
+                   ++I2_it) {*/
+              for (BasicBlock::const_iterator I2_it =
+                       store->getParent()->begin();
+                   I2_it != store->getParent()->end() && &*I2_it != CallInst;
                    ++I2_it) {
+              /*
+                add by -death end 
+               */
                 if (&*I2_it == store) {
                   cond2 = true;
                 }
