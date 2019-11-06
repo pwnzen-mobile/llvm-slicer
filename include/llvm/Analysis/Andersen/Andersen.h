@@ -163,6 +163,9 @@ private:
   // a callgraph (IVARs and protocol definitions for example)
   google::sparse_hash_set<const llvm::Value *> dummyHelpers;
 
+    //TODO:: move to a helper class
+    static void instructionOffsetPrinter(const llvm::Instruction *Inst);
+    
 public:
   static char ID;
 

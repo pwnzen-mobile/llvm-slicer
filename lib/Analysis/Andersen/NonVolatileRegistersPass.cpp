@@ -11,6 +11,8 @@
 using namespace llvm;
 
 bool NonVolatileRegistersPass::runOnModule(Module &M) {
+  errs() << "[+]Start NonVolatileRegisters Pass\n";
+
   for (Module::iterator F_it = M.begin(); F_it != M.end(); ++F_it) {
     Function &F = *F_it;
     if (F.isDeclaration() || F.isIntrinsic()) {

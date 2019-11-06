@@ -44,9 +44,10 @@
 using namespace llvm;
 
 // https://llvm.org/docs/CommandLine.html#positional-options
-static cl::opt<bool>
-EnableIntra("enable-intra",
-            cl::desc("Enable intra-procedure analysis"));
+//Disable this option for the overhead is acceptable.
+//static cl::opt<bool>
+//EnableIntra("enable-intra",
+//            cl::desc("Enable intra-procedure analysis"));
 
 // errs() << EnableIntra << '\n';
 // value is initialized with the defaut constructor, that is 0
@@ -119,6 +120,8 @@ int main(int argc, char **argv) {
     PM->add(new PostDominatorTree());
     PM->add(new PostDominanceFrontier());
     PM->add(new LoopInfoWrapperPass());
+    
+    // TODO:: Run multiple times, remove later?
     PM->add(new DetectParametersPass());
     PM->add(new StackAccessPass());
 

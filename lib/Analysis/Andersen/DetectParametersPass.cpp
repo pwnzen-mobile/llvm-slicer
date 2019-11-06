@@ -30,9 +30,12 @@ void DetectParametersPass::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addRequired<DominatorTreeWrapperPass>();
 }
 
+//TODO:: Consider the call convention for OC method, X0-Xn are used as parameters according to the definition of the method. Stack is used until the amount of registers used reach the threshold.
+
 bool DetectParametersPass::runOnModule(Module &M) {
   errs() << "[+]Start DetectParameters Pass"
          << "\n";
+  //register parameter
   for (auto &F : M.functions()) {
     if (F.isDeclaration() || F.isIntrinsic())
       continue;
@@ -42,7 +45,7 @@ bool DetectParametersPass::runOnModule(Module &M) {
         new ParameterAccessPairSet_t());
     ReturnIndexes[&F] = std::unique_ptr<ParameterAccessPairSet_t>(
         new ParameterAccessPairSet_t());
-    errs() << "Find parameters for: " << F.getName() << "\n";
+//    errs() << "Find parameters for: " << F.getName() << "\n";
     CurrentFunction = &F;
 //      check the first BB
     for (BasicBlock::InstListType::iterator I_it = F.getEntryBlock().begin();
@@ -70,7 +73,7 @@ bool DetectParametersPass::runOnModule(Module &M) {
         }
       }
     }
-
+    // return information
     std::set<uint64_t> HandledReturns;
     for (Function::iterator BB_it = F.begin(); BB_it != F.end(); ++BB_it) {
       if (BB_it->getTerminator()->getOpcode() != Instruction::Ret)
@@ -104,7 +107,8 @@ bool DetectParametersPass::runOnModule(Module &M) {
         }
       }
     }
-
+    
+    // stack parameter
     StackAccessPass::OffsetValueListMap_t &OffsetValues =
         getAnalysis<StackAccessPass>().getOffsetValues(&F);
 //      https://blog.csdn.net/dashuniuniu/article/details/52224882
@@ -537,6 +541,7 @@ DetectParametersPass::getStackParameters(Function &F,
 void
 DetectParametersPass::instructionOffsetPrinter(const Instruction *Inst)
 {
+    return;
     if(MDNode* tmp_md = Inst->getMetadata("num")){
       errs() << "[0x" << cast<MDString>(tmp_md->getOperand(0))->getString() << "]";
     }

@@ -85,7 +85,7 @@ bool Andersen::getPointsToSet(const llvm::Value *v,
 }
 
 bool Andersen::runOnModule(Module &M) {
-  errs() << "[+]Start AndersenPass\n";
+  errs() << "[+]Start Andersen Pass\n";
   Mod = &M;
   CallGraph = std::unique_ptr<SimpleCallGraph>(new SimpleCallGraph(M));
   // dataLayout = &(getAnalysis<DataLayoutPass>().getDataLayout());
@@ -134,6 +134,10 @@ bool Andersen::runOnModule(Module &M) {
                     i.getOperand(0),
                     PatternMatch::m_IntToPtr(
                         PatternMatch::m_ConstantInt(constAddr)))) {
+
+                instructionOffsetPrinter(dyn_cast<const Instruction>(&i));
+                i.getOperand(0)->dump();
+                
               uint64_t addr = constAddr->getZExtValue();
               // errs() << "[+]const addr: " << utohexstr(addr) << "\n";
               if (this->MachO->isSelectorRef(addr)) {
@@ -171,6 +175,10 @@ bool Andersen::runOnModule(Module &M) {
     }
   }
 
+//    TODO:: Perform a quick pass iff getInitTargetFunctions.size() == 0
+//    if (this->getInitTargetFunctions().size() == 0)
+//        return false;
+    
   collectConstraints(M);
 
   uint64_t NumConstraints = constraints.size();
@@ -545,3 +553,17 @@ char Andersen::ID = 0;
 
 static RegisterPass<Andersen>
     X("anders", "Andersen's inclusion-based points-to analysis", true, true);
+
+// ugly coding for I don't know how to pass a AssemblyAnnotationWriter to the AsmWriter, especially for an Instruction.
+void
+Andersen::instructionOffsetPrinter(const Instruction *Inst)
+{
+    if(MDNode* tmp_md = Inst->getMetadata("num")){
+      errs() << "[0x" << cast<MDString>(tmp_md->getOperand(0))->getString() << "]";
+    }
+    else
+    {
+      errs() << "[0xFFFFFFFFF]";
+    }
+    Inst->dump();
+}

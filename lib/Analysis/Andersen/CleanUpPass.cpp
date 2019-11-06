@@ -12,7 +12,8 @@
 using namespace llvm;
 
 bool CleanUpPass::runOnModule(Module &M) {
-
+  errs() << "[+]Start CleanUp Pass\n";
+    
   std::set<std::string> functions;
   functions.insert("objc_release");
   functions.insert("objc_retainAutoreleasedReturnValue");

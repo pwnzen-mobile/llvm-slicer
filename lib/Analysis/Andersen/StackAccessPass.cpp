@@ -32,7 +32,7 @@ void StackAccessPass::getAnalysisUsage(AnalysisUsage &AU) const {
 
 // collect stack access operation
 bool StackAccessPass::runOnModule(Module &M) {
-  errs() << "[+]Start StackAccess Pass onModule"
+  errs() << "[+]Start StackAccess Pass"
          << "\n";
         
   for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) {
