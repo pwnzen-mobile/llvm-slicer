@@ -932,6 +932,8 @@ bool MsgSendSuper::shouldHandleCall(std::string &F) {
     ori code only scan the code in the basic block of the call instruction, it seems wrong;
     I modified it to scan the prev basic block of the call instruction, not sure it is correctly.  it runs fine in GCDWebServer
     to be continued. 
+    11-7
+    i modified it to scan the cur bb of the call instruction and all the prev bb to find a store instruction. 
  */
 bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
                        Andersen *andersen) {
@@ -979,7 +981,9 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
                CallInst->getParent()->rbegin();
            I_it != CallInst->getParent()->rend(); ++I_it) {
       */
-     cond1 = true;
+     //cond1 = true;
+     const BasicBlock* cur_bb_end = (const BasicBlock*)(CallInst->getParent()->getParent()->begin());
+     for (const BasicBlock* cur_bb = CallInst->getParent(); ((void*)cur_bb!=(void*)cur_bb_end); cur_bb = cur_bb->getPrevNode()){
       for (BasicBlock::const_reverse_iterator I_it =
                code_search_block->rbegin();
            I_it != code_search_block->rend(); ++I_it) {
@@ -1096,6 +1100,7 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
           }
         }
       }
+     }
     }
   }
 
