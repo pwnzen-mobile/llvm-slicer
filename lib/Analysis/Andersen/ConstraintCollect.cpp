@@ -96,8 +96,43 @@ void Andersen::addProtocolConstraints(std::string className,
   if (prot_it == MachO->getProtocols().end())
     return;
 
+//  errs() << className.data() << "\n";
   for (auto &m : prot_it->second.getInstanceMethods()) {
+//    errs() << "  " << m.getMethodname() << "\n";
     for (auto &r : m.getRegTypes()) {
+//      errs() << "    " << className.data() << "\n";
+//      errs() << "    " << m.getMethodname().data() << "\n";
+//      errs() << "    " << protocolName.data() << "\n";
+//      errs() << "    " << r.first << "\n";
+//      errs() << "    " << r.second.data() << "\n";
+
+        /*
+        Process 77785 resuming
+            AppDelegate
+            applicationDidFinishLaunching:
+            UIApplicationDelegate
+            7
+            UIApplication
+        (lldb) c
+        Process 77785 resuming
+        (lldb) c
+        Process 77785 resuming
+            AppDelegate
+            application:willFinishLaunchingWithOptions:
+            UIApplicationDelegate
+            8
+            UIApplication
+        (lldb) c
+        Process 77785 resuming
+        (lldb) c
+        Process 77785 resuming
+            AppDelegate
+            application:willFinishLaunchingWithOptions:
+            UIApplicationDelegate
+            9
+            NSDictionary
+        */
+        
       PROTOCOL_METHOD(false, className.data(), m.getMethodname().data(),
                       protocolName.data(), r.first, r.second.data());
     }
@@ -126,14 +161,16 @@ void Andersen::collectConstraints(Module &M) {
   collectConstraintsForGlobals(M);
 
   for (auto &c : MachO->getClasses()) {
-    DEBUG(errs() << "[+]Macho class name: " << c.second->getClassName().str() << "\n");
-    if (!c.second || c.second->getType() != ObjectiveC::Initialized) {
+    if(!c.second)
+      continue;
+//    errs() << "[i]Macho class name: " << c.second->getClassName().str() << "\n";
+    if (c.second->getType() != ObjectiveC::Initialized) {
       continue;
     }
     ObjectiveCBinary::ClassPtr_t ClassPtr =
         std::static_pointer_cast<ObjectiveC::Class>(c.second);
     for (auto &p : ClassPtr->getProtocolList()) {
-      DEBUG(errs() << "[+]protocol: " << p.c_str() << "\n");
+//      errs() << "[i]protocol: " << p.c_str() << "\n";
       addProtocolConstraints(c.second->getClassName(), p);
     }
   }
@@ -148,7 +185,10 @@ void Andersen::collectConstraints(Module &M) {
   size_t handled = 0;
   const Function *currentFunction = nullptr;
 
+//    for (auto const &f : M) {
+//      currentFunction = &f;
   for (const Function *f : InitTargetFunctions) {
+      
     currentFunction = f;
     handled++;
 
@@ -160,7 +200,7 @@ void Andersen::collectConstraints(Module &M) {
         f->getName() == "-[AppDelegate window]")
       continue;
 
-    DEBUG(errs() << "Process function: \"" << f->getName() << "\"\n");
+    errs() << "Process function: \"" << f->getName() << "\"\n";
 
     // Scan the function body
     // A visitor pattern might help modularity, but it needs more boilerplate
@@ -173,8 +213,11 @@ void Andersen::collectConstraints(Module &M) {
     for (const_inst_iterator itr = inst_begin(f), ite = inst_end(f); itr != ite;
          ++itr) {
       auto inst = itr.getInstructionIterator();
-      if (inst->getType()->isPointerTy())
+      if (inst->getType()->isPointerTy())       // collect all `inttoptr' and `getelementptr' instruction
+      {
+//        instructionOffsetPrinter(dyn_cast<const Instruction>(inst));
         nodeFactory.createValueNode(inst);
+      }
     }
 
     // Now, collect constraint for each relevant instruction
@@ -188,6 +231,7 @@ void Andersen::collectConstraints(Module &M) {
 
 void Andersen::collectConstraintsForGlobals(Module &M) {
   // Create a pointer and an object for each global variable
+  // To find the case of global variable, *NOT* hit yet.
   for (auto const &globalVal : M.globals()) {
 //    errs() << "[+]collect constraints -> M.globalVal: " << globalVal.getName() << "\n";
     NodeIndex gVal = nodeFactory.createValueNode(&globalVal);
@@ -209,6 +253,13 @@ void Andersen::collectConstraintsForGlobals(Module &M) {
       continue;
 
     // Create return node
+      
+    // f.getFunctionType()->getReturnType()->dump();
+    // Always return void, except for known func:
+    // [+]collect constraints -> M.function: main_fini_regset ->
+    // i32
+    //, etc.
+      
     if (f.getFunctionType()->getReturnType()->isPointerTy()) {
       nodeFactory.createReturnNode(&f);
     }
@@ -220,6 +271,8 @@ void Andersen::collectConstraintsForGlobals(Module &M) {
     // Add nodes for all formal arguments.
     for (Function::const_arg_iterator itr = f.arg_begin(), ite = f.arg_end();
          itr != ite; ++itr) {
+//      itr->getType()->dump(); always %regset*
+//      itr->dump();
       if (isa<PointerType>(itr->getType()))
         nodeFactory.createValueNode(itr);
     }
@@ -278,6 +331,28 @@ void Andersen::collectConstraintsForInstruction(const Instruction *inst) {
   }
   switch (inst->getOpcode()) {
   case Instruction::Alloca: {
+//      This instruction is used for IR generated form source code. What's this snippet code used for?
+/*
+ int sum(int a, int b) {
+   return a+b;
+ }
+ 
+ ; Function Attrs: noinline nounwind uwtable
+ define i32 @sum(int, int)(i32, i32) #0 !dbg !6 {
+   %3 = alloca i32, align 4
+   %4 = alloca i32, align 4
+   store i32 %0, i32* %3, align 4
+   call void @llvm.dbg.declare(metadata i32* %3, metadata !10, metadata !11), !dbg !12
+   store i32 %1, i32* %4, align 4
+   call void @llvm.dbg.declare(metadata i32* %4, metadata !13, metadata !11), !dbg !14
+   %5 = load i32, i32* %3, align 4, !dbg !15
+   %6 = load i32, i32* %4, align 4, !dbg !16
+   %7 = add nsw i32 %5, %6, !dbg !17
+   ret i32 %7, !dbg !18
+ }
+ 
+ */
+//    instructionOffsetPrinter(dyn_cast<const Instruction>(inst));
     NodeIndex valNode = nodeFactory.getValueNodeFor(inst);
     assert(valNode != AndersNodeFactory::InvalidIndex &&
            "Failed to find alloca value node");
@@ -287,6 +362,7 @@ void Andersen::collectConstraintsForInstruction(const Instruction *inst) {
   }
   case Instruction::Call:
   case Instruction::Invoke: {
+//    instructionOffsetPrinter(dyn_cast<const Instruction>(inst));
     ImmutableCallSite cs(inst);
     assert(cs && "Something wrong with callsite?");
 
@@ -314,11 +390,16 @@ void Andersen::collectConstraintsForInstruction(const Instruction *inst) {
     if (inst->getName() == "X8_5901") {
       assert(true);
     }
+
+//    instructionOffsetPrinter(dyn_cast<const Instruction>(inst));
+
     if (dyn_cast<GetElementPtrInst>(inst->getOperand(0))) {
       break;
     }
 
     if (inst->getType()->isPointerTy() && false) {
+//        instructionOffsetPrinter(dyn_cast<const Instruction>(inst));
+
       NodeIndex opIndex = nodeFactory.getValueNodeFor(inst->getOperand(0));
       assert(opIndex != AndersNodeFactory::InvalidIndex &&
              "Failed to find load operand node");
@@ -327,6 +408,7 @@ void Andersen::collectConstraintsForInstruction(const Instruction *inst) {
              "Failed to find load value node");
       addConstraint(AndersConstraint::LOAD, valIndex, opIndex);
     } else {
+//        instructionOffsetPrinter(dyn_cast<const Instruction>(inst));
 
       std::vector<const Value *> operands;
 
@@ -471,6 +553,8 @@ void Andersen::collectConstraintsForInstruction(const Instruction *inst) {
     if (inst->getOperand(0)->getName() == "X8_5901") {
       assert(true);
     }
+//    instructionOffsetPrinter(dyn_cast<const Instruction>(inst));
+
     if (dyn_cast<GetElementPtrInst>(inst->getOperand(1))) {
       if (dyn_cast<ConstantInt>(inst->getOperand(0))) {
         // Do nothing
@@ -1042,6 +1126,7 @@ addConstraint(AndersConstraint::COPY, dstIndex, srcIndex);
   }
   case Instruction::Add: {
     // Check if a IVAR is accessed
+//      instructionOffsetPrinter(dyn_cast<const Instruction>(inst));
     Instruction *load = nullptr;
     if (PatternMatch::match(
             inst,
@@ -1119,6 +1204,8 @@ void Andersen::addConstraintForCall(ImmutableCallSite cs) {
       //   CallGraph->addCallEdge(cs.getInstruction(), f->getName());
     } else { // Internal call
       // errs() << "Internal call: " << f->getName() << "\n";
+//      instructionOffsetPrinter(dyn_cast<const Instruction>(cs.getInstruction()));
+
       addToWorklist((Instruction *)cs.getInstruction());
       addConstraintsForCall((CallInst *)cs.getInstruction(), f);
     }

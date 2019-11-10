@@ -30,8 +30,6 @@ void DetectParametersPass::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addRequired<DominatorTreeWrapperPass>();
 }
 
-//TODO:: Consider the call convention for OC method, X0-Xn are used as parameters according to the definition of the method. Stack is used until the amount of registers used reach the threshold.
-
 bool DetectParametersPass::runOnModule(Module &M) {
   errs() << "[+]Start DetectParameters Pass"
          << "\n";

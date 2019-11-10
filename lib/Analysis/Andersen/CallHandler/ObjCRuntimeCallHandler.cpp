@@ -200,6 +200,22 @@ bool CallHandlerBase::isObjectiveCMethod(StringRef F) {
   return (F.startswith_lower("+[") || F.startswith_lower("-["));
 }
 
+
+// ugly coding for I don't know how to pass a AssemblyAnnotationWriter to the AsmWriter, especially for an Instruction.
+void
+CallHandlerBase::instructionOffsetPrinter(const Instruction *Inst)
+{
+//    return;
+   if(MDNode* tmp_md = Inst->getMetadata("num")){
+     errs() << "[0x" << cast<MDString>(tmp_md->getOperand(0))->getString() << "]";
+   }
+   else
+   {
+     errs() << "[0xFFFFFFFFF]";
+   }
+   Inst->dump();
+}
+
 bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
                       Andersen *andersen) {
   // TODO: for now we just add all instructions to the worklist. already handled
@@ -225,7 +241,9 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
       User *X1 = *X1_it;
 
       Instruction *X0Inst = dyn_cast<Instruction>(X0);
+//        instructionOffsetPrinter(dyn_cast<const Instruction>(X0Inst));
       Instruction *X1Inst = dyn_cast<Instruction>(X1);
+//        instructionOffsetPrinter(dyn_cast<const Instruction>(X1Inst));
 
       StringRef SelectorName;
       if (X1Inst && X1Inst->getOpcode() == Instruction::Load) {

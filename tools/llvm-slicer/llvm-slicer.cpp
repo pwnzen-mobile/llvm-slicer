@@ -43,16 +43,6 @@
 
 using namespace llvm;
 
-// https://llvm.org/docs/CommandLine.html#positional-options
-//Disable this option for the overhead is acceptable.
-//static cl::opt<bool>
-//EnableIntra("enable-intra",
-//            cl::desc("Enable intra-procedure analysis"));
-
-// errs() << EnableIntra << '\n';
-// value is initialized with the defaut constructor, that is 0
-// use argument -enable-intra, -enable-intra=true or -enable-intra=false
-
 /*
 ./llvm-slicer -help
 OVERVIEW: llvm .ll -> .bc assembler
@@ -66,7 +56,7 @@ General options:
 -enable-hcd            - Enable the hybrid cycle detection algorithm
 -enable-hu             - Enable the HU constraint optimization
 -enable-hvn            - Enable the HVN constraint optimization
--enable-intra          - Enable intra-procedure analysis
+-enable-inter          - Enable inter-procedure analysis (default is intra)
 -enable-lcd            - Enable the lazy cycle detection algorithm
 -enable-objc-arc-opts  - enable/disable all ARC Optimizations
 -enable-scoped-noalias -
@@ -121,9 +111,9 @@ int main(int argc, char **argv) {
     PM->add(new PostDominanceFrontier());
     PM->add(new LoopInfoWrapperPass());
     
-    // TODO:: Run multiple times, remove later?
-    PM->add(new DetectParametersPass());
-    PM->add(new StackAccessPass());
+    // TODO:: Run multiple times, removed
+//    PM->add(new DetectParametersPass());
+//    PM->add(new StackAccessPass());
 
     Slicer *slicer = new Slicer();
     PM->add(slicer);

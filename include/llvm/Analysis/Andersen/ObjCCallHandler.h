@@ -37,6 +37,9 @@ namespace llvm {
             static StringRef getClassname(StringRef F);
             static StringRef getMethodname(StringRef F);
 
+            // resort to a writer?
+            static void instructionOffsetPrinter(const Instruction *Inst);
+
         protected:
             StringRef *FunctionName;
 

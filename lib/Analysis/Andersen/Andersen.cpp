@@ -36,6 +36,18 @@ cl::opt<std::string> BinaryFile("binary", cl::desc(""), cl::init(""),
 cl::opt<std::string> UnhandledFile("unhandled", cl::desc(""), cl::init(""),
                                    cl::Hidden);
 
+
+// https://llvm.org/docs/CommandLine.html#positional-options
+//Disable this option for the overhead is un-acceptable.
+static cl::opt<bool>
+EnableInter("enable-inter",
+            cl::desc("Enable inter-procedure analysis (default is intra)"));
+
+// errs() << EnableIntra << '\n';
+// value is initialized with the defaut constructor, that is 0
+// use argument -enable-inter, -enable-inter=true or -enable-inter=false
+
+
 Andersen::Andersen() : llvm::ModulePass(ID) {}
 
 void Andersen::getAnalysisUsage(AnalysisUsage &AU) const {
@@ -109,71 +121,84 @@ bool Andersen::runOnModule(Module &M) {
   }
 //dataLayout == null?
   nodeFactory.setDataLayout(dataLayout);
-
-  std::string functionName;
-
-  for (auto &rule : this->rules) {
-    for (auto &criterion : rule->getCriterions()) {
-      functionName = criterion.second.first.getFunctionName();
-      if (functionName.back() == ']') {
-        int index = functionName.find(' ');
-        functionName =
-            functionName.substr(index + 1, functionName.length() - index - 2);
-      }
-      errs() << "[+]rule function name: " << functionName << "\n";
-      ConstantInt *constAddr = nullptr;
-      for (auto &fun : M) {
-        if (fun.isIntrinsic() || fun.isDeclaration()) {
-          continue;
+    
+    if(EnableInter)
+    {
+        for (auto &fun : M) {
+            this->getInitTargetFunctions().push_back(&fun);
         }
-        for (const auto &bb : fun) {
-          for (auto &i : bb) {
-            // load str
-            if (i.getOpcode() == Instruction::Load &&
-                PatternMatch::match(
-                    i.getOperand(0),
-                    PatternMatch::m_IntToPtr(
-                        PatternMatch::m_ConstantInt(constAddr)))) {
-
-                instructionOffsetPrinter(dyn_cast<const Instruction>(&i));
-                i.getOperand(0)->dump();
-                
-              uint64_t addr = constAddr->getZExtValue();
-              // errs() << "[+]const addr: " << utohexstr(addr) << "\n";
-              if (this->MachO->isSelectorRef(addr)) {
-                StringRef selector = this->MachO->getString(addr);
-                // errs() << "[+]selector: " << selector << "\n";
-                if (functionName == selector) {
-//                    i.dump();
-//                    i.getOperand(0)->dump();
-                    errs() << "[+] Found a function in: " << fun.getName() << "\n";
-                  this->getInitTargetFunctions().push_back(
-                      M.getFunction(fun.getName()));
-                  break;
-                }
-              }
-            // call directly??
-            } else if (i.getOpcode() == Instruction::Call) {
-              const CallInst *call = (const CallInst *)&i;
-              Function *f = call->getCalledFunction();
-              if (f && f->hasName() && (f->getName() == functionName)) {
-                  //                    i.dump();
-                  //                    i.getOperand(0)->dump();
-//                I do not believe there is such a invocation.
-                errs() << "FIXME in Andersen class" << "\n";
-                assert(false);
-                errs() << "[+]fun->getName(): " << fun.getName() << "\n";
-                this->getInitTargetFunctions().push_back(
-                    M.getFunction(fun.getName()));
-                break;
-              }
-            }
-          }
-        }
-      }
-      errs() << "[+]functions size: " << this->getInitTargetFunctions().size() << "\n";
+        errs() << "[i]Functions size: " << this->getInitTargetFunctions().size() << "\n";
     }
-  }
+    else
+    {
+        std::string functionName;
+
+        for (auto &rule : this->rules) {
+            for (auto &criterion : rule->getCriterions()) {
+                functionName = criterion.second.first.getFunctionName();
+                if (functionName.back() == ']') {
+                    int index = functionName.find(' ');
+                    functionName =
+                        functionName.substr(index + 1, functionName.length() - index - 2);
+                }
+                errs() << "[i]Rule function name: " << functionName << "\n";
+                ConstantInt *constAddr = nullptr;
+                for (auto &fun : M) {
+                    if (fun.isIntrinsic() || fun.isDeclaration()) {
+                        continue;
+                    }
+                    for (const auto &bb : fun) {
+                        for (auto &i : bb) {
+                            // load str
+                            if (i.getOpcode() == Instruction::Load &&
+                                PatternMatch::match(
+                                                    i.getOperand(0),
+                                                    PatternMatch::m_IntToPtr(
+                                                                        PatternMatch::m_ConstantInt(constAddr)))) {
+
+                                //                instructionOffsetPrinter(dyn_cast<const Instruction>(&i));
+                                //                i.getOperand(0)->dump();
+                    
+                                uint64_t addr = constAddr->getZExtValue();
+                                // errs() << "[+]const addr: " << utohexstr(addr) << "\n";
+                                if (this->MachO->isSelectorRef(addr)) {
+                                    StringRef selector = this->MachO->getString(addr);
+                                    // errs() << "[+]selector: " << selector << "\n";
+                                    if (functionName == selector) {
+                                        //                    i.dump();
+                                        //                    i.getOperand(0)->dump();
+                                        errs() << "[i]Found a function in: " << fun.getName() << "\n";
+                                        this->getInitTargetFunctions().push_back(
+                                                                                 M.getFunction(fun.getName()));
+                                        break;
+                                    }
+                                }
+                                // call directly??
+                            } else if (i.getOpcode() == Instruction::Call) {
+                                //              instructionOffsetPrinter(dyn_cast<const Instruction>(&i));
+                  
+                                const CallInst *call = (const CallInst *)&i;
+                                Function *f = call->getCalledFunction();
+                                if (f && f->hasName() && (f->getName() == functionName)) {
+                                    //                    i.dump();
+                                    //                    i.getOperand(0)->dump();
+                                    //                I do not believe there is such a invocation.
+                                    errs() << "FIXME in Andersen class" << "\n";
+                                    assert(false);
+                                    errs() << "[i]fun->getName(): " << fun.getName() << "\n";
+                                    this->getInitTargetFunctions().push_back(
+                                                                             M.getFunction(fun.getName()));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                errs() << "[i]Functions size: " << this->getInitTargetFunctions().size() << "\n";
+            }
+        }
+    }
+
 
 //    TODO:: Perform a quick pass iff getInitTargetFunctions.size() == 0
 //    if (this->getInitTargetFunctions().size() == 0)
@@ -183,7 +208,11 @@ bool Andersen::runOnModule(Module &M) {
 
   uint64_t NumConstraints = constraints.size();
   AndersConstraint end = *constraints.end();
-
+    
+//    for (auto &fun : M) {
+//      if (ObjectiveC::CallHandlerBase::isObjectiveCMethod(fun.getName())) {
+//        for (auto &i : fun.getEntryBlock()) {
+            
   for (const Function *fun : InitTargetFunctions) {
     if (fun->getName() == "-[GCDWebUploader initWithUploadDirectory:]") {
       assert(true);
@@ -191,6 +220,7 @@ bool Andersen::runOnModule(Module &M) {
     
     if (ObjectiveC::CallHandlerBase::isObjectiveCMethod(fun->getName())) {
       for (auto &i : fun->getEntryBlock()) {
+//          instructionOffsetPrinter(dyn_cast<const Instruction>(&i));
         if (i.getOpcode() != Instruction::Load)
           continue;
         const GetElementPtrInst *getElementPtrInst =
@@ -364,6 +394,8 @@ bool Andersen::runOnModule(Module &M) {
 
       stackOffsetMap.clear();
 
+//        for (Function &f : M) {
+//            if (f.isDeclaration() || f.isIntrinsic())
       for (auto &f : InitTargetFunctions) {
         if (f->isDeclaration() || f->isIntrinsic())
           continue;
@@ -558,6 +590,7 @@ static RegisterPass<Andersen>
 void
 Andersen::instructionOffsetPrinter(const Instruction *Inst)
 {
+//    return;
     if(MDNode* tmp_md = Inst->getMetadata("num")){
       errs() << "[0x" << cast<MDString>(tmp_md->getOperand(0))->getString() << "]";
     }
