@@ -3191,11 +3191,83 @@ void anonymous_2047(llvm::Instruction *CallInst, Andersen *andersen){
 add by -death end 
 */
 
+/*
+add by -death
+ handle the objc_alloc() method , the param is the class, the returned value is the object 
+ get the name of the class and set type of the object.
+ it runs correctly but don't know whether cover all.
+ */
+void anonymous_3001(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "objc_alloc()"
+  {// objc_alloc operation
+    DetectParametersPass::UserSet_t Class_type =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t Class_object =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    std::set<StringRef> X0_class_name_set;
+    for (auto Class_type_it = Class_type.begin(); Class_type_it != Class_type.end(); ++Class_type_it){
+      NodeIndex classIdx = andersen->getNodeFactory().getValueNodeFor(*Class_type_it);
+      if(classIdx == AndersNodeFactory::InvalidIndex)
+        classIdx = andersen->getNodeFactory().createValueNode(*Class_type_it);
+      if (ConstantDataArray *ClassData =
+                dyn_cast<ConstantDataArray>((Value *)*Class_type_it)) {
+                
+                }
+      if (Instruction* X0_inst = dyn_cast<Instruction>(*Class_type_it) ){
+        if(X0_inst->getOpcode() == Instruction::Load){
+          ConstantInt *const_Addr = nullptr;
+          if(PatternMatch::match(
+                    X0_inst->getOperand(0),
+                    PatternMatch::m_IntToPtr(
+                        PatternMatch::m_ConstantInt(const_Addr)))){
+                          uint64_t ValueId = const_Addr->getZExtValue();
+                          StringRef str = andersen->getMachO().getString(ValueId);
+                          StringRef class_name;
+                          if(andersen->getMachO().getClass(ValueId,class_name)){
+                            X0_class_name_set.insert(class_name);
+                          }
+                        }
+        }
+      }
+    }
+    if(X0_class_name_set.size()>1){
+      errs()<<"objc_alloc can be multi class ";
+      return ;
+    }
+    if(X0_class_name_set.size()==0){
+      errs()<<"objc_alloc cannot find class";
+      return;
+    }
+    StringRef tmp_class_name;
+    for(auto it = X0_class_name_set.begin(); it!= X0_class_name_set.end();++it){
+      tmp_class_name = *it;
+    }
+    for(auto class_obj_it = Class_object.begin();class_obj_it != Class_object.end(); ++class_obj_it){
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*class_obj_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*class_obj_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*class_obj_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*class_obj_it);
+      andersen->setType(*class_obj_it, tmp_class_name);
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
+  }
+}
+/*
+add by -death  end
+ */
+
 
 bool canHandleCall(const std::string &FName) {
   /*
   add by -death
   */
+  if (FName == "objc_alloc")
+    return true;
   if (FName == "random")
     return true;
   if (FName == "srandom")
@@ -3592,6 +3664,10 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
   }
   if (FName == "random"){
     anonymous_2047(CallInst, andersen);
+    return true;
+  }
+  if (FName == "objc_alloc"){
+    anonymous_3001(CallInst, andersen);
     return true;
   }
   /*
