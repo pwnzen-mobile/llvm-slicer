@@ -170,9 +170,25 @@ public:
       }
     }
   }
+  /*
+  add by -death 
+   */
+  void setRuleDescription(std::string des){
+    ruleDescription = des;
+  }
+  /*
+  add by -death end 
+   */
 
 private:
   std::string ruleTitle;
+  /*
+  add by -death
+   */
+  std::string ruleDescription;
+  /*
+  add by -death end 
+   */
   InitialInstructionList_t initialInstructions;
   ParameterList_t criterions;
   PathList_t paths;
@@ -188,6 +204,35 @@ private:
   Rule *parentRule;
   std::set<Path *> dismissablePaths;
 };
+
+/*
+add by -death
+ */
+class CscanRule : {
+private: 
+  std::string rule_name;
+  std::string rule_description;
+  std::vector<std::string> CMethodName;
+public:
+  void add_C_method_name(std::string name){
+    CMethodName.push_back(name);
+  }
+  void set_rule_name(std::string name){
+    rule_name = name;
+  }
+  void set_description(std::string description){
+    rule_description = description;
+  }
+  bool check_name(std::string name){
+    if(std::find(CMethodName.begin(),CMethodName.end(),name)==CMethodName.end()){
+      return false;
+    }
+    return true;
+  }
+}
+/*
+add by -death 
+ */
 
 class ConstConstraint : public Constraint {
 public:
