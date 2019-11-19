@@ -158,6 +158,13 @@ private:
 
   std::map<uint64_t, const llvm::Value *> ivarMap;
   std::map<const llvm::Value *, llvm::Value *> DummyMap;
+  /*
+  add by -death
+  */
+  std::set<llvm::Function*> already_collected_function;
+  /*
+  add by -death end 
+  */
 
   // Holds all created dummy objects that are used to help creating
   // a callgraph (IVARs and protocol definitions for example)
@@ -176,6 +183,22 @@ public:
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
 
   void releaseMemory();
+
+  /*
+  add by -death 
+  */
+  bool try_to_collect_constraint(llvm::Function* tar_fun){
+    if(already_collected_function.find(tar_fun)==already_collected_function.end()){
+      already_collected_function.insert(tar_fun);
+      return true;
+    }
+    return false;
+  }
+
+  void collectConstraintsForFunction(const llvm::Function*);
+  /*
+  add by -death end 
+  */
 
   // Given a llvm pointer v,
   // - Return false if the analysis doesn't know where v points to. In other

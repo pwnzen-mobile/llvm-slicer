@@ -323,6 +323,50 @@ void Andersen::addGlobalInitializerConstraints(NodeIndex objNode,
   }
 }
 
+
+/*
+add by -death
+ */
+void Andersen::collectConstraintsForFunction(const Function* currentFunction){
+
+   // handled++;
+
+    if (currentFunction->isDeclaration() || currentFunction->isIntrinsic())
+      return;
+
+    if (currentFunction->getName() == "main_init_regset" ||
+        currentFunction->getName() == "main_fini_regset" || currentFunction->getName() == "main" ||
+        currentFunction->getName() == "-[AppDelegate window]")
+      return;
+
+    DEBUG(errs() << "Process function: \"" << currentFunction->getName() << "\"\n");
+
+    // Scan the function body
+    // A visitor pattern might help modularity, but it needs more boilerplate
+    // codes to set up, and it breaks down the main logic into pieces
+
+    // First, create a value node for each instruction with pointer type. It is
+    // necessary to do the job here rather than on-the-fly because an
+    // instruction may refer to the value node definied before it (e.g. phi
+    // nodes)
+    for (const_inst_iterator itr = inst_begin(currentFunction), ite = inst_end(currentFunction); itr != ite;
+         ++itr) {
+      auto inst = itr.getInstructionIterator();
+      if (inst->getType()->isPointerTy())
+        nodeFactory.createValueNode(inst);
+    }
+
+    // Now, collect constraint for each relevant instruction
+    for (const_inst_iterator itr = inst_begin(currentFunction), ite = inst_end(currentFunction); itr != ite;
+         ++itr) {
+      auto inst = itr.getInstructionIterator();
+      collectConstraintsForInstruction(inst);
+    }
+}
+/*
+add by -death end
+ */
+
 void Andersen::collectConstraintsForInstruction(const Instruction *inst) {
   // errs() << "[+]inst name: " << inst->getOpcodeName() << "\n";
   if (inst->getParent()->getParent()->getName() ==

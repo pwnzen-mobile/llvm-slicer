@@ -493,6 +493,15 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
     add by -death end 
     */
     if (F) {
+      /*
+      add by -death
+      */
+      if(andersen->try_to_collect_constraint(F)==true){
+          andersen->collectConstraintsForFunction(F);
+      } 
+      /*
+      add by -death end
+      */
       andersen->addConstraintsForCall((Instruction *)CallInst, F);
       HandledCall = true;
       
