@@ -27,7 +27,7 @@ uint64_t getX0Reg() {
 
 
 
-std::vector<Rule*> llvm::slicing::parseScanRules() {
+void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<Rule*>* objc_rule_vec) {
     if (ScanRulesFile.size() == 0) {
         errs() << "No scan rule specified\n";
         llvm_unreachable("No scan rules specified");
@@ -43,16 +43,15 @@ std::vector<Rule*> llvm::slicing::parseScanRules() {
 //    std::string content((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
 
     json j = json::parse(inFile);
-    std::vector<Rule*> result_rule;
 
     if (!j.is_array()) {    
         llvm_unreachable("malformed rules");
     }
     for (auto &scanrule: j) {
         if(scanrule.find("name")==scanrule.end() || 
-            scanrule.find("description") || 
-            scanrule.find("method_type") || 
-            scanrule.find("method_name")){
+            scanrule.find("description")==scanrule.end() || 
+            scanrule.find("method_type")==scanrule.end() || 
+            scanrule.find("method_name")==scanrule.end()){
                 errs()<<"rule file is not correct\n";
                 llvm_unreachable("malformed");
             }
@@ -68,44 +67,34 @@ std::vector<Rule*> llvm::slicing::parseScanRules() {
             errs()<<"description is not a string\n";
             llvm_unreachable("malformed");
         }
-        /* 
-        if(scanrule["method_type"]=="C"){
-            CscanRule* tmp_CR = new CscanRule();
-            tmp_CR->set_rule_name(scanrule["name"].get<std::string>());
-            tmp_CR->set_description(scanrule["description"].get<std::string>());
-            if(scanrule["method_name"].is_string()){
-                tmp_CR->add_C_method_name(scanrule["method_name"].get<std::string>());
-            }
-            else if(scanrule["method_name"].is_array()){
-                for(auto &name : scanrule["method_name"]){
-                    tmp_CR->add_C_method_name(scanrule["method_name"].get<std::string>());
-                }
-            }
-            scan_rule_vec->push_back(tmp_CR);
-        }
-        else{*/
+        
+        
             Rule *tmp_r = new Rule(scanrule["name"].get<std::string>(), Constraint::STRICT, ChainConstraint::OR);
             std::vector<Rule*> tmp_pre;
             if(scanrule["method_name"].is_string()){
                 Parameter::ParameterType type = Parameter::PRE;
                 tmp_r->addCriterion(
                     Parameter(scanrule["method_name"].get<string>(),getX0Reg(),type),
-                    tmp_pre;
+                    tmp_pre
                 );
             }else if(scanrule["method_name"].is_array()){
                 for(auto &param : scanrule["method_name"]){
                     Parameter::ParameterType type = Parameter::PRE;
                     tmp_r->addCriterion(
                         Parameter(param.get<string>(),getX0Reg(),type),
-                        tmp_pre;
+                        tmp_pre
                     );
                 }
             }else{
                 errs()<<"method name is not correct\n";
                 llvm_unreachable("malformed");
             }
-            result_rule.push_back(tmp_r);
-       // }
+        if(scanrule["method_type"].get<string>()=="C"){
+            c_rule_vec->push_back(tmp_r);
+        }
+        else{
+            objc_rule_vec->push_back(tmp_r);
+        }
         
     }
 }

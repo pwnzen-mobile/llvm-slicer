@@ -1,9 +1,10 @@
-#ifndef LLVM_RULE_H
-#define LLVM_RULE_H
+#ifndef LLVM_SCANRULE_H
+#define LLVM_SCANRULE_H
 
 #include <string>
 #include <set>
 #include <assert.h>
+#include "Rule.h"
 
 #include "Path.h"
 
@@ -15,7 +16,7 @@ namespace llvm {
 
         class ScanRule;
 
-        std::vector<Rule*> parseScanRules();
+        void parseScanRules(std::vector<llvm::slicing::Rule*>*,std::vector<llvm::slicing::Rule*>*);
     }
 }
 

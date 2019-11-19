@@ -176,6 +176,9 @@ public:
   void setRuleDescription(std::string des){
     ruleDescription = des;
   }
+  void setIsCMethod(bool C){
+    is_C_method = C;
+  }
   /*
   add by -death end 
    */
@@ -186,6 +189,7 @@ private:
   add by -death
    */
   std::string ruleDescription;
+  bool is_C_method;
   /*
   add by -death end 
    */
@@ -205,34 +209,6 @@ private:
   std::set<Path *> dismissablePaths;
 };
 
-/*
-add by -death
- */
-class CscanRule : {
-private: 
-  std::string rule_name;
-  std::string rule_description;
-  std::vector<std::string> CMethodName;
-public:
-  void add_C_method_name(std::string name){
-    CMethodName.push_back(name);
-  }
-  void set_rule_name(std::string name){
-    rule_name = name;
-  }
-  void set_description(std::string description){
-    rule_description = description;
-  }
-  bool check_name(std::string name){
-    if(std::find(CMethodName.begin(),CMethodName.end(),name)==CMethodName.end()){
-      return false;
-    }
-    return true;
-  }
-}
-/*
-add by -death 
- */
 
 class ConstConstraint : public Constraint {
 public:
