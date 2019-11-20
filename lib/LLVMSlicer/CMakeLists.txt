@@ -13,6 +13,8 @@ Backtrack/Path.cpp
 Backtrack/Rule.cpp
 Backtrack/Constraint.cpp
 Backtrack/Backtrack.cpp
+Backtrack/ScanRule.cpp
 IntraDFA/FunctionIntraDFA.cpp
 IntraDFA/IntraDFA.cpp
+ScanMethod/ScanMethod.cpp
 )

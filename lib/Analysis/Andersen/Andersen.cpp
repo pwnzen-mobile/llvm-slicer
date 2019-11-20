@@ -183,9 +183,9 @@ bool Andersen::runOnModule(Module &M) {
                                     //                    i.dump();
                                     //                    i.getOperand(0)->dump();
                                     //                I do not believe there is such a invocation.
-                                    errs() << "FIXME in Andersen class" << "\n";
-                                    assert(false);
-                                    errs() << "[i]fun->getName(): " << fun.getName() << "\n";
+                                    //errs() << "FIXME in Andersen class" << "\n";
+                                    //assert(false);
+                                    //errs() << "[i]fun->getName(): " << fun.getName() << "\n";
                                     this->getInitTargetFunctions().push_back(
                                                                              M.getFunction(fun.getName()));
                                     break;

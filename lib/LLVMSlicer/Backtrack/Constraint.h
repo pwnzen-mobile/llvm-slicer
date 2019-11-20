@@ -170,9 +170,32 @@ public:
       }
     }
   }
+  /*
+  add by -death 
+   */
+  void setRuleDescription(std::string des){
+    ruleDescription = des;
+  }
+  void setIsCMethod(bool C){
+    is_C_method = C;
+  }
+  std::string getRuleDescription(){
+    return ruleDescription;
+  }
+  /*
+  add by -death end 
+   */
 
 private:
   std::string ruleTitle;
+  /*
+  add by -death
+   */
+  std::string ruleDescription;
+  bool is_C_method;
+  /*
+  add by -death end 
+   */
   InitialInstructionList_t initialInstructions;
   ParameterList_t criterions;
   PathList_t paths;
@@ -188,6 +211,7 @@ private:
   Rule *parentRule;
   std::set<Path *> dismissablePaths;
 };
+
 
 class ConstConstraint : public Constraint {
 public:
@@ -229,6 +253,7 @@ class HTMLReportPrinter {
 public:
   HTMLReportPrinter(raw_ostream &file_out);
   void addResults(Rule *rule, const Rule::CompletePathResultList_t &results);
+  void addScanResult(Rule *rule, std::set<std::pair<std::string,std::string>>);
   void close();
 
 private:

@@ -376,7 +376,7 @@ public:
   bool addRule(Rule *rule);
   const std::vector<Rule *> getRules() const { return rules; }
 
-private:
+protected:
   typedef llvm::SmallVector<const llvm::Function *, 20> InitFuns;
 
   legacy::PassManager *PM;
