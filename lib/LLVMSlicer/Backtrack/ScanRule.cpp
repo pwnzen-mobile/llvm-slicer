@@ -71,6 +71,7 @@ void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<R
         
             Rule *tmp_r = new Rule(scanrule["name"].get<std::string>(), Constraint::STRICT, ChainConstraint::OR);
             std::vector<Rule*> tmp_pre;
+            tmp_r->setRuleDescription(scanrule["description"].get<std::string>());
             if(scanrule["method_name"].is_string()){
                 Parameter::ParameterType type = Parameter::PRE;
                 tmp_r->addCriterion(

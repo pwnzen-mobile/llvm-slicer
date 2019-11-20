@@ -709,6 +709,26 @@ bool checkIfInOnePath(Path *prev, Path *trace) {
   return false;
 }
 
+void HTMLReportPrinter::addScanResult(Rule* target_rule,std::set<std::pair<std::string,std::string>> call_map){
+  static unsigned ruleCounter = 0;
+  ruleCounter++;
+  file_out<< "<div id = \"rule :" << ruleCounter << "\">\n";
+  file_out << "<h1 data-toggle=\"collapse\" href=\"#rule" << ruleCounter
+           << "body\">" << target_rule->getRuleTitle() << "</h1>\n";
+  
+
+  file_out << "<div class=\"collapse in   \" id=\"rule" << ruleCounter
+           << "body\">\n";
+  file_out << "<h3 >"<< "description: "<< target_rule->getRuleDescription()<<"</h2>\n";
+  for(auto &call_pair : call_map){
+    file_out << "<div >";
+    file_out << call_pair.first<<" is called at : " << call_pair.second <<"</div>\n"; 
+  }
+
+  file_out<<"</div>";
+  file_out<<"</div>";
+}
+
 void HTMLReportPrinter::addResults(
     Rule *rule, const Rule::CompletePathResultList_t &results) {
 

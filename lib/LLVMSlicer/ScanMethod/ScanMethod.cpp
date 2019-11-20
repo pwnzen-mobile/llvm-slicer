@@ -197,13 +197,13 @@ void ScanStaticSlicer::ruleIteration() {
   errs() << "Found " << initFuns.size() << " initial criterions\n";
 
   initFuns.clear();
-  
+
 }
 
 void ScanStaticSlicer::computeSlice() {
-  while (ruleWorklist.size()) {
+  
     ruleIteration();
-  }
+
 }
 
 
@@ -241,64 +241,62 @@ bool ScanMethod::runOnModule(Module &M) {
   using llvm::slicing::Rule;
   std::vector<Rule*> c_rule;
   std::vector<Rule*> objc_rule; 
+  std::multimap<Rule*,std::pair<std::string,std::string>> c_function_call;
   llvm::slicing::parseScanRules(&c_rule, &objc_rule);
 
-  ptr::PointsToSets *PS = new ptr::PointsToSets();
-  {
-    ptr::ProgramStructure P(M);
-    errs() << "[i]first ProgramStructure\n";
-    computePointsToSets(P, *PS, c_rule);
-  }
-
-  callgraph::Callgraph CG(M, *PS);
-  /*
-  dont know weather the cg works write ;
-   */
-  for (auto &rule : c_rule) {
-    for (auto &criterion : rule->getCriterions()) {
-      std::string function_name = criterion.second.first.getFunctionName();
-      Function* tmp_fun = M.getFunction(function_name);
-      llvm::callgraph::Callgraph::range_iterator callees_range = CG.directCallees(tmp_fun);
-      for(auto call_pair = callees_range.first; call_pair!= callees_range.second; call_pair++){
-        errs()<<"fun : "<<call_pair->second->getName()<<" call fun: "<<function_name<<"\n";
-      }
-    }
-  }
   for(auto tmp_fun = M.begin();tmp_fun != M.end(); tmp_fun++){
     for(auto tmp_bb = tmp_fun->begin(); tmp_bb != tmp_fun->end(); tmp_bb++){
       for(auto tmp_inst = tmp_bb->begin(); tmp_inst!=tmp_bb->end();tmp_inst++){
         if(tmp_inst->getOpcode() == Instruction::Call){
-          SimpleCallGraph::FunctionSet_t calledFunctions = ptr::getSimpleCallGraph().getCalled(&*tmp_inst);
+          
           CallInst* tmp_call_inst = dyn_cast<CallInst>(tmp_inst);
-          //if(tmp_call_inst->getCalledFunction()->getName()!)
+          if(tmp_call_inst->getCalledFunction()==nullptr){
+            continue;
+          }
+          if(tmp_call_inst->getCalledFunction()->hasName()==false){
+            continue;
+          }
+          if(tmp_call_inst->getCalledFunction()->getName()=="objc_msgSend"){
+            continue;
+          }
+          for (auto &tmp_rule : c_rule) {
+            for (auto &tmp_criterion : tmp_rule->getCriterions()) {
+                if(tmp_criterion.second.first.getFunctionName() == tmp_call_inst->getCalledFunction()->getName()){
+                  errs()<<"function called at "<<tmp_fun->getName()<<"\n";
+                  c_function_call.insert({tmp_rule,std::make_pair(tmp_call_inst->getCalledFunction()->getName(),tmp_fun->getName())});
+                }
+            }
+          }
         }
       }
     }
   }
 
-  mods::Modifies MOD;
-  {
-    mods::ProgramStructure P1(M, *PS);
-    errs() << "[i]second programStructure\n";
-    computeModifies(P1, CG, *PS, MOD);
-  }
-  errs() << "done\n";
-  /* 
-  for (auto &r : rules) {
-    if (r->getParentRuleTitle().size()) {
-      for (auto &r2 : rules) {
-        if (r2->getRuleTitle() == r->getParentRuleTitle()) {
-          r->setParentRule(r2);
-        }
-      }
+  if(objc_rule.size()!=0){
+    ptr::PointsToSets *PS = new ptr::PointsToSets();
+    {
+      ptr::ProgramStructure P(M);
+      errs() << "[i]first ProgramStructure\n";
+      computePointsToSets(P, *PS, c_rule);
     }
+    callgraph::Callgraph CG(M, *PS);
+    mods::Modifies MOD;
+    {
+      mods::ProgramStructure P1(M, *PS);
+      errs() << "[i]second programStructure\n";
+      computeModifies(P1, CG, *PS, MOD);
+    }
+    errs() << "done\n";
+  
+
+    slicing::ScanStaticSlicer SSS(this, M, (*PS), CG, MOD, objc_rule);
+    SSS.computeSlice();
+
+    free(PS);
   }
-  */
+  
 
-  slicing::ScanStaticSlicer SSS(this, M, (*PS), CG, MOD, objc_rule);
-  SSS.computeSlice();
-
-  free(PS);
+  
   //bool s = SSS.sliceModule();
 
   raw_fd_ostream *report_stream = nullptr;
@@ -314,11 +312,33 @@ bool ScanMethod::runOnModule(Module &M) {
 
   llvm::slicing::HTMLReportPrinter reportPrinter(report_stream ? *report_stream
                                                                : nulls());
-  for (auto &rule : SSS.getRules()) {
-    errs() << "Print results of \"" << rule->getRuleTitle() << "\"\n";
-    const Rule::CompletePathResultList_t &results = rule->getResults();
-    errs() << results.size() << " paths\n";
-    reportPrinter.addResults(rule, results);
+  for (auto &rule : objc_rule) {
+    errs()<<"print scan obj rule : \n";
+    std::set<std::pair<std::string,std::string>> rule_call_map;
+    for (auto &cr_inst : rule->getInitialInstruction()){
+      const Instruction* tmp_inst = cr_inst.first.first;
+      errs()<<"initial instruction : ";
+      tmp_inst->print(errs());
+      errs()<<"\n";
+      SimpleCallGraph::FunctionSet_t calledFunctions = ptr::getSimpleCallGraph().getCalled(tmp_inst);
+      for(auto tmp_fun : calledFunctions){
+        if(tmp_fun == "objc_msgSend"){
+          continue;
+        }
+        rule_call_map.insert(std::make_pair(tmp_inst->getParent()->getParent()->getName(),tmp_fun));
+      }
+      
+    }
+    reportPrinter.addScanResult(rule,rule_call_map);
+  }
+  for (auto &rule : c_rule){
+    errs()<<"print c_rule:\n";
+    std::set<std::pair<std::string,std::string>> rule_call_map;
+    auto range = c_function_call.equal_range(rule);
+    for(auto pair = range.first; pair != range.second; pair++){
+      rule_call_map.insert(pair->second);
+    }
+    reportPrinter.addScanResult(rule,rule_call_map);
   }
   reportPrinter.close();
 

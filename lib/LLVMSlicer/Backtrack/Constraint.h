@@ -179,6 +179,9 @@ public:
   void setIsCMethod(bool C){
     is_C_method = C;
   }
+  std::string getRuleDescription(){
+    return ruleDescription;
+  }
   /*
   add by -death end 
    */
@@ -250,6 +253,7 @@ class HTMLReportPrinter {
 public:
   HTMLReportPrinter(raw_ostream &file_out);
   void addResults(Rule *rule, const Rule::CompletePathResultList_t &results);
+  void addScanResult(Rule *rule, std::set<std::pair<std::string,std::string>>);
   void close();
 
 private:
