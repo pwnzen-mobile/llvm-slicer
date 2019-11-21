@@ -3261,12 +3261,38 @@ void anonymous_3001(llvm::Instruction *CallInst, Andersen *andersen){
 add by -death  end
  */
 
+/*
+add by -death
+ handle the -[NSFileManager attributesOfItemAtPath:error:] method , 
+ */
+void anonymous_3100(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "-[NSFileManager attributesOfItemAtPath:error:]"
+   { // Alloc operation
+    DetectParametersPass::UserSet_t Post =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto Post_it = Post.begin(); Post_it != Post.end(); ++Post_it) {
+      NodeIndex valIndex = andersen->getNodeFactory().getValueNodeFor(*Post_it);
+      if (valIndex == AndersNodeFactory::InvalidIndex)
+        valIndex = andersen->getNodeFactory().createValueNode(*Post_it);
+      NodeIndex objIndex =
+          andersen->getNodeFactory().getObjectNodeFor(*Post_it);
+      if (objIndex == AndersNodeFactory::InvalidIndex)
+        objIndex = andersen->getNodeFactory().createObjectNode(*Post_it);
+      andersen->setType(*Post_it, "NSDictionary");
+      andersen->addConstraint(AndersConstraint::ADDR_OF, valIndex, objIndex);
+    }
+  }
+}
+/*
+add by -death  end
+ */
 
 bool canHandleCall(const std::string &FName) {
   /*
   add by -death
   */
-  if (FName == "objc_alloc")
+  if (FName == "-[NSFileManager attributesOfItemAtPath:error:]")
     return true;
   if (FName == "random")
     return true;
@@ -3622,6 +3648,14 @@ bool canHandleCall(const std::string &FName) {
     return true;
   if (FName == "objc_terminate")
     return true;
+  /*
+  add by -death
+   */
+  if (FName == "objc_alloc")
+    return true;
+  /*
+  add by -death end 
+   */
   if (FName == "open")
     return true;
   if (FName == "read")
@@ -3666,8 +3700,8 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
     anonymous_2047(CallInst, andersen);
     return true;
   }
-  if (FName == "objc_alloc"){
-    anonymous_3001(CallInst, andersen);
+  if (FName == "-[NSFileManager attributesOfItemAtPath:error:]"){
+    anonymous_3100(CallInst, andersen);
     return true;
   }
   /*
@@ -4358,6 +4392,16 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
     anonymous_965(CallInst, andersen);
     return true;
   }
+  /*
+  add by -death
+   */
+  if (FName == "objc_alloc"){
+    anonymous_3001(CallInst, andersen);
+    return true;
+  }
+  /*
+  add by -death end 
+   */
   return false;
 }
 
