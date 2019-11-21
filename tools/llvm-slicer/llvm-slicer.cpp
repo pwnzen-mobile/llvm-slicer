@@ -28,6 +28,7 @@
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/LLVMSlicer/StaticSlicer.h"
+#include "llvm/ScanMethod/ScanMethod.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/PassManager.h"
 #include <llvm/IR/NoFolder.h>
@@ -115,6 +116,8 @@ int main(int argc, char **argv) {
 //    PM->add(new DetectParametersPass());
 //    PM->add(new StackAccessPass());
 
+    ScanMethod *scan_method = new ScanMethod();
+    PM->add(scan_method);
     Slicer *slicer = new Slicer();
     PM->add(slicer);
 
