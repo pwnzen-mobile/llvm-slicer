@@ -126,6 +126,7 @@ bool Andersen::runOnModule(Module &M) {
     {
         for (auto &fun : M) {
             this->getInitTargetFunctions().push_back(&fun);
+            this->try_to_collect_constraint(&fun);
         }
         errs() << "[i]Functions size: " << this->getInitTargetFunctions().size() << "\n";
     }
