@@ -356,10 +356,15 @@ bool objcMsgSend::run(const Instruction *CallInst, std::string &F,
       if (ClassMethod && ClassName.size()) {
         if (SelectorName == "alloc" || SelectorName == "new" ||
             SelectorName == "allocWithZone:") {
+          std::string tmp_str = StringRef("+[").str() + ClassName.str() + StringRef(" ").str() +
+                             SelectorName.str() + StringRef("]").str();
+          StringRef AllocMethod = StringRef(tmp_str);
+          /*
           StringRef AllocMethod =
               (StringRef("+[") + ClassName + StringRef(" ") + SelectorName +
                StringRef("]"))
                   .str();
+          */
           if (!andersen->getCallGraph().containtsEdge(CallInst, AllocMethod)) {
             //                        errs() << AllocMethod << "\n";
             andersen->getCallGraph().addCallEdge(CallInst, AllocMethod);
@@ -437,9 +442,12 @@ void objcMsgSend::handleCall(StringRef ClassName, StringRef MethodName,
 
   if (Meta && (MethodName == "alloc" || MethodName == "new" ||
                MethodName == "allocWithZone:")) {
-    StringRef AllocMethod = (StringRef("+[") + ClassName + StringRef(" ") +
+    std::string tmp_str = StringRef("+[").str() + ClassName.str() + StringRef(" ").str() +
+                             MethodName.str() + StringRef("]").str();
+    StringRef AllocMethod = StringRef(tmp_str);
+    /*StringRef AllocMethod = (StringRef("+[") + ClassName + StringRef(" ") +
                              MethodName + StringRef("]"))
-                                .str();
+                                .str();*/
     if (!andersen->getCallGraph().containtsEdge(CallInst, AllocMethod)) {
       //                        errs() << AllocMethod << "\n";
       andersen->getCallGraph().addCallEdge(CallInst, AllocMethod);
@@ -1151,9 +1159,12 @@ bool MsgSendSuper::run(const Instruction *CallInst, std::string &F,
         StringRef ClassName = CallHandlerBase::getClassname(
             CallInst->getParent()->getParent()->getName());
 
-        StringRef AllocMethod = (StringRef("+[") + ClassName + StringRef(" ") +
+        std::string tmp_str = StringRef("+[").str() + ClassName.str() + StringRef(" ").str() +
+                             MethodName.str() + StringRef("]").str();
+        StringRef AllocMethod = StringRef(tmp_str);
+        /*StringRef AllocMethod = (StringRef("+[") + ClassName + StringRef(" ") +
                                  MethodName + StringRef("]"))
-                                    .str();
+                                    .str();*/
         if (!andersen->getCallGraph().containtsEdge(CallInst, AllocMethod)) {
           //                        errs() << AllocMethod << "\n";
           andersen->getCallGraph().addCallEdge(CallInst, AllocMethod);
