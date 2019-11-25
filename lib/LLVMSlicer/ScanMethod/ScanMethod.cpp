@@ -117,7 +117,7 @@ bool ScanStaticSlicer::addRule(Rule *rule) {
 }
 
 ScanStaticSlicer::~ScanStaticSlicer() {
-  for (Slicers::const_iterator I = slicers.begin(), E = slicers.end(); I != E;
+   for (Slicers::const_iterator I = slicers.begin(), E = slicers.end(); I != E;
        ++I)
     delete I->second;
 }
@@ -241,8 +241,11 @@ bool ScanMethod::runOnModule(Module &M) {
   using llvm::slicing::Rule;
   std::vector<Rule*> c_rule;
   std::vector<Rule*> objc_rule; 
+  std::set<Rule*> need_call_c_rule;
+  std::set<Rule*> need_exist_rule;
   std::multimap<Rule*,std::pair<std::string,std::string>> c_function_call;
-  llvm::slicing::parseScanRules(&c_rule, &objc_rule);
+  std::set<std::string> not_exist_function;
+  llvm::slicing::parseScanRules(&c_rule, &objc_rule, &need_call_c_rule, &need_exist_rule);
 
   for(auto tmp_fun = M.begin();tmp_fun != M.end(); tmp_fun++){
     for(auto tmp_bb = tmp_fun->begin(); tmp_bb != tmp_fun->end(); tmp_bb++){
@@ -262,8 +265,15 @@ bool ScanMethod::runOnModule(Module &M) {
           for (auto &tmp_rule : c_rule) {
             for (auto &tmp_criterion : tmp_rule->getCriterions()) {
                 if(tmp_criterion.second.first.getFunctionName() == tmp_call_inst->getCalledFunction()->getName()){
-                  errs()<<"function called at "<<tmp_fun->getName()<<"\n";
+                  //errs()<<"function called at "<<tmp_fun->getName()<<"\n";
                   c_function_call.insert({tmp_rule,std::make_pair(tmp_call_inst->getCalledFunction()->getName(),tmp_fun->getName())});
+                }
+            }
+          }
+          for (auto &tmp_rule : need_call_c_rule){
+            for (auto &tmp_criterion : tmp_rule->getCriterions()){
+              if(tmp_criterion.second.first.getFunctionName() == tmp_call_inst->getCalledFunction()->getName()){
+                  need_call_c_rule.erase(tmp_rule);
                 }
             }
           }
@@ -271,13 +281,23 @@ bool ScanMethod::runOnModule(Module &M) {
       }
     }
   }
-
+  for (auto &tmp_rule : need_exist_rule){
+    for(auto &tmp_criterion : tmp_rule->getCriterions()){
+      Function* target_function = M.getFunction(tmp_criterion.second.first.getFunctionName());
+      if(target_function!=nullptr){
+        if (target_function->isDeclaration() || target_function->isIntrinsic())
+            continue;
+        need_exist_rule.erase(tmp_rule);
+      }
+    }
+  }
+ 
   if(objc_rule.size()!=0){
     ptr::PointsToSets *PS = new ptr::PointsToSets();
     {
       ptr::ProgramStructure P(M);
       errs() << "[i]first ProgramStructure\n";
-      computePointsToSets(P, *PS, c_rule);
+      computePointsToSets(P, *PS, objc_rule);
     }
     callgraph::Callgraph CG(M, *PS);
     mods::Modifies MOD;
@@ -314,6 +334,9 @@ bool ScanMethod::runOnModule(Module &M) {
                                                                : nulls());
   for (auto &rule : objc_rule) {
     errs()<<"print scan obj rule : \n";
+    if (rule->needCall()==true){
+      continue;
+    }
     std::set<std::pair<std::string,std::string>> rule_call_map;
     for (auto &cr_inst : rule->getInitialInstruction()){
       const Instruction* tmp_inst = cr_inst.first.first;
@@ -325,7 +348,7 @@ bool ScanMethod::runOnModule(Module &M) {
         if(tmp_fun == "objc_msgSend"){
           continue;
         }
-        rule_call_map.insert(std::make_pair(tmp_inst->getParent()->getParent()->getName(),tmp_fun));
+        rule_call_map.insert(std::make_pair(tmp_fun,tmp_inst->getParent()->getParent()->getName()));
       }
       
     }
@@ -339,6 +362,16 @@ bool ScanMethod::runOnModule(Module &M) {
       rule_call_map.insert(pair->second);
     }
     reportPrinter.addScanResult(rule,rule_call_map);
+  }
+  for (auto &rule : need_exist_rule){
+    reportPrinter.addScanExistResult(rule);
+  }
+  for (auto &rule : need_call_c_rule){
+    reportPrinter.addScanNeedCallResult(rule);
+  }
+  for (auto &rule : objc_rule){
+    if(rule->needCall() == false) continue;
+    reportPrinter.addScanNeedCallResult(rule);
   }
   reportPrinter.close();
 

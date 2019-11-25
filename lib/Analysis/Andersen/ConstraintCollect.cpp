@@ -200,7 +200,7 @@ void Andersen::collectConstraints(Module &M) {
         f->getName() == "-[AppDelegate window]")
       continue;
 
-    errs() << "Process function: \"" << f->getName() << "\"\n";
+    //errs() << "Process function: \"" << f->getName() << "\"\n";
 
     // Scan the function body
     // A visitor pattern might help modularity, but it needs more boilerplate

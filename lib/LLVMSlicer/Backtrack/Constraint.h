@@ -182,6 +182,12 @@ public:
   std::string getRuleDescription(){
     return ruleDescription;
   }
+  bool needCall(){
+    return need_call;
+  }
+  void setNeedCall(bool need){
+    need_call = need;
+  }
   /*
   add by -death end 
    */
@@ -193,6 +199,7 @@ private:
    */
   std::string ruleDescription;
   bool is_C_method;
+  bool need_call;
   /*
   add by -death end 
    */
@@ -254,6 +261,8 @@ public:
   HTMLReportPrinter(raw_ostream &file_out);
   void addResults(Rule *rule, const Rule::CompletePathResultList_t &results);
   void addScanResult(Rule *rule, std::set<std::pair<std::string,std::string>>);
+  void addScanExistResult(Rule*);
+  void addScanNeedCallResult(Rule*);
   void close();
 
 private:

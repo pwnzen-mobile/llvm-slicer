@@ -27,7 +27,8 @@ uint64_t getX0Reg() {
 
 
 
-void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<Rule*>* objc_rule_vec) {
+void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<Rule*>* objc_rule_vec, 
+        std::set<Rule*>* need_call_c_rule_vec, std::set<Rule*>* need_exist_rule_vec) {
     if (ScanRulesFile.size() == 0) {
         errs() << "No scan rule specified\n";
         llvm_unreachable("No scan rules specified");
@@ -51,7 +52,8 @@ void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<R
         if(scanrule.find("name")==scanrule.end() || 
             scanrule.find("description")==scanrule.end() || 
             scanrule.find("method_type")==scanrule.end() || 
-            scanrule.find("method_name")==scanrule.end()){
+            scanrule.find("method_name")==scanrule.end() ||
+            scanrule.find("rule_type")==scanrule.end()){
                 errs()<<"rule file is not correct\n";
                 llvm_unreachable("malformed");
             }
@@ -65,6 +67,10 @@ void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<R
         }
         if(!scanrule["description"].is_string()){
             errs()<<"description is not a string\n";
+            llvm_unreachable("malformed");
+        }
+        if(!scanrule["rule_type"].is_string()){
+            errs()<<"rule type is not a string\n";
             llvm_unreachable("malformed");
         }
         
@@ -90,11 +96,38 @@ void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<R
                 errs()<<"method name is not correct\n";
                 llvm_unreachable("malformed");
             }
+            if(scanrule["rule_type"].is_string()){
+                if(scanrule["rule_type"].get<std::string>()=="needCall"){
+                    tmp_r->setNeedCall(true);
+                }
+                else{
+                    tmp_r->setNeedCall(false);
+                }
+            }
         if(scanrule["method_type"].get<string>()=="C"){
-            c_rule_vec->push_back(tmp_r);
+            if(tmp_r->needCall()==true){
+                need_call_c_rule_vec->insert(tmp_r);
+            }
+            else{
+                if(scanrule["rule_type"].get<string>()=="needExist"){
+                    need_exist_rule_vec->insert(tmp_r);
+                }
+                else{
+                    c_rule_vec->push_back(tmp_r);
+                }
+                
+            }
+            
         }
         else{
-            objc_rule_vec->push_back(tmp_r);
+            
+            if(scanrule["rule_type"].get<string>()=="needExist"){
+                need_exist_rule_vec->insert(tmp_r);
+            }
+            else{
+                objc_rule_vec->push_back(tmp_r);
+            }
+            
         }
         
     }
