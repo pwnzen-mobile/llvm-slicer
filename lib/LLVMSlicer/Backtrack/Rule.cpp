@@ -75,18 +75,21 @@ Rule *parseRule(json &rule, bool precondition) {
     Rule *r = new Rule(rule["name"].get<string>(), Constraint::STRICT, ChainConstraint::OR);
     vector<Rule*> preConditions;
 
-    /*
+     /*
     add by -death
      */
     if(rule.find("description")==rule.end()){
         errs()<<"rule no description\n";
-        return nullptr;
+        //return nullptr;
     }
-    if(rule["description"].is_string()==false){
-        errs()<<"rule description not true\n";
-        return nullptr;
+    else{
+        if(rule["description"].is_string()==false){
+            errs()<<"rule description not true\n";
+            return nullptr;
+        }
+        r->setRuleDescription(rule["description"].get<string>());
     }
-    r->setRuleDescription(rule["description"].get<string>());
+    
     /*
     add by -death end 
      */
