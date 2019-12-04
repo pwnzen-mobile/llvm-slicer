@@ -782,6 +782,14 @@ void HTMLReportPrinter::addResults(
   file_out << "<div class=\"collapse in   \" id=\"rule" << ruleCounter
            << "body\">\n";
 
+  /*
+  add by -death
+  */
+   file_out << "<h3 >"<< "description: "<< rule->getRuleDescription()<<"</h3>\n";
+  /*
+  add by -death end
+  */
+
   typedef std::pair<const Value *, const Value *> ValuePair_t;
   typedef std::set<ValuePair_t> ValuePairSet_t;
 
