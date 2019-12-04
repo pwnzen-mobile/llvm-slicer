@@ -421,7 +421,12 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
       ClassPtr->setSuperclass(Name.substr(MetaClass ? strlen(OBJC_METACLASS_ID)
                                                     : strlen(OBJC_CLASS_ID)));
     } else {
-      assert(false);
+      /*
+      mod by death to test
+       */
+     // ClassPtr->setSuperclass("NSObject");
+     // assert(true);
+      //assert(false);
     }
   } else {
     uint64_t SuperData =
@@ -605,7 +610,15 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
   }
 
   assert((MetaClass ^ ISA) && "A metaclass can't have an ISA pointer!?");
-  if (ISA && isAddressInSection(ISA, ObjcDataSection)) {
+  /*
+  modified by -death 
+  repair the ISA points to itself so it will recursively call parseclass;
+  */
+  if (ISA && isAddressInSection(ISA, ObjcDataSection)&(ISA!=DataAddress)){
+  //if (ISA && isAddressInSection(ISA, ObjcDataSection)) {
+  /*
+  modified by -death end
+  */
     parseClass(ISA, true);
   }
 }
