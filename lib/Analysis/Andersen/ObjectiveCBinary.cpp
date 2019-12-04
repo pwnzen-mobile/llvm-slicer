@@ -612,7 +612,7 @@ void ObjectiveCBinary::parseClass(uint64_t DataAddress, bool MetaClass) {
   assert((MetaClass ^ ISA) && "A metaclass can't have an ISA pointer!?");
   /*
   modified by -death 
-  repair the ISA points to itself so it will recursively call parseclass;
+  repair the ISA points to itself so it will recursively call parseclass
   */
   if (ISA && isAddressInSection(ISA, ObjcDataSection)&(ISA!=DataAddress)){
   //if (ISA && isAddressInSection(ISA, ObjcDataSection)) {
