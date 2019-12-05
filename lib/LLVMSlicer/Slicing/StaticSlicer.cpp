@@ -901,10 +901,16 @@ void StaticSlicer::ruleIteration() {
     for (auto &path : rule->getPaths()) {
       if (path->getLast()->getType() == PathElementBase::ConstAddressElement) {
         if (((ConstPathElement *)path->getLast())->shouldCreateNewCriterion()) {
-          assert(true);
-          Rule *newRule = new Rule(*rule, path->getLast()->getElement());
-          if (!addRule(newRule))
-            delete (newRule);
+          /*
+          modified by -death
+          */
+          //assert(true);
+          //Rule *newRule = new Rule(*rule, path->getLast()->getElement());
+          //if (!addRule(newRule))
+            //delete (newRule);
+          /*
+          modified by -death 
+          */
         }
       }
     }
