@@ -313,6 +313,20 @@ std::string ConstPathElement::getValue() const {
                     data = ptr::getAndersen()->getMachO().getRAWData<uint64_t>(address);
                     break;
                 }
+                /*
+                add by -death
+                 */
+                case 8: {
+                    data = ptr::getAndersen()->getMachO().getRAWData<uint8_t>(address);
+                    break;
+                }
+                case 16: {
+                    data = ptr::getAndersen()->getMachO().getRAWData<uint16_t>(address);
+                    break;
+                }
+                /*
+                add by -death end 
+                 */
             }
             std::stringstream ss;
             ss << "Load from 0x" << utohexstr(address) << ": " << data;

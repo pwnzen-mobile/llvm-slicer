@@ -257,6 +257,22 @@ int ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
           constAddress->getZExtValue());
       break;
     }
+    /*
+      add by -death 
+     */
+    case 8: {
+      value = ptr::getAndersen()->getMachO().getRAWData<uint8_t>(
+          constAddress->getZExtValue());
+      break; 
+    }
+    case 16: {
+      value = ptr::getAndersen()->getMachO().getRAWData<uint8_t>(
+          constAddress->getZExtValue());
+      break; 
+    }
+    /*
+      add by -death end 
+     */
     default:
       llvm_unreachable("");
     }
