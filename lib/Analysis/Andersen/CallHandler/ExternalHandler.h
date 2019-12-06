@@ -3292,6 +3292,14 @@ bool canHandleCall(const std::string &FName) {
   /*
   add by -death
   */
+  if (FName == "sqlite3_prepare")
+    return true;
+  if (FName == "sqlite3_prepare_v2")
+    return true;
+  if (FName == "sqlite3_prepare16")
+    return true;
+  if (FName == "sqlite3_prepare16_v2")
+    return true;
   if (FName == "-[NSFileManager attributesOfItemAtPath:error:]")
     return true;
   if (FName == "random")
@@ -3698,6 +3706,20 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
   }
   if (FName == "random"){
     anonymous_2047(CallInst, andersen);
+    return true;
+  }
+  if (FName == "sqlite3_prepare"){
+    return true;
+  }
+  if (FName == "sqlite3_prepare_v2"){
+    return true;
+  }
+  if (FName == "sqlite3_prepare16"){
+    return true;
+  }
+  if (FName == "sqlite3_prepare16_v2"){
+
+    
     return true;
   }
   if (FName == "-[NSFileManager attributesOfItemAtPath:error:]"){
