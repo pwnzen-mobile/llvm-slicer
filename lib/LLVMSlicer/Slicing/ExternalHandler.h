@@ -4298,6 +4298,41 @@ void anonymous_772(llvm::slicing::InsInfo *CallInst,
       CallInst->addDEF(llvm::ptr::PointsToSets::Pointee(*DefRegs_it, -1));
     }
   } // End Def
+  /*
+  add by -death to handle slicing stringwith format
+  */
+  { // Ref
+    DetectParametersPass::UserSet_t RefRegs =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X2"), (Instruction *)CallInst->getIns());
+    for (auto RefRegs_it = RefRegs.begin(); RefRegs_it != RefRegs.end();
+         ++RefRegs_it) {
+      CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1));
+    }
+  } // End ref
+  { // Ref1
+    DetectParametersPass::UserSet_t RefRegs;
+    {
+      DetectParametersPass::UserSet_t Src =
+          DetectParametersPass::getRegisterValuesBeforeCall(
+              translateRegister("X2"), (Instruction *)CallInst->getIns());
+      for (auto S : Src) {
+        const ptr::PointsToSets::PointsToSet &PtsTo =
+            ptr::getPointsToSet(S, PS); // get points to sets
+        for (auto &P : PtsTo) {
+          assert(isa<const User>(P.first));
+          RefRegs.insert((User *)P.first);
+        }
+      }
+    }
+    for (auto RefRegs_it = RefRegs.begin(); RefRegs_it != RefRegs.end();
+         ++RefRegs_it) {
+      CallInst->addREF(llvm::ptr::PointsToSets::Pointee(*RefRegs_it, -1), 1.0);
+    }
+  } // End Ref1
+  /*
+  add by -death end 
+  */
 }
 
 void anonymous_773(llvm::slicing::InsInfo *CallInst,
