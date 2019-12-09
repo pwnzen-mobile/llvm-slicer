@@ -176,17 +176,35 @@ public:
   void setRuleDescription(std::string des){
     ruleDescription = des;
   }
+  void setRuleLevel(std::string level){
+    ruleLevel = level;
+  }
+  void setRuleRepairSug(std::string repair_sug){
+    ruleRepairSug = repair_sug;
+  }
   void setIsCMethod(bool C){
     is_C_method = C;
   }
   std::string getRuleDescription(){
     return ruleDescription;
   }
+  std::string getRuleLevel(){
+    return ruleLevel;
+  }
+  std::string getRuleRepairSug(){
+    return ruleRepairSug;
+  }
   bool needCall(){
     return need_call;
   }
   void setNeedCall(bool need){
     need_call = need;
+  }
+  void setReversed(bool reversed){
+    RuleReversed = reversed;
+  }
+  void getReversed(){
+    return RuleReversed;
   }
   /*
   add by -death end 
@@ -198,8 +216,12 @@ private:
   add by -death
    */
   std::string ruleDescription;
+  std::string ruleLevel;
+  std::string ruleRepairSug;
   bool is_C_method;
   bool need_call;
+  bool RuleReversed;
+
   /*
   add by -death end 
    */

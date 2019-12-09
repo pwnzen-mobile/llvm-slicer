@@ -89,7 +89,41 @@ Rule *parseRule(json &rule, bool precondition) {
         }
         r->setRuleDescription(rule["description"].get<string>());
     }
-    
+    if(rule.find("spcialtype")==rule.end()){
+        r->setReversed = false;
+    }
+    else{
+        if(rule["specialtype"].is_string() == false){
+            errs()<<" rule level is not a string\n";
+            return nullptr;
+        }
+        if(rule["specialtype"].get<string>()=="true"){
+            r->setReversed = true;
+        }
+        else{
+            r->setReversed = false;
+        }
+    }
+    if(rule.find("level")==rule.end()){
+        errs()<<"rule no level\n";
+    }
+    else{
+        if(rule["level"].is_string() == false){
+            errs()<<" rule level is not a string\n";
+            return nullptr;
+        }
+        r->setRuleLevel(rule["level"].get<string>());
+    }
+    if(rule.find("repair_suggest")==rule.end()){
+        errs()<<"rule no level\n";
+    }
+    else{
+        if(rule["repair_suggest"].is_string() == false){
+            errs()<<" rule level is not a string\n";
+            return nullptr;
+        }
+        r->setRuleLevel(rule["repair_suggest"].get<string>());
+    }
     /*
     add by -death end 
      */

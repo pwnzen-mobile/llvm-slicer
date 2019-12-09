@@ -776,6 +776,8 @@ void HTMLReportPrinter::addScanResult(Rule* target_rule,std::set<std::pair<std::
   file_out << "<div class=\"collapse in   \" id=\"rule" << ruleCounter
            << "body\">\n";
   file_out << "<h3 >"<< "description: "<< target_rule->getRuleDescription()<<"</h3>\n";
+  file_out << "<h4>"<<" level : "<<target_rule->getRuleLevel()<<"</h4>\n";
+  file_out << "<h4>"<<" repair suggestion : "<<target_rule->getRuleRepairSug()<<"</h4>\n";
   for(auto &call_pair : call_map){
     file_out << "<div >";
     file_out << call_pair.first<<" is called at : " << call_pair.second <<"</div>\n"; 
@@ -802,6 +804,8 @@ void HTMLReportPrinter::addResults(
   add by -death
   */
    file_out << "<h3 >"<< "description: "<< rule->getRuleDescription()<<"</h3>\n";
+  file_out << "<h4>"<<" level : "<<target_rule->getRuleLevel()<<"</h4>\n";
+  file_out << "<h4>"<<" repair suggestion : "<<target_rule->getRuleRepairSug()<<"</h4>\n";
   /*
   add by -death end
   */
@@ -812,6 +816,17 @@ void HTMLReportPrinter::addResults(
   ValuePairSet_t printed;
 
   for (auto &r : results) {
+    if(rule->getReversed()==true){
+      if(r.first.first!=Rule::VALID){
+        continue;
+      }
+    }
+    else{
+      if(r.first.first!=Rule::ERROR){
+        continue;
+      }
+    }
+    
     if (PrintSameUseDef) {
       ValuePair_t pair(r.first.second->getEntry()->getElement(),
                        r.first.second->getLast()->getElement());
