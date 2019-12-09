@@ -804,8 +804,8 @@ void HTMLReportPrinter::addResults(
   add by -death
   */
    file_out << "<h3 >"<< "description: "<< rule->getRuleDescription()<<"</h3>\n";
-  file_out << "<h4>"<<" level : "<<target_rule->getRuleLevel()<<"</h4>\n";
-  file_out << "<h4>"<<" repair suggestion : "<<target_rule->getRuleRepairSug()<<"</h4>\n";
+  file_out << "<h4>"<<" level : "<<rule->getRuleLevel()<<"</h4>\n";
+  file_out << "<h4>"<<" repair suggestion : "<<rule->getRuleRepairSug()<<"</h4>\n";
   /*
   add by -death end
   */

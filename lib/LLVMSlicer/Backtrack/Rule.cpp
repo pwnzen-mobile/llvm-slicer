@@ -90,7 +90,7 @@ Rule *parseRule(json &rule, bool precondition) {
         r->setRuleDescription(rule["description"].get<string>());
     }
     if(rule.find("spcialtype")==rule.end()){
-        r->setReversed = false;
+        r->setReversed(false);
     }
     else{
         if(rule["specialtype"].is_string() == false){
@@ -98,10 +98,10 @@ Rule *parseRule(json &rule, bool precondition) {
             return nullptr;
         }
         if(rule["specialtype"].get<string>()=="true"){
-            r->setReversed = true;
+            r->setReversed(true);
         }
         else{
-            r->setReversed = false;
+            r->setReversed(false);
         }
     }
     if(rule.find("level")==rule.end()){

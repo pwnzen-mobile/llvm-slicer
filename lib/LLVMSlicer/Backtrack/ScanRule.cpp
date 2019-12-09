@@ -78,25 +78,25 @@ void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<R
         Rule *tmp_r = new Rule(scanrule["name"].get<std::string>(), Constraint::STRICT, ChainConstraint::OR);
         std::vector<Rule*> tmp_pre;
         tmp_r->setRuleDescription(scanrule["description"].get<std::string>());
-        if(scanrule.find("level")==rule.end()){
+        if(scanrule.find("level")==scanrule.end()){
             errs()<<"rule no level\n";
         }
         else{
             if(scanrule["level"].is_string() == false){
                 errs()<<" rule level is not a string\n";
-                return nullptr;
+                llvm_unreachable("malformed");
             }
-            tmp_r->setRuleLevel(rule["level"].get<string>());
+            tmp_r->setRuleLevel(scanrule["level"].get<string>());
         }
-        if(scanrule.find("repair_suggest")==rule.end()){
+        if(scanrule.find("repair_suggest")==scanrule.end()){
             errs()<<"rule no level\n";
         }
         else{
             if(scanrule["repair_suggest"].is_string() == false){
                 errs()<<" rule level is not a string\n";
-                return nullptr;
+                llvm_unreachable("malformed");
             }
-            tmp_r->setRuleLevel(rule["repair_suggest"].get<string>());
+            tmp_r->setRuleLevel(scanrule["repair_suggest"].get<string>());
         }
         
             if(scanrule["method_name"].is_string()){

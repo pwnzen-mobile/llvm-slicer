@@ -203,7 +203,7 @@ public:
   void setReversed(bool reversed){
     RuleReversed = reversed;
   }
-  void getReversed(){
+  bool getReversed(){
     return RuleReversed;
   }
   /*
