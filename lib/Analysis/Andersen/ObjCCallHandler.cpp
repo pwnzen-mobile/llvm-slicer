@@ -1,7 +1,7 @@
 #include "llvm/Analysis/Andersen/ObjCCallHandler.h"
 #include <llvm/IR/Value.h>
 #include <memory>
-
+#include "llvm/Analysis/Andersen/Andersen.h"
 #include "llvm/IR/CallSite.h"
 #include "llvm/Support/ManagedStatic.h"
 
@@ -63,6 +63,17 @@ bool CallHandlerManager::handleFunctionCall(const Instruction *CallInst,
         return true;
     }
   }
+  /*
+  add by -death 
+  to handle external function call  if the call is not handler
+  */
+  if (!andersen->getCallGraph().containtsEdge(CallInst, F)){
+     andersen->getCallGraph().addCallEdge(CallInst, F);
+  }
+ 
+  /*
+  add by -death end 
+  */
   return false;
 }
 

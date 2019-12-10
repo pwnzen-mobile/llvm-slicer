@@ -3287,11 +3287,43 @@ void anonymous_3100(llvm::Instruction *CallInst, Andersen *andersen){
 /*
 add by -death  end
  */
+/*
+add by -death 
+handle +[RPScreenRecorder sharedRecorder]
+copy x0 to x0 
+*/
+void anonymous_3200(llvm::Instruction *CallInst, Andersen *andersen){
+  // Handle "+[RPScreenRecorder sharedRecorder]"
+   { // Copy operation
+    DetectParametersPass::UserSet_t From =
+        DetectParametersPass::getRegisterValuesBeforeCall(
+            translateRegister("X0"), CallInst);
+    DetectParametersPass::UserSet_t To =
+        DetectParametersPass::getRegisterValuesAfterCall(
+            translateRegister("X0"), CallInst);
+    for (auto From_it = From.begin(); From_it != From.end(); ++From_it) {
+      NodeIndex srcIdx = andersen->getNodeFactory().getValueNodeFor(*From_it);
+      if (srcIdx == AndersNodeFactory::InvalidIndex)
+        srcIdx = andersen->getNodeFactory().createValueNode(*From_it);
+      for (auto To_it = To.begin(); To_it != To.end(); ++To_it) {
+        NodeIndex dstIdx = andersen->getNodeFactory().getValueNodeFor(*To_it);
+        if (dstIdx == AndersNodeFactory::InvalidIndex)
+          dstIdx = andersen->getNodeFactory().createValueNode(*To_it);
+        andersen->addConstraint(AndersConstraint::COPY, dstIdx, srcIdx);
+      }
+    }
+  } // end copy
+}
+
 
 bool canHandleCall(const std::string &FName) {
   /*
   add by -death
   */
+  if (FName == "+[RPScreenRecorder sharedRecorder]")
+    return true;
+    if(FName == "+[RPScreenRecorder startRecordingWithHandler:]")
+    return true;
   if (FName == "sqlite3_prepare")
     return true;
   if (FName == "sqlite3_prepare_v2")
@@ -3724,6 +3756,13 @@ bool handleCall(llvm::Instruction *CallInst, Andersen *andersen,
   }
   if (FName == "-[NSFileManager attributesOfItemAtPath:error:]"){
     anonymous_3100(CallInst, andersen);
+    return true;
+  }
+  if (FName == "+[RPScreenRecorder sharedRecorder]" ){
+    anonymous_3200(CallInst,andersen);
+    return true;
+  }
+  if(FName == "+[RPScreenRecorder startRecordingWithHandler:]"){
     return true;
   }
   /*
