@@ -793,6 +793,23 @@ void HTMLReportPrinter::addResults(
   static unsigned ruleCounter = 0;
   static unsigned pathCounter = 0;
   ruleCounter++;
+   int tmp_num=0;
+  for (auto &r : results) {
+    if(rule->getReversed()==true){
+      if(r.first.first!=Rule::VALID){
+        continue;
+      }
+    }
+    else{
+      if(r.first.first!=Rule::ERROR){
+        continue;
+      }
+    }
+    tmp_num++;
+  }
+  if(tmp_num==0){
+    return;
+  }
   file_out << "<div id=\"rule" << ruleCounter << "\">\n";
   file_out << "<h1 data-toggle=\"collapse\" href=\"#rule" << ruleCounter
            << "body\">" << rule->getRuleTitle() << "</h1>\n";
