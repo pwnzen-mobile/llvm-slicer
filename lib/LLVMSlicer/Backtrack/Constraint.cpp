@@ -948,6 +948,13 @@ void HTMLReportPrinter::printPath(Path *path, bool collapsable) {
     if (const Instruction *inst =
             dyn_cast<const Instruction>(current->getElement())) {
       file_out << inst->getParent()->getParent()->getName();
+      auto tmp = inst->getParent()->begin();
+      MDNode* tmp_N = tmp->getMetadata("num");
+
+       if(MDNode* N = inst->getMetadata("num")){
+         file_out << "code add : "<<cast<MDString>(N->getOperand(0))->getString() << " ";
+        //errs()<<"add : "<<cast<MDString>(N->getOperand(0))->getString()<<"\n";
+      }
     }
     file_out << current->getElement() << " ";
     current->getElement()->print(file_out);
