@@ -122,7 +122,7 @@ Rule *parseRule(json &rule, bool precondition) {
             errs()<<" rule level is not a string\n";
             return nullptr;
         }
-        r->setRuleLevel(rule["repair_suggest"].get<string>());
+        r->setRuleRepairSug(rule["repair_suggest"].get<string>());
     }
     /*
     add by -death end 

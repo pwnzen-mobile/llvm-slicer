@@ -96,7 +96,7 @@ void llvm::slicing::parseScanRules(std::vector<Rule*>* c_rule_vec, std::vector<R
                 errs()<<" rule level is not a string\n";
                 llvm_unreachable("malformed");
             }
-            tmp_r->setRuleLevel(scanrule["repair_suggest"].get<string>());
+            tmp_r->setRuleRepairSug(scanrule["repair_suggest"].get<string>());
         }
         
             if(scanrule["method_name"].is_string()){
