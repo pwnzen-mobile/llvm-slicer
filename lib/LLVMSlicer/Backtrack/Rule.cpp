@@ -89,7 +89,7 @@ Rule *parseRule(json &rule, bool precondition) {
         }
         r->setRuleDescription(rule["description"].get<string>());
     }
-    if(rule.find("spcialtype")==rule.end()){
+    if(rule.find("specialtype")==rule.end()){
         r->setReversed(false);
     }
     else{
