@@ -733,7 +733,15 @@ void HTMLReportPrinter::addScanExistResult(Rule* target_rule){
 
   file_out << "<div class=\"collapse in   \" id=\"rule" << ruleCounter
            << "body\">\n";
-  file_out << "<h3 >"<< "description: "<< target_rule->getRuleDescription()<<"</h3>\n";
+  /*
+  add by -death
+  */
+   file_out << "<h3 >"<< "description: "<< target_rule->getRuleDescription()<<"</h3>\n";
+  file_out << "<h4>"<<" level : "<<target_rule->getRuleLevel()<<"</h4>\n";
+  file_out << "<h4>"<<" repair suggestion : "<<target_rule->getRuleRepairSug()<<"</h4>\n";
+  /*
+  add by -death end
+  */
   
   for(auto &tmp_criterion : target_rule->getCriterions()){
     file_out << "<h4> the method "<<tmp_criterion.second.first.getFunctionName()<<" is not exist</h4>";
@@ -755,7 +763,15 @@ void HTMLReportPrinter::addScanNeedCallResult(Rule* target_rule){
   file_out << "<div class=\"collapse in   \" id=\"rule" << ruleCounter
            << "body\">\n";
   file_out << "<h3 >"<< "description: "<< target_rule->getRuleDescription()<<"</h3>\n";
-  
+  /*
+  add by -death
+  */
+  file_out << "<h4>"<<" level : "<<target_rule->getRuleLevel()<<"</h4>\n";
+  file_out << "<h4>"<<" repair suggestion : "<<target_rule->getRuleRepairSug()<<"</h4>\n";
+  /*
+  add by -death end
+  */
+
   for(auto &tmp_criterion : target_rule->getCriterions()){
     file_out << "<h4> the method "<<tmp_criterion.second.first.getFunctionName()<<" is not called</h4>";
   }
@@ -789,10 +805,6 @@ void HTMLReportPrinter::addScanResult(Rule* target_rule,std::set<std::pair<std::
 
 void HTMLReportPrinter::addResults(
     Rule *rule, const Rule::CompletePathResultList_t &results) {
-
-  static unsigned ruleCounter = 0;
-  static unsigned pathCounter = 0;
-  ruleCounter++;
    int tmp_num=0;
   for (auto &r : results) {
     if(rule->getReversed()==true){
@@ -810,6 +822,9 @@ void HTMLReportPrinter::addResults(
   if(tmp_num==0){
     return;
   }
+  static unsigned ruleCounter = 0;
+  static unsigned pathCounter = 0;
+  ruleCounter++;
   file_out << "<div id=\"rule" << ruleCounter << "\">\n";
   file_out << "<h1 data-toggle=\"collapse\" href=\"#rule" << ruleCounter
            << "body\">" << rule->getRuleTitle() << "</h1>\n";

@@ -352,6 +352,9 @@ bool ScanMethod::runOnModule(Module &M) {
       }
       
     }
+       if(rule_call_map.size()==0){
+      continue;
+    }
     reportPrinter.addScanResult(rule,rule_call_map);
   }
   for (auto &rule : c_rule){
