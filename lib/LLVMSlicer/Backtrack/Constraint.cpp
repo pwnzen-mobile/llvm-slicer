@@ -315,6 +315,19 @@ int ConstConstraint::checkConstraint(PathElementBase *pathElement) const {
       } else if (ptr::getAndersen()->getMachO().isData(addr)) {
         ptr::getAndersen()->getMachO().getData(addr, ref);
       }
+      /*
+      add by -death 
+      */
+      if(ref.empty()==true){
+        if (compare == IN)
+        return 0;
+      else if (compare == NOTIN)
+        return 3;
+
+      }
+      /*
+      add by -death to handle this bug
+      */
       if (find(strings.begin(), strings.end(), ref.data()) != strings.end()) {
         if (compare == IN)
           return 3;
